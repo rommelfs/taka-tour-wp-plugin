@@ -123,8 +123,7 @@
     "trier-kinderseminar": {
       "subtitle": "子どもセミナー",
       "description": "TAKA European Tour の一環として Trier で行う子どもセミナー。",
-      "type": "子どもセミナー",
-      "image_caption": "Trier 子どもセミナー"
+      "type": "子どもセミナー"
     },
     "konz": {
       "subtitle": "Konz セミナー",

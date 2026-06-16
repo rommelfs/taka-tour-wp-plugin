@@ -12,9 +12,6 @@ $pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar );
 	<h3><?php echo esc_html( $seminar['title'] ); ?></h3>
 	<p class="taka-subtitle"><?php echo esc_html( $seminar['subtitle'] ); ?></p>
 	<p><?php echo esc_html( $seminar['description'] ); ?></p>
-	<?php if ( ! empty( $seminar['image'] ) ) : ?>
-		<figure class="taka-seminar-image"><img src="<?php echo esc_url( $seminar['image'] ); ?>" alt="<?php echo esc_attr( $seminar['image_caption'] ?? $seminar['title'] ); ?>"><figcaption><?php echo esc_html( taka_tour_translate( 'seminars.' . $seminar['slug'] . '.image_caption', $seminar['image_caption'] ?? $seminar['title'] ) ); ?></figcaption></figure>
-	<?php endif; ?>
 	<dl class="taka-details"><div><dt><?php echo esc_html( taka_tour_translate( 'seminar.format_label', 'Format' ) ); ?></dt><dd><?php echo esc_html( $seminar['type'] ); ?></dd></div><div><dt><?php echo esc_html( taka_tour_translate( 'seminar.host_label', 'Gastgeber' ) ); ?></dt><dd><?php echo esc_html( $seminar['hosts'] ); ?></dd></div></dl>
 	<?php if ( '' !== $pretix_event_url ) : ?>
 		<div class="taka-seminar-pretix">

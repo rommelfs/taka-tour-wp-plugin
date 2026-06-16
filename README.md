@@ -19,6 +19,10 @@ German is the master language. Translations are static JSON files in `translatio
 
 ## Changelog
 
+### v0.7.4
+
+- Refined gallery layout, removed duplicate image sections, fixed language dropdown click behavior, updated Taka portrait and completed seminar-card translations.
+
 ### v0.7.3
 
 - Replaced country-name language selector with compact icon/flag language bar and dropdowns for Belgium and Luxembourg.

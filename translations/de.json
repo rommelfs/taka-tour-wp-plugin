@@ -123,8 +123,7 @@
     "trier-kinderseminar": {
       "subtitle": "Kinderseminar",
       "description": "Kinderseminar in Trier im Rahmen der TAKA European Tour.",
-      "type": "Kinderseminar",
-      "image_caption": "Kinderseminar Trier"
+      "type": "Kinderseminar"
     },
     "konz": {
       "subtitle": "Konz Seminar",

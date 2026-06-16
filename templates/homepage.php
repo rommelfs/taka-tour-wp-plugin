@@ -26,7 +26,6 @@ defined( 'ABSPATH' ) || exit;
 			<p><?php echo esc_html( taka_tour_translate( 'sections.community.text', 'Ein europäisches Treffen für ernsthaftes Training und respektvollen Austausch.' ) ); ?></p>
 		</div>
 	</section>
-	<section class="taka-section taka-community-photo"><figure><img src="<?php echo esc_url( $images['group_large'] ); ?>" alt="<?php echo esc_attr( taka_tour_translate( 'gallery.cards.group.title', 'Gruppenfoto' ) ); ?>"><figcaption><?php echo esc_html( taka_tour_translate( 'gallery.cards.group.text', 'Gemeinschaft über Dojo- und Landesgrenzen hinweg.' ) ); ?></figcaption></figure></section>
 	<section class="taka-section taka-host taka-host-section">
 		<div class="taka-centered-section-inner">
 			<p class="taka-kicker"><?php echo esc_html( taka_tour_translate( 'sections.host.kicker', 'Gastgeber' ) ); ?></p>

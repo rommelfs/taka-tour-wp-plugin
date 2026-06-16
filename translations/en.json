@@ -123,8 +123,7 @@
     "trier-kinderseminar": {
       "subtitle": "Kinderseminar",
       "description": "Children’s seminar in Trier as part of the TAKA European Tour.",
-      "type": "Children’s seminar",
-      "image_caption": "Children’s seminar Trier"
+      "type": "Children’s seminar"
     },
     "konz": {
       "subtitle": "Konz seminar",
@@ -133,7 +132,7 @@
     },
     "saarwellingen": {
       "subtitle": "Saarwellingen seminar",
-      "description": "Final seminar der Tourstationen in der Region.",
+      "description": "Final seminar of the regional tour stops.",
       "type": "Seminar"
     }
   }

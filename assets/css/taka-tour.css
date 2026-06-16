@@ -264,7 +264,7 @@
 
 .taka-editorial-gallery__grid {
 	display: grid;
-	grid-template-columns: 1.2fr .8fr;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: clamp(1rem, 2vw, 1.5rem);
 }
 
@@ -277,9 +277,6 @@
 	border: 1px solid rgba(199, 163, 92, .35);
 }
 
-.taka-editorial-card--wide {
-	grid-row: span 3;
-}
 
 .taka-editorial-card__image {
 	display: block;
@@ -485,7 +482,6 @@
 	transform: translateX(-50%);
 }
 
-.taka-language-dropdown:hover .taka-language-dropdown-menu,
 .taka-language-dropdown.is-open .taka-language-dropdown-menu {
 	display: grid;
 	gap: .15rem;
@@ -513,9 +509,7 @@
 	align-items: center;
 }
 
-.taka-sensei-portrait,
-.taka-community-photo figure,
-.taka-seminar-image {
+.taka-sensei-portrait {
 	margin: 0;
 }
 
@@ -525,9 +519,7 @@
 	border-left: 6px solid #BC002D;
 }
 
-.taka-sensei-portrait img,
-.taka-community-photo img,
-.taka-seminar-image img {
+.taka-sensei-portrait img {
 	display: block;
 	width: 100%;
 	aspect-ratio: 4 / 3;
@@ -535,25 +527,9 @@
 	object-position: center;
 }
 
-.taka-community-photo {
-	padding-top: 0;
-	background: #F7F3EC;
-}
 
-.taka-community-photo img {
-	aspect-ratio: 16 / 7;
-}
 
-.taka-community-photo figcaption,
-.taka-seminar-image figcaption {
-	margin-top: .65rem;
-	color: #6F6F6F;
-	font-weight: 800;
-}
 
-.taka-seminar-image {
-	margin: 1rem 0;
-}
 
 @media (max-width: 900px) {
 	.taka-language-menu {
@@ -566,7 +542,4 @@
 		grid-template-columns: 1fr;
 	}
 
-	.taka-community-photo img {
-		aspect-ratio: 4 / 3;
-	}
 }
