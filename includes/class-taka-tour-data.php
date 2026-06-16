@@ -19,7 +19,7 @@ class Taka_Tour_Data {
 			array( 'slug' => 'belgium', 'country' => 'Belgium', 'flag' => '🇧🇪', 'date' => '19. September 2026', 'title' => 'Belgium', 'subtitle' => 'Belgium Seminar', 'type' => 'Halbtagseminar', 'hosts' => 'Filip, Jos', 'description' => 'Seminar geplant von 10:00 bis 13:00 Uhr.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
 			array( 'slug' => 'illange', 'country' => 'Luxembourg', 'flag' => '🇱🇺', 'date' => '21. September 2026', 'title' => 'Illange', 'subtitle' => 'Illange Seminar', 'type' => 'Seminar', 'hosts' => 'Details folgen', 'description' => 'Seminarstation in Luxemburg.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
 			array( 'slug' => 'hosingen', 'country' => 'Luxembourg', 'flag' => '🇱🇺', 'date' => '22. September 2026', 'title' => 'Hosingen', 'subtitle' => 'Hosingen Seminar', 'type' => 'Seminar', 'hosts' => 'Details folgen', 'description' => 'Seminarstation in Luxemburg.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'trier-kinderseminar', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26. September 2026', 'title' => 'Trier Kinderseminar', 'subtitle' => 'Kinderseminar', 'type' => 'Kinderseminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Kinderseminar in Trier im Rahmen der TAKA European Tour.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakids/', 'enabled' => true ), 'languages' => null, 'ticket_status' => 'Tickets verfügbar' ),
+			array( 'slug' => 'trier-kinderseminar', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26. September 2026', 'title' => 'Trier Kinderseminar', 'subtitle' => 'Kinderseminar', 'type' => 'Kinderseminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Kinderseminar in Trier im Rahmen der TAKA European Tour.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakids/', 'enabled' => true ), 'image' => self::images()['kids_group'], 'image_caption' => 'Kinderseminar Trier', 'languages' => null, 'ticket_status' => 'Tickets verfügbar' ),
 			array( 'slug' => 'konz', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26.–27. September 2026', 'title' => 'Konz', 'subtitle' => 'Konz Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Zwei Tage Seminar in Konz mit Takafumi Nakayama Sensei.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakonz/', 'enabled' => true ), 'languages' => null, 'ticket_status' => 'Tickets verfügbar' ),
 			array( 'slug' => 'saarwellingen', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '28. September 2026', 'title' => 'Saarwellingen', 'subtitle' => 'Saarwellingen Seminar', 'type' => 'Seminar', 'hosts' => 'Patrick Haak', 'description' => 'Abschlussseminar der Tourstationen in der Region.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
 		);
@@ -35,6 +35,9 @@ class Taka_Tour_Data {
 			'hero_image'     => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-hero.jpg',
 			'group_image'    => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-group.jpg',
 			'portrait_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-portrait.jpg',
+			'group_large'    => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Foto-04.10.23-20-02-21-scaled-1.jpg',
+			'kids_group'     => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kids-Seminar-Trier.jpeg',
+			'taka_portrait'  => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Taka-Tour-2023-Berlin-Foto-30.09.23-17-00-52-1-scaled-1.jpg',
 			'kobudo'         => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kobudo-Seminar-Trier-e1781607374996.jpeg',
 			'community_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gruppe-trier-2025.jpg',
 			'together_practice' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gemeinsam-2025.jpg',
@@ -55,6 +58,8 @@ class Taka_Tour_Data {
 			array( 'id' => 'kobudo', 'title' => 'Kobudo', 'text' => 'Bo-Arbeit, Distanz und Timing.', 'image' => $images['kobudo'] ),
 			array( 'id' => 'softblock', 'title' => 'Soft Blocking', 'text' => 'Weiche Struktur statt roher Kraft.', 'image' => $images['softblock'] ),
 			array( 'id' => 'together', 'title' => 'Gemeinsam üben', 'text' => 'Lernen durch Beobachten, Austausch und Wiederholung.', 'image' => $images['together_practice'] ),
+			array( 'id' => 'kids', 'title' => 'Kinderseminar', 'text' => 'Kinderseminar Trier', 'image' => $images['kids_group'] ),
+			array( 'id' => 'group', 'title' => 'Gruppenfoto', 'text' => 'Gemeinschaft über Dojo- und Landesgrenzen hinweg.', 'image' => $images['group_large'], 'wide' => true ),
 		);
 	}
 

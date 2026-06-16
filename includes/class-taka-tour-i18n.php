@@ -56,14 +56,32 @@ class Taka_Tour_I18n {
 
 	public function get_language_switcher_items() {
 		return array(
-			array( 'code' => 'de', 'label' => '🇩🇪 Deutsch' ),
-			array( 'code' => 'en', 'label' => '🇬🇧 English' ),
-			array( 'code' => 'nl', 'label' => '🇧🇪 België' ),
-			array( 'code' => 'fr', 'label' => '🇧🇪 Belgique' ),
-			array( 'code' => 'de', 'label' => '🇧🇪 Belgien' ),
-			array( 'code' => 'lb', 'label' => '🇱🇺 Lëtzebuergesch' ),
-			array( 'code' => 'fi', 'label' => '🇫🇮 Suomi' ),
-			array( 'code' => 'ja', 'label' => '🇯🇵 日本語' ),
+			array( 'type' => 'link', 'code' => 'en', 'icon' => '🌍', 'label' => 'International – English' ),
+			array( 'type' => 'link', 'code' => 'de', 'icon' => '🇩🇪', 'label' => 'Deutschland – Deutsch' ),
+			array( 'type' => 'link', 'code' => 'fr', 'icon' => '🇫🇷', 'label' => 'France – Français' ),
+			array( 'type' => 'link', 'code' => 'nl', 'icon' => '🇳🇱', 'label' => 'Nederland – Nederlands' ),
+			array(
+				'type' => 'dropdown',
+				'icon' => '🇧🇪',
+				'label' => 'Belgien – Sprache wählen',
+				'items' => array(
+					array( 'code' => 'nl', 'label' => 'Nederlands' ),
+					array( 'code' => 'fr', 'label' => 'Français' ),
+					array( 'code' => 'de', 'label' => 'Deutsch' ),
+				),
+			),
+			array(
+				'type' => 'dropdown',
+				'icon' => '🇱🇺',
+				'label' => 'Luxemburg – Sprache wählen',
+				'items' => array(
+					array( 'code' => 'lb', 'label' => 'Lëtzebuergesch' ),
+					array( 'code' => 'fr', 'label' => 'Français' ),
+					array( 'code' => 'de', 'label' => 'Deutsch' ),
+				),
+			),
+			array( 'type' => 'link', 'code' => 'fi', 'icon' => '🇫🇮', 'label' => 'Suomi – Finnisch' ),
+			array( 'type' => 'link', 'code' => 'ja', 'icon' => '🇯🇵', 'label' => '日本 – Japanese' ),
 		);
 	}
 

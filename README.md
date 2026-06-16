@@ -19,6 +19,10 @@ German is the master language. Translations are static JSON files in `translatio
 
 ## Changelog
 
+### v0.7.3
+
+- Replaced country-name language selector with compact icon/flag language bar and dropdowns for Belgium and Luxembourg.
+
 ### v0.7.1
 
 - Replaced runtime translation concept with static JSON translations, added Dutch, French, Luxembourgish, Finnish and Japanese, and improved language switcher labels.

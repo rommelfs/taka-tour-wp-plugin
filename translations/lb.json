@@ -43,6 +43,14 @@
       "together": {
         "title": "Zesumme üben",
         "text": "Léieren duerch Kucken, Austausch a Widderhuelung."
+      },
+      "kids": {
+        "title": "Kannerseminar",
+        "text": "Kannerseminar Trier"
+      },
+      "group": {
+        "title": "Gruppefoto",
+        "text": "Gemeinschaft iwwer Dojo- a Landesgrenzen eraus."
       }
     }
   },
@@ -115,7 +123,8 @@
     "trier-kinderseminar": {
       "subtitle": "Kannerseminar",
       "description": "Kannerseminar zu Trier am Kader vun der TAKA European Tour.",
-      "type": "Kannerseminar"
+      "type": "Kannerseminar",
+      "image_caption": "Kannerseminar Trier"
     },
     "konz": {
       "subtitle": "Konz Seminar",

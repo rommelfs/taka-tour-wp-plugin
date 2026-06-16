@@ -43,6 +43,14 @@
       "together": {
         "title": "Yhdessä harjoittelu",
         "text": "Oppimista havainnoinnin, vaihdon ja toiston kautta."
+      },
+      "kids": {
+        "title": "Lasten seminaari",
+        "text": "Lasten seminaari Trierissä"
+      },
+      "group": {
+        "title": "Ryhmäkuva",
+        "text": "Yhteisö yli dojo- ja maarajojen."
       }
     }
   },
@@ -115,7 +123,8 @@
     "trier-kinderseminar": {
       "subtitle": "Lasten seminaari",
       "description": "Lasten seminaari Trierissä osana TAKA European Touria.",
-      "type": "Lasten seminaari"
+      "type": "Lasten seminaari",
+      "image_caption": "Lasten seminaari Trierissä"
     },
     "konz": {
       "subtitle": "Konz-seminaari",
