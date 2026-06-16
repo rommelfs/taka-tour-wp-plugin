@@ -224,6 +224,17 @@
 	color: #111111;
 }
 
+.taka-pretix-widget {
+	padding: .75rem;
+	background: #ffffff;
+	border: 1px solid rgba(17, 17, 17, .08);
+}
+
+.taka-pretix-widget pretix-widget {
+	display: block;
+	max-width: 100%;
+}
+
 .pretix-widget button,
 .pretix-widget .btn {
 	border-radius: 2px !important;
