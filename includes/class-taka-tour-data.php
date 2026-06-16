@@ -25,6 +25,19 @@ class Taka_Tour_Data {
 		);
 	}
 
+	/**
+	 * Get plugin-managed image URLs.
+	 *
+	 * @return array
+	 */
+	public static function images() {
+		return array(
+			'hero_image'     => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-hero.jpg',
+			'group_image'    => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-group.jpg',
+			'portrait_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-portrait.jpg',
+		);
+	}
+
 	public static function ticketed_seminars() {
 		return array_values( array_filter( self::seminars(), static fn( $seminar ) => ! empty( $seminar['pretix_url'] ) ) );
 	}

@@ -11,6 +11,6 @@ WordPress plugin for the TAKA European Tour 2026 website. It provides modular te
 
 ## Changelog
 
-### v0.6.0
+### v0.6.2
 
 - Refactor to modular plugin structure, equal seminar cards, per-card pretix integration, Europe map, kanso sponsor section.
