@@ -41,6 +41,8 @@ function taka_tour_allowed_html() {
 		'br'     => array(),
 		'em'     => array(),
 		'strong' => array(),
-		'span'   => array( 'class' => array() ),
+		'span'          => array( 'class' => array() ),
+		'pretix-widget' => array( 'event' => array() ),
 	);
+
 }

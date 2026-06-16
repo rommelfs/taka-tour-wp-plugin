@@ -11,6 +11,10 @@ WordPress plugin for the TAKA European Tour 2026 website. It provides modular te
 
 ## Changelog
 
+### v0.6.6
+
+- Restored working embedded Pretix widgets in seminar cards.
+
 ### v0.6.5
 
 - Added editorial real-image gallery, removed empty placeholders, refined homepage flow and image handling.
