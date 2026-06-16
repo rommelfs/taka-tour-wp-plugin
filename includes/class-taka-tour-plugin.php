@@ -20,10 +20,12 @@ class Taka_Tour_Plugin {
 		$this->renderer = new Taka_Tour_Renderer();
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_shortcode_assets' ), 20 );
+		add_action( 'wp_head', array( $this, 'print_hreflang_links' ) );
 		add_shortcode( 'taka_homepage', array( $this->renderer, 'homepage' ) );
 		add_shortcode( 'taka_tour_schedule', array( $this->renderer, 'tour_schedule' ) );
 		add_shortcode( 'taka_tickets', array( $this->renderer, 'tickets' ) );
 		add_shortcode( 'taka_sponsor', array( $this->renderer, 'sponsor' ) );
+		add_shortcode( 'taka_language_switcher', array( $this->renderer, 'language_switcher' ) );
 	}
 
 	public function register_assets() {
@@ -51,7 +53,7 @@ class Taka_Tour_Plugin {
 			return;
 		}
 
-		$shortcodes = array( 'taka_homepage', 'taka_tour_schedule', 'taka_tickets', 'taka_sponsor' );
+		$shortcodes = array( 'taka_homepage', 'taka_tour_schedule', 'taka_tickets', 'taka_sponsor', 'taka_language_switcher' );
 		$matches    = array_filter(
 			$shortcodes,
 			static function ( $shortcode ) use ( $post ) {
@@ -69,6 +71,20 @@ class Taka_Tour_Plugin {
 		if ( has_shortcode( $post->post_content, 'taka_homepage' ) || has_shortcode( $post->post_content, 'taka_tour_schedule' ) || has_shortcode( $post->post_content, 'taka_tickets' ) ) {
 			wp_enqueue_style( 'taka-tour-pretix' );
 			wp_enqueue_script( 'taka-tour-pretix' );
+		}
+	}
+	/**
+	 * Print simple query-parameter hreflang links.
+	 *
+	 * @return void
+	 */
+	public function print_hreflang_links() {
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		foreach ( Taka_Tour_Translator::languages() as $lang ) {
+			echo '<link rel="alternate" hreflang="' . esc_attr( $lang ) . '" href="' . esc_url( add_query_arg( 'taka_lang', $lang ) ) . '" />' . "\n";
 		}
 	}
 }

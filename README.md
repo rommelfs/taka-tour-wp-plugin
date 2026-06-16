@@ -9,7 +9,23 @@ WordPress plugin for the TAKA European Tour 2026 website. It provides modular te
 - `[taka_tickets]` renders the standalone Konz Pretix ticket block.
 - `[taka_sponsor]` renders the kanso sponsor section.
 
+## Multilingual support
+
+Supported query-parameter languages: `?taka_lang=de`, `en`, `nl`, `fr`, `lb`, `fi`. If no language is set, the plugin checks `HTTP_ACCEPT_LANGUAGE` and falls back to German.
+
+Use `[taka_language_switcher]` to render language links. `[taka_homepage]` also includes the switcher in the hero.
+
+German is the master language. Manual overrides live in `Taka_Tour_Data::manual_translations()`. Automatic translation is DeepL-ready and lazy-cached in options named `taka_tour_translation_{lang}_{hash}`. Configure the API key with the `taka_tour_deepl_api_key` option or the `taka_tour_deepl_api_key` filter. Luxemburgish (`lb`) intentionally falls back to German for now and is marked for manual translation.
+
 ## Changelog
+
+### v0.7.0
+
+- Added internal multilingual architecture with language switcher, translation keys, DeepL-ready auto-translation cache and country-based language suggestions.
+
+### v0.6.7
+
+- Fixed visible embedded Pretix widgets by separating seminar widgets from legacy panel styling.
 
 ### v0.6.6
 

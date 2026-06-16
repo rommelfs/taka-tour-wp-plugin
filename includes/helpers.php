@@ -46,3 +46,24 @@ function taka_tour_allowed_html() {
 	);
 
 }
+
+/**
+ * Translate a plain-text value for the active TAKA Tour language.
+ *
+ * @param string      $key      Translation key.
+ * @param string      $fallback German fallback text.
+ * @param string|null $lang     Optional language code.
+ * @return string
+ */
+function taka_tour_translate( $key, $fallback, $lang = null ) {
+	return Taka_Tour_Translator::translate( $key, $fallback, $lang );
+}
+
+/**
+ * Return the active TAKA Tour language.
+ *
+ * @return string
+ */
+function taka_tour_current_language() {
+	return Taka_Tour_Translator::current_language();
+}

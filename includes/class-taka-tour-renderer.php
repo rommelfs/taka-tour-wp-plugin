@@ -19,13 +19,13 @@ class Taka_Tour_Renderer {
 	public function homepage() {
 		$this->enqueue_base();
 		$this->enqueue_pretix();
-		return taka_tour_render_template( 'homepage.php', array( 'seminars' => Taka_Tour_Data::seminars() ) );
+		return taka_tour_render_template( 'homepage.php', array( 'seminars' => Taka_Tour_Data::seminars_for_language() ) );
 	}
 
 	public function tour_schedule() {
 		$this->enqueue_base();
 		$this->enqueue_pretix();
-		return taka_tour_render_template( 'tour-schedule.php', array( 'seminars' => Taka_Tour_Data::seminars() ) );
+		return taka_tour_render_template( 'tour-schedule.php', array( 'seminars' => Taka_Tour_Data::seminars_for_language() ) );
 	}
 
 	public function tickets() {
@@ -37,5 +37,10 @@ class Taka_Tour_Renderer {
 	public function sponsor() {
 		$this->enqueue_base();
 		return taka_tour_render_template( 'sponsor.php' );
+	}
+
+	public function language_switcher() {
+		$this->enqueue_base();
+		return taka_tour_render_template( 'partials/language-switcher.php' );
 	}
 }

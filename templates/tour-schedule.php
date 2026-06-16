@@ -1,7 +1,7 @@
 <?php defined( 'ABSPATH' ) || exit; ?>
 <section class="taka-section taka-tour-overview" id="tour">
-	<p class="taka-kicker"><?php echo esc_html__( 'European Tour', 'taka-tour' ); ?></p>
-	<h2><?php echo esc_html__( 'Seminare in Europa', 'taka-tour' ); ?></h2>
+	<p class="taka-kicker"><?php echo esc_html( taka_tour_translate( 'tour.kicker', 'European Tour' ) ); ?></p>
+	<h2><?php echo esc_html( taka_tour_translate( 'tour.headline', 'Seminare in Europa' ) ); ?></h2>
 </section>
 <section class="taka-section taka-seminars" id="seminare">
 	<div class="taka-card-grid">

@@ -13,15 +13,15 @@ class Taka_Tour_Data {
 	 */
 	public static function seminars() {
 		return array(
-			array( 'slug' => 'helsinki', 'country' => 'Finland', 'flag' => '🇫🇮', 'date' => '29.–30. August 2026', 'title' => 'Helsinki', 'subtitle' => 'Helsinki Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Patrik, Olga, Timo', 'description' => 'Zwei Tage Seminar in Helsinki.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'berlin', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '5.–6. September 2026', 'title' => 'Berlin', 'subtitle' => 'Berlin Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Details folgen', 'description' => 'Zwei Tage Seminar in Berlin.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'netherlands', 'country' => 'Netherlands', 'flag' => '🇳🇱', 'date' => '12.–13. September 2026', 'title' => 'Netherlands', 'subtitle' => 'Netherlands Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Marcel, Dmitri, Albert', 'description' => 'Zwei Tage Seminar in den Niederlanden.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'belgium', 'country' => 'Belgium', 'flag' => '🇧🇪', 'date' => '19. September 2026', 'title' => 'Belgium', 'subtitle' => 'Belgium Seminar', 'type' => 'Halbtagseminar', 'hosts' => 'Filip, Jos', 'description' => 'Seminar geplant von 10:00 bis 13:00 Uhr.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'illange', 'country' => 'Luxembourg', 'flag' => '🇱🇺', 'date' => '21. September 2026', 'title' => 'Illange', 'subtitle' => 'Illange Seminar', 'type' => 'Seminar', 'hosts' => 'Details folgen', 'description' => 'Seminarstation in Luxemburg.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'hosingen', 'country' => 'Luxembourg', 'flag' => '🇱🇺', 'date' => '22. September 2026', 'title' => 'Hosingen', 'subtitle' => 'Hosingen Seminar', 'type' => 'Seminar', 'hosts' => 'Details folgen', 'description' => 'Seminarstation in Luxemburg.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
-			array( 'slug' => 'trier-kinderseminar', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26. September 2026', 'title' => 'Trier Kinderseminar', 'subtitle' => 'Kinderseminar', 'type' => 'Kinderseminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Kinderseminar in Trier im Rahmen der TAKA European Tour.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakids/', 'enabled' => true ), 'ticket_status' => 'Tickets verfügbar' ),
-			array( 'slug' => 'konz', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26.–27. September 2026', 'title' => 'Konz', 'subtitle' => 'Konz Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Zwei Tage Seminar in Konz mit Takafumi Nakayama Sensei.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakonz/', 'enabled' => true ), 'ticket_status' => 'Tickets verfügbar' ),
-			array( 'slug' => 'saarwellingen', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '28. September 2026', 'title' => 'Saarwellingen', 'subtitle' => 'Saarwellingen Seminar', 'type' => 'Seminar', 'hosts' => 'Patrick Haak', 'description' => 'Abschlussseminar der Tourstationen in der Region.', 'pretix' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'helsinki', 'country' => 'Finland', 'flag' => '🇫🇮', 'date' => '29.–30. August 2026', 'title' => 'Helsinki', 'subtitle' => 'Helsinki Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Patrik, Olga, Timo', 'description' => 'Zwei Tage Seminar in Helsinki.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'berlin', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '5.–6. September 2026', 'title' => 'Berlin', 'subtitle' => 'Berlin Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Details folgen', 'description' => 'Zwei Tage Seminar in Berlin.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'netherlands', 'country' => 'Netherlands', 'flag' => '🇳🇱', 'date' => '12.–13. September 2026', 'title' => 'Netherlands', 'subtitle' => 'Netherlands Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Marcel, Dmitri, Albert', 'description' => 'Zwei Tage Seminar in den Niederlanden.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'belgium', 'country' => 'Belgium', 'flag' => '🇧🇪', 'date' => '19. September 2026', 'title' => 'Belgium', 'subtitle' => 'Belgium Seminar', 'type' => 'Halbtagseminar', 'hosts' => 'Filip, Jos', 'description' => 'Seminar geplant von 10:00 bis 13:00 Uhr.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'illange', 'country' => 'Luxembourg', 'flag' => '🇱🇺', 'date' => '21. September 2026', 'title' => 'Illange', 'subtitle' => 'Illange Seminar', 'type' => 'Seminar', 'hosts' => 'Details folgen', 'description' => 'Seminarstation in Luxemburg.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'hosingen', 'country' => 'Luxembourg', 'flag' => '🇱🇺', 'date' => '22. September 2026', 'title' => 'Hosingen', 'subtitle' => 'Hosingen Seminar', 'type' => 'Seminar', 'hosts' => 'Details folgen', 'description' => 'Seminarstation in Luxemburg.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
+			array( 'slug' => 'trier-kinderseminar', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26. September 2026', 'title' => 'Trier Kinderseminar', 'subtitle' => 'Kinderseminar', 'type' => 'Kinderseminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Kinderseminar in Trier im Rahmen der TAKA European Tour.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakids/', 'enabled' => true ), 'languages' => null, 'ticket_status' => 'Tickets verfügbar' ),
+			array( 'slug' => 'konz', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '26.–27. September 2026', 'title' => 'Konz', 'subtitle' => 'Konz Seminar', 'type' => '2-Tage-Seminar', 'hosts' => 'Kleiner Wald Dojo', 'description' => 'Zwei Tage Seminar in Konz mit Takafumi Nakayama Sensei.', 'pretix' => array( 'event' => 'https://pretix.eu/kleinerwald/2026takakonz/', 'enabled' => true ), 'languages' => null, 'ticket_status' => 'Tickets verfügbar' ),
+			array( 'slug' => 'saarwellingen', 'country' => 'Germany', 'flag' => '🇩🇪', 'date' => '28. September 2026', 'title' => 'Saarwellingen', 'subtitle' => 'Saarwellingen Seminar', 'type' => 'Seminar', 'hosts' => 'Patrick Haak', 'description' => 'Abschlussseminar der Tourstationen in der Region.', 'pretix' => null, 'languages' => null, 'ticket_status' => 'Ticketshop folgt' ),
 		);
 	}
 
@@ -30,6 +30,27 @@ class Taka_Tour_Data {
 	 *
 	 * @return array
 	 */
+	/**
+	 * Get manual translation overrides.
+	 *
+	 * @return array
+	 */
+	public static function manual_translations() {
+		return array(
+			'en' => array(
+				'hero.kicker' => 'TAKA European Tour 2026',
+				'hero.headline' => 'Harmony in Motion',
+				'hero.text' => 'A European seminar journey with Takafumi Nakayama Sensei – from Helsinki via Berlin, the Netherlands, Belgium and Luxembourg to the Trier/Konz region.',
+				'hero.button_tour' => 'View seminars',
+				'hero.button_tickets' => 'Tickets',
+			),
+			'fr' => array(),
+			'nl' => array(),
+			'fi' => array(),
+			'lb' => array(),
+		);
+	}
+
 	public static function images() {
 		return array(
 			'hero_image'     => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-hero.jpg',
@@ -55,6 +76,29 @@ class Taka_Tour_Data {
 			array( 'title' => 'Kobudo', 'text' => 'Bo-Arbeit, Distanz und Timing.', 'image' => $images['kobudo'] ),
 			array( 'title' => 'Soft Blocking', 'text' => 'Weiche Struktur statt roher Kraft.', 'image' => $images['softblock'] ),
 			array( 'title' => 'Gemeinsam üben', 'text' => 'Lernen durch Beobachten, Austausch und Wiederholung.', 'image' => $images['together_practice'] ),
+		);
+	}
+
+	/**
+	 * Get seminars enriched for the active language.
+	 *
+	 * @param string|null $lang Optional language.
+	 * @return array[]
+	 */
+	public static function seminars_for_language( $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		return array_map(
+			static function ( $seminar ) use ( $lang ) {
+				$slug = $seminar['slug'];
+				$seminar['languages'] = ! empty( $seminar['languages'] ) ? $seminar['languages'] : Taka_Tour_Translator::languages_for_country( $seminar['country'] );
+				$seminar['subtitle'] = taka_tour_translate( 'seminar.' . $slug . '.subtitle', $seminar['subtitle'], $lang );
+				$seminar['description'] = taka_tour_translate( 'seminar.' . $slug . '.description', $seminar['description'], $lang );
+				$seminar['type'] = taka_tour_translate( 'seminar.' . $slug . '.type', $seminar['type'], $lang );
+				$seminar['country_label'] = taka_tour_translate( 'country.' . sanitize_key( $seminar['country'] ), $seminar['country'], $lang );
+				$seminar['ticket_status'] = taka_tour_translate( 'seminar.ticketshop_soon', $seminar['ticket_status'], $lang );
+				return $seminar;
+			},
+			self::seminars()
 		);
 	}
 

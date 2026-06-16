@@ -206,10 +206,12 @@
 	font-weight: 800;
 }
 
-.taka-pretix-panel {
-	margin-top: 1rem;
-	padding-top: 1rem;
-	border-top: 1px solid rgba(17, 17, 17, .12);
+.taka-seminar-pretix {
+	display: block;
+	margin-top: 2rem;
+	padding: 1.25rem;
+	background: #ffffff;
+	border-top: 6px solid #BC002D;
 }
 
 .taka-ticket-direct-link {
@@ -425,4 +427,33 @@
 	.taka-details dd {
 		text-align: left;
 	}
+}
+
+.taka-language-switcher {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .4rem;
+	margin-bottom: 1.5rem;
+}
+
+.taka-language-switcher__link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 2.4rem;
+	min-height: 2rem;
+	padding: .25rem .55rem;
+	border: 1px solid rgba(247, 243, 236, .35);
+	color: rgba(255, 255, 255, .78) !important;
+	font-size: .78rem;
+	font-weight: 800;
+	letter-spacing: .08em;
+	text-decoration: none;
+}
+
+.taka-language-switcher__link.is-active,
+.taka-language-switcher__link:hover {
+	border-color: #C7A35C;
+	background: rgba(199, 163, 92, .16);
+	color: #ffffff !important;
 }
