@@ -171,7 +171,11 @@
     "contact": "連絡先",
     "city": "都市",
     "country": "国",
-    "google_maps": "Google Mapsで開く"
+    "google_maps": "Google Mapsで開く",
+    "previous_seminar": "過去のセミナー",
+    "event_photo": "イベント写真",
+    "previous_seminar_photo_alt": "%s 過去のセミナー写真",
+    "organizer_event_photo_alt": "%s イベント写真"
   },
   "country": {
     "france": "フランス"

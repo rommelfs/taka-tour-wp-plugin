@@ -238,6 +238,8 @@ class TAKA_Platform_Data {
 				'image' => self::resolve_attachment_url( $image_id, 'large', (string) get_post_meta( $post->ID, '_taka_image_url', true ) ),
 				'group_image_id' => absint( get_post_meta( $post->ID, '_taka_group_image_id', true ) ),
 				'group_image_url' => self::resolve_attachment_url( absint( get_post_meta( $post->ID, '_taka_group_image_id', true ) ), 'large', (string) get_post_meta( $post->ID, '_taka_group_image_url', true ) ),
+				'past_group_photo_id' => absint( get_post_meta( $post->ID, '_taka_group_image_id', true ) ),
+				'past_group_photo_url' => self::resolve_attachment_url( absint( get_post_meta( $post->ID, '_taka_group_image_id', true ) ), 'large', (string) get_post_meta( $post->ID, '_taka_group_image_url', true ) ),
 				'gallery_image_ids' => self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ),
 				'gallery_urls' => self::attachment_urls( self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ) ),
 				'gallery' => self::attachment_urls( self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ) ),
@@ -268,12 +270,12 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? 0; $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? '' ); $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); return $event; }, $events );
 	}
 
 	/** Global media labels. */
 	public static function global_media_fields() {
-		return array( 'hero_image' => 'Hero image', 'taka_portrait' => 'Taka portrait', 'community_group' => 'Community image', 'kobudo' => 'Kobudo image', 'softblock' => 'Softblock image', 'together_practice' => 'Together practice image', 'kids_group' => 'Kids seminar image', 'kleiner_wald_logo' => 'Kleiner Wald logo', 'sponsor_logo' => 'Sponsor logo' );
+		return array( 'hero_image' => 'Hero image', 'past_group_photo' => 'Past group photo', 'taka_portrait' => 'Taka portrait', 'community_group' => 'Community image', 'kobudo' => 'Kobudo image', 'softblock' => 'Softblock image', 'together_practice' => 'Together practice image', 'kids_group' => 'Kids seminar image', 'kleiner_wald_logo' => 'Kleiner Wald logo', 'sponsor_logo' => 'Sponsor logo' );
 	}
 
 	/** Get global media settings option. */
@@ -284,7 +286,7 @@ class TAKA_Platform_Data {
 
 	/** Get plugin-managed image URLs with attachment-ID override. */
 	public static function images() {
-		$fallbacks = array( 'hero_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-hero.jpg', 'group_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-group.jpg', 'portrait_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-portrait.jpg', 'group_large' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Foto-04.10.23-20-02-21-scaled-1.jpg', 'kids_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kids-Seminar-Trier.jpeg', 'taka_portrait' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Taka-Tour-2023-Berlin-Foto-30.09.23-17-00-52-1-scaled-1-e1781613695325.jpg', 'kobudo' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kobudo-Seminar-Trier-e1781607374996.jpeg', 'community_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gruppe-trier-2025.jpg', 'together_practice' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gemeinsam-2025.jpg', 'softblock' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-softblock-e1781607328699.jpeg', 'kleiner_wald_logo' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Logo-Kleiner-Wald.svg', 'sponsor_logo' => '' );
+		$fallbacks = array( 'hero_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-hero.jpg', 'past_group_photo' => '', 'group_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-group.jpg', 'portrait_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-portrait.jpg', 'group_large' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Foto-04.10.23-20-02-21-scaled-1.jpg', 'kids_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kids-Seminar-Trier.jpeg', 'taka_portrait' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Taka-Tour-2023-Berlin-Foto-30.09.23-17-00-52-1-scaled-1-e1781613695325.jpg', 'kobudo' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kobudo-Seminar-Trier-e1781607374996.jpeg', 'community_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gruppe-trier-2025.jpg', 'together_practice' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gemeinsam-2025.jpg', 'softblock' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-softblock-e1781607328699.jpeg', 'kleiner_wald_logo' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Logo-Kleiner-Wald.svg', 'sponsor_logo' => '' );
 		$settings = self::get_global_media_settings();
 		foreach ( $fallbacks as $key => $url ) { $fallbacks[ $key ] = self::resolve_attachment_url( absint( $settings[ $key . '_id' ] ?? 0 ), 'large', (string) ( $settings[ $key . '_url' ] ?? $url ) ?: $url ); }
 		return $fallbacks;
@@ -414,6 +416,8 @@ class TAKA_Platform_Data {
 			$event['organizer_full'] = is_array( $organizer ) ? $organizer : null;
 			$event['practical_information'] = self::build_practical_information( $event, $organizer, $venue, $lang );
 			$event['info_drawers'] = self::build_info_drawers( $event, $organizer, $venue, $lang );
+			$event['ticket_overview_image'] = self::ticket_overview_image( $event );
+			$event['ticket_overview_image_alt'] = self::ticket_overview_image_alt( $event, $organizer, $lang );
 			return $event;
 		}, self::get_public_events() );
 	}
@@ -425,6 +429,33 @@ class TAKA_Platform_Data {
 
 	/** Get ticketed public events. */
 	public static function ticketed_seminars() { return array_values( array_filter( self::events_for_language(), static fn( $event ) => '' !== self::pretix_event_url( $event ) ) ); }
+
+	/** Resolve the compact ticket overview image without hardcoded template URLs. */
+	private static function ticket_overview_image( $event ) {
+		foreach ( array( 'past_group_photo_url', 'group_image_url', 'image', 'image_url' ) as $key ) {
+			if ( ! empty( $event[ $key ] ) ) {
+				return (string) $event[ $key ];
+			}
+		}
+
+		$images = self::images();
+		return (string) ( $images['past_group_photo'] ?? '' );
+	}
+
+	/** Build meaningful alt text for the ticket overview image. */
+	private static function ticket_overview_image_alt( $event, $organizer, $lang ) {
+		$title = trim( (string) ( $event['title'] ?? '' ) );
+		if ( '' !== $title ) {
+			return sprintf( taka_tour_translate( 'event.previous_seminar_photo_alt', '%s previous seminar photo', $lang ), $title );
+		}
+
+		$organizer_name = is_array( $organizer ) ? trim( (string) ( $organizer['name'] ?? '' ) ) : '';
+		if ( '' !== $organizer_name ) {
+			return sprintf( taka_tour_translate( 'event.organizer_event_photo_alt', '%s event photo', $lang ), $organizer_name );
+		}
+
+		return taka_tour_translate( 'event.event_photo', 'Event photo', $lang );
+	}
 
 	/** Build practical information rows for frontend ticket drawers. */
 	private static function build_practical_information( $event, $organizer, $venue, $lang ) {

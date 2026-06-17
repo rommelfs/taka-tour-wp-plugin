@@ -171,7 +171,11 @@
     "contact": "Yhteyshenkilö",
     "city": "Kaupunki",
     "country": "Maa",
-    "google_maps": "Avaa Google Mapsissa"
+    "google_maps": "Avaa Google Mapsissa",
+    "previous_seminar": "Aiempi seminaari",
+    "event_photo": "Tapahtumakuva",
+    "previous_seminar_photo_alt": "%s aiemman seminaarin kuva",
+    "organizer_event_photo_alt": "%s tapahtumakuva"
   },
   "country": {
     "france": "Ranska"

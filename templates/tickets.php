@@ -21,6 +21,12 @@ defined( 'ABSPATH' ) || exit;
 			?>
 			<div class="taka-tab-panel <?php echo 0 === $index ? 'is-active' : ''; ?>" data-panel="<?php echo esc_attr( $seminar['slug'] ?? $seminar['id'] ?? $index ); ?>">
 				<div class="taka-ticket-summary">
+					<?php if ( ! empty( $seminar['ticket_overview_image'] ) ) : ?>
+						<figure class="taka-ticket-summary__image">
+							<img src="<?php echo esc_url( $seminar['ticket_overview_image'] ); ?>" alt="<?php echo esc_attr( $seminar['ticket_overview_image_alt'] ?? taka_tour_translate( 'event.event_photo', 'Event photo' ) ); ?>" loading="lazy">
+						</figure>
+					<?php endif; ?>
+					<div class="taka-ticket-summary__content">
 					<h3><?php echo esc_html( $seminar['title'] ?? '' ); ?></h3>
 					<div class="taka-ticket-summary__details">
 						<?php foreach ( array( $seminar['date'] ?? '', $time_display, $seminar['venue_name'] ?? '' ) as $summary_value ) : ?>
@@ -28,6 +34,7 @@ defined( 'ABSPATH' ) || exit;
 								<span><?php echo esc_html( $summary_value ); ?></span>
 							<?php endif; ?>
 						<?php endforeach; ?>
+					</div>
 					</div>
 				</div>
 				<?php echo taka_tour_render_template( 'partials/ticket-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '', 'seminar' => $seminar ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

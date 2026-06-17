@@ -171,7 +171,11 @@
     "contact": "Kontakt",
     "city": "Stadt",
     "country": "Land",
-    "google_maps": "In Google Maps öffnen"
+    "google_maps": "In Google Maps öffnen",
+    "previous_seminar": "Früheres Seminar",
+    "event_photo": "Eventfoto",
+    "previous_seminar_photo_alt": "%s – Foto eines früheren Seminars",
+    "organizer_event_photo_alt": "%s – Eventfoto"
   },
   "country": {
     "france": "Frankreich"

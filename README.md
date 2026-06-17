@@ -135,6 +135,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.3.4
+
+- Added optional past event photos to ticket overview cards using event and global media settings.
+
 ### v1.3.3
 
 - Improved ticket detail modal layout, centered organizer and venue information, combined practical venue info and cleaned up ticket card summaries.

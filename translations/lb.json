@@ -171,7 +171,11 @@
     "contact": "Kontakt",
     "city": "Stad",
     "country": "Land",
-    "google_maps": "A Google Maps opmaachen"
+    "google_maps": "A Google Maps opmaachen",
+    "previous_seminar": "Fréiere Seminar",
+    "event_photo": "Eventfoto",
+    "previous_seminar_photo_alt": "%s Foto vun engem fréiere Seminar",
+    "organizer_event_photo_alt": "%s Eventfoto"
   },
   "country": {
     "france": "Frankräich"

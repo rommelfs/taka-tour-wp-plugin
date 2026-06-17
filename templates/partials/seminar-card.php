@@ -20,6 +20,9 @@ $summary_details  = array(
 	<?php if ( ! empty( $seminar['subtitle'] ) ) : ?>
 		<p class="taka-subtitle"><?php echo esc_html( $seminar['subtitle'] ); ?></p>
 	<?php endif; ?>
+	<?php if ( ! empty( $seminar['ticket_overview_image'] ) ) : ?>
+		<figure class="taka-ticket-card-photo"><img src="<?php echo esc_url( $seminar['ticket_overview_image'] ); ?>" alt="<?php echo esc_attr( $seminar['ticket_overview_image_alt'] ?? taka_tour_translate( 'event.event_photo', 'Event photo' ) ); ?>" loading="lazy"></figure>
+	<?php endif; ?>
 	<dl class="taka-details">
 		<?php foreach ( $summary_details as $detail ) : ?>
 			<?php if ( '' === trim( (string) $detail['value'] ) ) : ?>

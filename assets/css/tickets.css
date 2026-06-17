@@ -258,3 +258,48 @@
 	font-weight: 700;
 	padding: .45rem .75rem;
 }
+
+.taka-ticket-summary {
+	align-items: center;
+	display: grid;
+	gap: 1rem;
+	grid-template-columns: minmax(150px, 210px) minmax(0, 1fr);
+}
+
+.taka-ticket-summary__image,
+.taka-ticket-card-photo {
+	margin: 0;
+}
+
+.taka-ticket-summary__image img,
+.taka-ticket-card-photo img {
+	aspect-ratio: 4 / 3;
+	background: rgba(17, 17, 17, .04);
+	border: 1px solid rgba(17, 17, 17, .08);
+	border-radius: 1rem;
+	box-shadow: 0 12px 28px rgba(17, 17, 17, .12);
+	display: block;
+	height: auto;
+	object-fit: cover;
+	object-position: center;
+	width: 100%;
+}
+
+.taka-ticket-card-photo {
+	margin: 1rem 0;
+	max-width: 220px;
+}
+
+@media (max-width: 720px) {
+	.taka-ticket-summary {
+		grid-template-columns: 1fr;
+	}
+
+	.taka-ticket-summary__image img {
+		aspect-ratio: 16 / 10;
+	}
+
+	.taka-ticket-card-photo {
+		max-width: none;
+	}
+}
