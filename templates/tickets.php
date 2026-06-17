@@ -6,8 +6,8 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 <section class="taka-section taka-tickets" id="tickets">
-	<p class="taka-kicker"><?php echo esc_html__( 'Tickets', 'taka-tour' ); ?></p>
-	<h2><?php echo esc_html__( 'Konz Pretix-Shops', 'taka-tour' ); ?></h2>
+	<p class="taka-kicker"><?php echo esc_html__( 'Tickets', 'taka-platform' ); ?></p>
+	<h2><?php echo esc_html__( 'Konz Pretix-Shops', 'taka-platform' ); ?></h2>
 	<div class="taka-tabs" data-taka-tabs>
 		<div class="taka-tab-buttons">
 			<?php foreach ( $seminars as $index => $seminar ) : ?>

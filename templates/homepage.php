@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 			<h2><?php echo esc_html( taka_tour_translate( 'sections.sensei.headline', 'Takafumi Nakayama' ) ); ?></h2>
 			<p><?php echo esc_html( taka_tour_translate( 'sections.sensei.text', 'Präzision, Ruhe und Bewegungsqualität aus der okinawanischen Tradition.' ) ); ?></p>
 		</div>
-		<figure class="taka-sensei-portrait"><img src="<?php echo esc_url( $images['taka_portrait'] ); ?>" alt="<?php echo esc_attr__( 'Takafumi Nakayama Sensei', 'taka-tour' ); ?>"></figure>
+		<figure class="taka-sensei-portrait"><img src="<?php echo esc_url( $images['taka_portrait'] ); ?>" alt="<?php echo esc_attr__( 'Takafumi Nakayama Sensei', 'taka-platform' ); ?>"></figure>
 	</section>
 	<section class="taka-section taka-training"><p class="taka-kicker"><?php echo esc_html( taka_tour_translate( 'sections.training.kicker', 'Training' ) ); ?></p><h2><?php echo esc_html( taka_tour_translate( 'sections.training.headline', 'Karate-Do, Kobujutsu und Soft Blocking' ) ); ?></h2><p><?php echo esc_html( taka_tour_translate( 'sections.training.text', 'Die Seminare verbinden Grundlagen, Partnerarbeit, Timing, Distanz und Körperstruktur.' ) ); ?></p></section>
 	<section class="taka-section taka-community">

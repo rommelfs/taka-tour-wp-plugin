@@ -1,33 +1,7 @@
 <?php
-/**
- * Ticket-provider abstraction for tour events.
- */
-
+/** Legacy compatibility shim for TAKA Platform tickets. */
 defined( 'ABSPATH' ) || exit;
-
-class Taka_Tour_Ticket_Providers {
-	/** Get a renderable Pretix widget URL for an event, or empty string. */
-	public static function pretix_widget_url( $event ) {
-		$provider = strtolower( (string) ( $event['ticket_provider'] ?? '' ) );
-		$url      = (string) ( $event['ticket_shop_url'] ?? '' );
-
-		if ( 'pretix' === $provider && '' !== $url ) {
-			return $url;
-		}
-
-		if ( ! empty( $event['pretix']['enabled'] ) && ! empty( $event['pretix']['event'] ) ) {
-			return (string) $event['pretix']['event'];
-		}
-
-		if ( ! empty( $event['pretix_url'] ) ) {
-			return (string) $event['pretix_url'];
-		}
-
-		return '';
-	}
-
-	/** Whether an event has any external ticket URL. */
-	public static function direct_ticket_url( $event ) {
-		return self::pretix_widget_url( $event ) ?: (string) ( $event['ticket_shop_url'] ?? '' );
-	}
-}
+if ( ! interface_exists( 'TAKA_Platform_Ticket_Provider_Interface' ) ) { require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/interface-ticket-provider.php'; }
+if ( ! class_exists( 'TAKA_Platform_Pretix_Provider' ) ) { require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-pretix-provider.php'; }
+if ( ! class_exists( 'TAKA_Platform_Ticket_Provider_Registry' ) ) { require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-ticket-provider-registry.php'; }
+if ( ! class_exists( 'Taka_Tour_Ticket_Providers' ) ) { class_alias( 'TAKA_Platform_Ticket_Provider_Registry', 'Taka_Tour_Ticket_Providers' ); }
