@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "Frankrijk"
+  },
+  "dashboard": {
+    "organizer_dashboard": "Organisator-dashboard",
+    "my_events": "Mijn events",
+    "create_event": "Event aanmaken",
+    "edit_event": "Event bewerken",
+    "duplicate": "Dupliceren",
+    "preview": "Voorbeeld",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "no_organizer_assigned": "Er is geen organisatorprofiel aan je account gekoppeld. Neem contact op met een beheerder.",
+    "login_required": "Log in om je events te beheren.",
+    "event_saved": "Event opgeslagen.",
+    "validation_error": "Controleer je invoer en rechten.",
+    "view_frontend_section": "Frontend-sectie bekijken"
   }
 }

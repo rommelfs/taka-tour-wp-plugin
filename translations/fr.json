@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "France"
+  },
+  "dashboard": {
+    "organizer_dashboard": "Tableau de bord organisateur",
+    "my_events": "Mes événements",
+    "create_event": "Créer un événement",
+    "edit_event": "Modifier l’événement",
+    "duplicate": "Dupliquer",
+    "preview": "Aperçu",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "no_organizer_assigned": "Aucun profil organisateur n’est associé à votre compte. Veuillez contacter un administrateur.",
+    "login_required": "Veuillez vous connecter pour gérer vos événements.",
+    "event_saved": "Événement enregistré.",
+    "validation_error": "Veuillez vérifier vos données et vos droits.",
+    "view_frontend_section": "Voir la section publique"
   }
 }

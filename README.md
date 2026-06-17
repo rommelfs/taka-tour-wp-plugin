@@ -33,6 +33,9 @@ Additional event-tour aliases:
 - `[event_tour_tickets]`
 - `[event_tour_sponsor]`
 - `[event_tour_language_switcher]`
+- `[taka_organizer_dashboard]`
+- `[taka_platform_organizer_dashboard]`
+- `[event_tour_organizer_dashboard]`
 
 All aliases call the same rendering logic.
 
@@ -59,7 +62,7 @@ The dashboard explains the long form: **TAKA – Ticketing, Attendance, Knowledg
 
 ## Organizer access control
 
-Version 1.2.0 adds the `taka_organizer` role. Administrators can assign users to one or more organizer CPTs from the WordPress user profile. Organizer users can access the TAKA Platform dashboard, upload media and create/edit only events assigned to their organizer(s); administrators continue to manage everything.
+Version 1.2.0 adds the `taka_organizer` role. Administrators can assign users to one or more organizer CPTs from the WordPress user profile. Organizer users can access the TAKA Platform dashboard, upload media and create/edit only events assigned to their organizer(s); administrators continue to manage everything. Version 1.3.0 adds a frontend organizer dashboard shortcode for focused self-service event listing, creation, editing and duplication.
 
 ## Data model
 
@@ -131,6 +134,10 @@ Assets are split into platform files such as `assets/css/frontend.css`, `assets/
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v1.3.0
+
+- Added frontend organizer dashboard with scoped event listing, creation, editing and duplication for organizer self-service.
 
 ### v1.2.0
 

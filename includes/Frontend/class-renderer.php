@@ -47,4 +47,9 @@ class TAKA_Platform_Renderer {
 		$this->enqueue_base();
 		return taka_tour_render_template( 'partials/language-switcher.php' );
 	}
+
+	public function organizer_dashboard() {
+		$this->enqueue_base();
+		return TAKA_Platform_Organizer_Dashboard::render();
+	}
 }

@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "France"
+  },
+  "dashboard": {
+    "organizer_dashboard": "Organizer dashboard",
+    "my_events": "My events",
+    "create_event": "Create event",
+    "edit_event": "Edit event",
+    "duplicate": "Duplicate",
+    "preview": "Preview",
+    "save": "Save",
+    "cancel": "Cancel",
+    "no_organizer_assigned": "No organizer profile is assigned to your user account. Please contact an administrator.",
+    "login_required": "Please log in to manage your events.",
+    "event_saved": "Event saved.",
+    "validation_error": "Please check your input and permissions.",
+    "view_frontend_section": "View frontend section"
   }
 }

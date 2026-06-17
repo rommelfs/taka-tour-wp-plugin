@@ -42,6 +42,9 @@ class TAKA_Platform_Plugin {
 			'event_tour_tickets' => 'tickets',
 			'event_tour_sponsor' => 'sponsor',
 			'event_tour_language_switcher' => 'language_switcher',
+			'taka_organizer_dashboard' => 'organizer_dashboard',
+			'taka_platform_organizer_dashboard' => 'organizer_dashboard',
+			'event_tour_organizer_dashboard' => 'organizer_dashboard',
 		);
 		foreach ( $map as $shortcode => $method ) {
 			add_shortcode( $shortcode, array( $this->renderer, $method ) );
@@ -54,6 +57,7 @@ class TAKA_Platform_Plugin {
 		wp_register_style( 'taka-platform-tickets', TAKA_PLATFORM_PLUGIN_URL . 'assets/css/tickets.css', array( 'taka-platform' ), TAKA_PLATFORM_VERSION );
 		wp_register_script( 'taka-platform', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/frontend.js', array(), TAKA_PLATFORM_VERSION, true );
 		wp_register_script( 'taka-platform-language-switcher', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/language-switcher.js', array( 'taka-platform' ), TAKA_PLATFORM_VERSION, true );
+		wp_register_script( 'taka-platform-media-fields', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/media-fields.js', array(), TAKA_PLATFORM_VERSION, true );
 		wp_register_style( 'taka-tour-pretix', 'https://pretix.eu/kleinerwald/2026takakonz/widget/v2.css', array(), TAKA_PLATFORM_VERSION );
 		wp_register_script( 'taka-tour-pretix', 'https://pretix.eu/widget/v2.de.js', array(), TAKA_PLATFORM_VERSION, true );
 	}
@@ -76,7 +80,7 @@ class TAKA_Platform_Plugin {
 			return;
 		}
 
-		$shortcodes = array( 'taka_homepage', 'taka_tour_schedule', 'taka_tickets', 'taka_sponsor', 'taka_language_switcher', 'taka_platform_homepage', 'taka_platform_schedule', 'taka_platform_tickets', 'taka_platform_sponsor', 'taka_platform_language_switcher', 'event_tour_homepage', 'event_tour_schedule', 'event_tour_tickets', 'event_tour_sponsor', 'event_tour_language_switcher' );
+		$shortcodes = array( 'taka_homepage', 'taka_tour_schedule', 'taka_tickets', 'taka_sponsor', 'taka_language_switcher', 'taka_platform_homepage', 'taka_platform_schedule', 'taka_platform_tickets', 'taka_platform_sponsor', 'taka_platform_language_switcher', 'event_tour_homepage', 'event_tour_schedule', 'event_tour_tickets', 'event_tour_sponsor', 'event_tour_language_switcher', 'taka_organizer_dashboard', 'taka_platform_organizer_dashboard', 'event_tour_organizer_dashboard' );
 		$matches    = array_filter(
 			$shortcodes,
 			static function ( $shortcode ) use ( $post ) {

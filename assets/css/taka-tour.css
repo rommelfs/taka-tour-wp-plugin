@@ -679,3 +679,60 @@
 		order: 0;
 	}
 }
+
+/* v1.3.0 organizer dashboard */
+.taka-organizer-dashboard {
+	max-width: 1180px;
+	margin: 0 auto;
+	padding: clamp(2rem, 5vw, 4rem);
+	background: #F7F3EC;
+	color: #111111;
+	font-family: Inter, system-ui, sans-serif;
+}
+
+.taka-dashboard-table-wrap {
+	overflow-x: auto;
+	background: #ffffff;
+	border: 1px solid rgba(17,17,17,.12);
+}
+
+.taka-dashboard-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.taka-dashboard-table th,
+.taka-dashboard-table td {
+	padding: .75rem;
+	border-bottom: 1px solid rgba(17,17,17,.08);
+	text-align: left;
+	vertical-align: top;
+}
+
+.taka-dashboard-form {
+	display: grid;
+	gap: 1rem;
+	max-width: 860px;
+	padding: 1.25rem;
+	background: #ffffff;
+	border: 1px solid rgba(17,17,17,.12);
+}
+
+.taka-dashboard-form input,
+.taka-dashboard-form textarea,
+.taka-dashboard-form select {
+	width: 100%;
+	max-width: 100%;
+}
+
+.taka-dashboard-message {
+	margin: 0 0 1rem;
+	padding: .8rem 1rem;
+	background: #ffffff;
+	border-left: 4px solid #BC002D;
+}
+
+.taka-dashboard-notice {
+	padding: .8rem 1rem;
+	background: rgba(199,163,92,.16);
+}

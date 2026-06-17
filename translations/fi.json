@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "Ranska"
+  },
+  "dashboard": {
+    "organizer_dashboard": "Järjestäjän työpöytä",
+    "my_events": "Omat tapahtumat",
+    "create_event": "Luo tapahtuma",
+    "edit_event": "Muokkaa tapahtumaa",
+    "duplicate": "Kopioi",
+    "preview": "Esikatselu",
+    "save": "Tallenna",
+    "cancel": "Peruuta",
+    "no_organizer_assigned": "Käyttäjätilillesi ei ole liitetty järjestäjäprofiilia. Ota yhteyttä ylläpitäjään.",
+    "login_required": "Kirjaudu sisään hallitaksesi tapahtumiasi.",
+    "event_saved": "Tapahtuma tallennettu.",
+    "validation_error": "Tarkista tiedot ja käyttöoikeudet.",
+    "view_frontend_section": "Näytä frontend-osio"
   }
 }

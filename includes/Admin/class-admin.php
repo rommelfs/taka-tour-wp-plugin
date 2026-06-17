@@ -30,6 +30,7 @@ class TAKA_Platform_Admin {
 			add_action( 'admin_post_taka_tour_import_config', array( __CLASS__, 'handle_import_config' ) );
 			add_action( 'admin_post_taka_platform_save_hero', array( __CLASS__, 'handle_save_hero' ) );
 			add_action( 'admin_post_taka_platform_save_sections', array( __CLASS__, 'handle_save_sections' ) );
+			add_action( 'admin_post_taka_platform_save_dashboard_settings', array( __CLASS__, 'handle_save_dashboard_settings' ) );
 	}
 
 
@@ -414,10 +415,19 @@ class TAKA_Platform_Admin {
 		$positions = array( 'left' => __( 'Left', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'right' => __( 'Right', 'taka-platform' ) );
 		$verticals = array( 'top' => __( 'Top', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'bottom' => __( 'Bottom', 'taka-platform' ) );
 		?>
-		<div class="wrap">
-			<h1><?php echo esc_html__( 'TAKA Platform Settings', 'taka-platform' ); ?></h1>
-			<p><?php echo esc_html__( 'The plugin uses WordPress events as the primary source and config/tour-events.php as seed, fallback and backup format.', 'taka-platform' ); ?></p>
-			<h2><?php echo esc_html__( 'Hero section', 'taka-platform' ); ?></h2>
+			<div class="wrap">
+				<h1><?php echo esc_html__( 'TAKA Platform Settings', 'taka-platform' ); ?></h1>
+				<p><?php echo esc_html__( 'The plugin uses WordPress events as the primary source and config/tour-events.php as seed, fallback and backup format.', 'taka-platform' ); ?></p>
+				<h2><?php echo esc_html__( 'Organizer dashboard', 'taka-platform' ); ?></h2>
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="taka_platform_save_dashboard_settings">
+					<?php wp_nonce_field( TAKA_Platform_Organizer_Dashboard::DASHBOARD_PAGE_OPTION, self::NONCE ); ?>
+					<table class="form-table" role="presentation"><tbody>
+						<tr><th scope="row"><?php echo esc_html__( 'Organizer dashboard page', 'taka-platform' ); ?></th><td><?php wp_dropdown_pages( array( 'name' => 'organizer_dashboard_page_id', 'selected' => absint( get_option( TAKA_Platform_Organizer_Dashboard::DASHBOARD_PAGE_OPTION, 0 ) ), 'show_option_none' => __( '— Select —', 'taka-platform' ) ) ); ?><p class="description"><?php echo esc_html__( 'Select the page containing [taka_platform_organizer_dashboard].', 'taka-platform' ); ?></p></td></tr>
+					</tbody></table>
+					<?php submit_button( __( 'Save dashboard settings', 'taka-platform' ) ); ?>
+				</form>
+				<h2><?php echo esc_html__( 'Hero section', 'taka-platform' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="taka_platform_save_hero">
 				<?php wp_nonce_field( TAKA_Platform_Data::HERO_OPTION, self::NONCE ); ?>
@@ -532,6 +542,15 @@ class TAKA_Platform_Admin {
 		}
 		update_option( TAKA_Platform_Data::SECTIONS_OPTION, $clean, false );
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-platform-content-sections' ) ) );
+		exit;
+	}
+
+	/** Save organizer dashboard settings. */
+	public static function handle_save_dashboard_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( TAKA_Platform_Organizer_Dashboard::DASHBOARD_PAGE_OPTION, self::NONCE );
+		update_option( TAKA_Platform_Organizer_Dashboard::DASHBOARD_PAGE_OPTION, absint( $_POST['organizer_dashboard_page_id'] ?? 0 ), false );
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
 		exit;
 	}
 

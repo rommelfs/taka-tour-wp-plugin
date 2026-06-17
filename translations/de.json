@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "Frankreich"
+  },
+  "dashboard": {
+    "organizer_dashboard": "Veranstalter-Dashboard",
+    "my_events": "Meine Veranstaltungen",
+    "create_event": "Veranstaltung erstellen",
+    "edit_event": "Veranstaltung bearbeiten",
+    "duplicate": "Duplizieren",
+    "preview": "Vorschau",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "no_organizer_assigned": "Deinem Benutzerkonto ist kein Veranstalterprofil zugeordnet. Bitte kontaktiere eine Administratorin oder einen Administrator.",
+    "login_required": "Bitte melde dich an, um deine Veranstaltungen zu verwalten.",
+    "event_saved": "Veranstaltung gespeichert.",
+    "validation_error": "Bitte prüfe deine Eingaben und Berechtigungen.",
+    "view_frontend_section": "Frontend-Abschnitt ansehen"
   }
 }

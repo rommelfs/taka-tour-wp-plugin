@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "フランス"
+  },
+  "dashboard": {
+    "organizer_dashboard": "主催者ダッシュボード",
+    "my_events": "自分のイベント",
+    "create_event": "イベントを作成",
+    "edit_event": "イベントを編集",
+    "duplicate": "複製",
+    "preview": "プレビュー",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "no_organizer_assigned": "このユーザーアカウントには主催者プロフィールが割り当てられていません。管理者に連絡してください。",
+    "login_required": "イベントを管理するにはログインしてください。",
+    "event_saved": "イベントを保存しました。",
+    "validation_error": "入力内容と権限を確認してください。",
+    "view_frontend_section": "フロントエンドのセクションを見る"
   }
 }

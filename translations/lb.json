@@ -162,5 +162,20 @@
   },
   "country": {
     "france": "Frankräich"
+  },
+  "dashboard": {
+    "organizer_dashboard": "Organisateur-Dashboard",
+    "my_events": "Meng Evenementer",
+    "create_event": "Evenement uleeën",
+    "edit_event": "Evenement änneren",
+    "duplicate": "Duplizéieren",
+    "preview": "Virschau",
+    "save": "Späicheren",
+    "cancel": "Ofbriechen",
+    "no_organizer_assigned": "Dengem Benotzerkont ass keen Organisateur zougewisen. Kontaktéier w.e.g. en Administrateur.",
+    "login_required": "Mell dech w.e.g. un, fir deng Evenementer ze verwalten.",
+    "event_saved": "Evenement gespäichert.",
+    "validation_error": "Kontrolléier w.e.g. deng Donnéeën an deng Rechter.",
+    "view_frontend_section": "Frontend-Sektioun kucken"
   }
 }
