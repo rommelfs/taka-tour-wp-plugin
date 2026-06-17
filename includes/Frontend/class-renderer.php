@@ -12,6 +12,8 @@ class TAKA_Platform_Renderer {
 	}
 
 	private function enqueue_pretix() {
+		wp_enqueue_style( 'taka-platform-tickets' );
+		wp_enqueue_script( 'taka-platform-tickets' );
 		wp_enqueue_style( 'taka-tour-pretix' );
 		wp_enqueue_script( 'taka-tour-pretix' );
 	}

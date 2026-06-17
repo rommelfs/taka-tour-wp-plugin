@@ -158,7 +158,19 @@
     "details_follow": "Lisätiedot myöhemmin",
     "practical_information": "Käytännön tiedot",
     "accessibility": "Esteettömyys",
-    "notes": "Huomiot"
+    "notes": "Huomiot",
+    "title": "Otsikko",
+    "subtitle": "Alaotsikko",
+    "description": "Kuvaus",
+    "ticket_status": "Lipputilanne",
+    "ticket_provider": "Lipputoimittaja",
+    "ticket_url": "Lippukaupan URL",
+    "legal_name": "Virallinen nimi",
+    "website": "Verkkosivusto",
+    "email": "Sähköposti",
+    "contact": "Yhteyshenkilö",
+    "city": "Kaupunki",
+    "country": "Maa"
   },
   "country": {
     "france": "Ranska"
@@ -177,5 +189,11 @@
     "event_saved": "Tapahtuma tallennettu.",
     "validation_error": "Tarkista tiedot ja käyttöoikeudet.",
     "view_frontend_section": "Näytä frontend-osio"
+  },
+  "drawer": {
+    "event_details": "Tapahtuman tiedot",
+    "organizer_info": "Järjestäjän tiedot",
+    "venue_info": "Paikan tiedot",
+    "practical_information": "Käytännön tiedot"
   }
 }

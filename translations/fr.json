@@ -158,7 +158,19 @@
     "details_follow": "Détails à venir",
     "practical_information": "Informations pratiques",
     "accessibility": "Accessibilité",
-    "notes": "Notes"
+    "notes": "Remarques",
+    "title": "Titre",
+    "subtitle": "Sous-titre",
+    "description": "Description",
+    "ticket_status": "Statut billetterie",
+    "ticket_provider": "Prestataire billetterie",
+    "ticket_url": "URL billetterie",
+    "legal_name": "Nom légal",
+    "website": "Site web",
+    "email": "E-mail",
+    "contact": "Contact",
+    "city": "Ville",
+    "country": "Pays"
   },
   "country": {
     "france": "France"
@@ -177,5 +189,11 @@
     "event_saved": "Événement enregistré.",
     "validation_error": "Veuillez vérifier vos données et vos droits.",
     "view_frontend_section": "Voir la section publique"
+  },
+  "drawer": {
+    "event_details": "Détails de l’événement",
+    "organizer_info": "Infos organisateur",
+    "venue_info": "Infos lieu",
+    "practical_information": "Informations pratiques"
   }
 }

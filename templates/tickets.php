@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php foreach ( $seminars as $index => $seminar ) : ?>
 			<?php $pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar ); ?>
 			<div class="taka-tab-panel <?php echo 0 === $index ? 'is-active' : ''; ?>" data-panel="<?php echo esc_attr( $seminar['slug'] ?? $seminar['id'] ?? $index ); ?>">
-				<?php echo taka_tour_render_template( 'partials/pretix-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo taka_tour_render_template( 'partials/ticket-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '', 'seminar' => $seminar ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		<?php endforeach; ?>
 	</div>

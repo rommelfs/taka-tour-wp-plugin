@@ -57,6 +57,7 @@ class TAKA_Platform_Plugin {
 		wp_register_style( 'taka-platform-tickets', TAKA_PLATFORM_PLUGIN_URL . 'assets/css/tickets.css', array( 'taka-platform' ), TAKA_PLATFORM_VERSION );
 		wp_register_script( 'taka-platform', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/frontend.js', array(), TAKA_PLATFORM_VERSION, true );
 		wp_register_script( 'taka-platform-language-switcher', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/language-switcher.js', array( 'taka-platform' ), TAKA_PLATFORM_VERSION, true );
+		wp_register_script( 'taka-platform-tickets', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/tickets.js', array( 'taka-platform' ), TAKA_PLATFORM_VERSION, true );
 		wp_register_script( 'taka-platform-media-fields', TAKA_PLATFORM_PLUGIN_URL . 'assets/js/media-fields.js', array(), TAKA_PLATFORM_VERSION, true );
 		wp_register_style( 'taka-tour-pretix', 'https://pretix.eu/kleinerwald/2026takakonz/widget/v2.css', array(), TAKA_PLATFORM_VERSION );
 		wp_register_script( 'taka-tour-pretix', 'https://pretix.eu/widget/v2.de.js', array(), TAKA_PLATFORM_VERSION, true );
@@ -99,6 +100,7 @@ class TAKA_Platform_Plugin {
 
 		if ( has_shortcode( $post->post_content, 'taka_homepage' ) || has_shortcode( $post->post_content, 'taka_tour_schedule' ) || has_shortcode( $post->post_content, 'taka_tickets' ) || has_shortcode( $post->post_content, 'taka_platform_homepage' ) || has_shortcode( $post->post_content, 'taka_platform_schedule' ) || has_shortcode( $post->post_content, 'taka_platform_tickets' ) || has_shortcode( $post->post_content, 'event_tour_homepage' ) || has_shortcode( $post->post_content, 'event_tour_schedule' ) || has_shortcode( $post->post_content, 'event_tour_tickets' ) ) {
 			wp_enqueue_style( 'taka-platform-tickets' );
+			wp_enqueue_script( 'taka-platform-tickets' );
 			wp_enqueue_style( 'taka-tour-pretix' );
 			wp_enqueue_script( 'taka-tour-pretix' );
 		}

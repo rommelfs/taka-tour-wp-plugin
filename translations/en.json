@@ -158,7 +158,19 @@
     "details_follow": "Details to follow",
     "practical_information": "Practical information",
     "accessibility": "Accessibility",
-    "notes": "Notes"
+    "notes": "Notes",
+    "title": "Title",
+    "subtitle": "Subtitle",
+    "description": "Description",
+    "ticket_status": "Ticket status",
+    "ticket_provider": "Ticket provider",
+    "ticket_url": "Ticket URL",
+    "legal_name": "Legal name",
+    "website": "Website",
+    "email": "Email",
+    "contact": "Contact",
+    "city": "City",
+    "country": "Country"
   },
   "country": {
     "france": "France"
@@ -177,5 +189,11 @@
     "event_saved": "Event saved.",
     "validation_error": "Please check your input and permissions.",
     "view_frontend_section": "View frontend section"
+  },
+  "drawer": {
+    "event_details": "Event details",
+    "organizer_info": "Organizer info",
+    "venue_info": "Venue info",
+    "practical_information": "Practical information"
   }
 }

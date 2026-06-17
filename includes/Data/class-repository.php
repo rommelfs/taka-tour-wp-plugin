@@ -406,10 +406,14 @@ class TAKA_Platform_Data {
 			$event['hosts'] = 'Details folgen' === $event['organizer_name'] ? taka_tour_translate( 'event.details_follow', 'Details folgen', $lang ) : $event['organizer_name'];
 			$event['organizer_name'] = $event['hosts'];
 			$event['venue_data'] = is_array( $venue ) ? $venue : null;
+			$event['venue_full'] = is_array( $venue ) ? $venue : null;
 			$event['venue_name'] = is_array( $venue ) ? ( $venue['name'] ?? '' ) : '';
 			$event['address'] = is_array( $venue ) ? self::format_address( $venue['address'] ?? array() ) : '';
 			$event['parking_display'] = $event['parking'] ?: ( is_array( $venue ) ? ( $venue['parking'] ?? '' ) : '' );
 			$event['ticket_status_label'] = self::ticket_status_label( $event, $lang );
+			$event['organizer_full'] = is_array( $organizer ) ? $organizer : null;
+			$event['practical_information'] = self::build_practical_information( $event, $organizer, $venue, $lang );
+			$event['info_drawers'] = self::build_info_drawers( $event, $organizer, $venue, $lang );
 			return $event;
 		}, self::get_public_events() );
 	}
@@ -421,6 +425,127 @@ class TAKA_Platform_Data {
 
 	/** Get ticketed public events. */
 	public static function ticketed_seminars() { return array_values( array_filter( self::events_for_language(), static fn( $event ) => '' !== self::pretix_event_url( $event ) ) ); }
+
+	/** Build practical information rows for frontend ticket drawers. */
+	private static function build_practical_information( $event, $organizer, $venue, $lang ) {
+		$rows = array(
+			array( 'label' => taka_tour_translate( 'event.parking', 'Parken', $lang ), 'value' => $event['parking'] ?? '' ),
+			array( 'label' => taka_tour_translate( 'event.accessibility', 'Barrierefreiheit', $lang ), 'value' => $event['accessibility'] ?? '' ),
+			array( 'label' => taka_tour_translate( 'event.notes', 'Hinweise', $lang ), 'value' => $event['notes'] ?? '' ),
+		);
+
+		if ( is_array( $venue ) ) {
+			$rows[] = array( 'label' => taka_tour_translate( 'event.venue', 'Ort', $lang ), 'value' => $venue['name'] ?? '' );
+			$rows[] = array( 'label' => taka_tour_translate( 'event.address', 'Adresse', $lang ), 'value' => self::format_address( $venue['address'] ?? array() ) );
+			$rows[] = array( 'label' => taka_tour_translate( 'event.parking', 'Parken', $lang ), 'value' => $venue['parking'] ?? '' );
+			$rows[] = array( 'label' => taka_tour_translate( 'event.accessibility', 'Barrierefreiheit', $lang ), 'value' => $venue['accessibility'] ?? '' );
+			$rows[] = array( 'label' => taka_tour_translate( 'event.notes', 'Hinweise', $lang ), 'value' => $venue['notes'] ?? '' );
+		}
+
+		if ( is_array( $organizer ) ) {
+			$rows[] = array( 'label' => taka_tour_translate( 'event.organizer', 'Veranstalter', $lang ), 'value' => $organizer['name'] ?? '' );
+			$rows[] = array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $organizer['website'] ?? '', 'url' => $organizer['website'] ?? '' );
+			$rows[] = array( 'label' => taka_tour_translate( 'event.contact', 'Kontakt', $lang ), 'value' => self::list_to_string( $organizer['emails'] ?? array() ) );
+		}
+
+		return self::clean_info_rows( $rows );
+	}
+
+	/** Build prepared drawer view data; templates should not query raw meta. */
+	private static function build_info_drawers( $event, $organizer, $venue, $lang ) {
+		$time = implode( '–', array_filter( array( $event['time_start'] ?? '', $event['time_end'] ?? '' ) ) );
+		$drawers = array();
+		$drawers['event'] = array(
+			'label' => taka_tour_translate( 'drawer.event_details', 'Event details', $lang ),
+			'title' => taka_tour_translate( 'drawer.event_details', 'Event details', $lang ),
+			'image' => $event['image'] ?? '',
+			'rows'  => self::clean_info_rows( array(
+				array( 'label' => taka_tour_translate( 'event.title', 'Title', $lang ), 'value' => $event['title'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.subtitle', 'Subtitle', $lang ), 'value' => $event['subtitle'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.description', 'Description', $lang ), 'value' => $event['description'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.date', 'Date', $lang ), 'value' => $event['date'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.time', 'Time', $lang ), 'value' => $time ),
+				array( 'label' => taka_tour_translate( 'event.doors_open', 'Doors open', $lang ), 'value' => $event['doors_open'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'seminar.format_label', 'Format', $lang ), 'value' => $event['format'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.audience', 'Audience', $lang ), 'value' => $event['audience'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.level', 'Level', $lang ), 'value' => $event['level'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.ticket_status', 'Ticket status', $lang ), 'value' => $event['ticket_status_label'] ?? ( $event['ticket_status'] ?? '' ) ),
+				array( 'label' => taka_tour_translate( 'event.ticket_provider', 'Ticket provider', $lang ), 'value' => $event['ticket_provider'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.ticket_url', 'Ticket URL', $lang ), 'value' => $event['ticket_shop_url'] ?? '', 'url' => $event['ticket_shop_url'] ?? '' ),
+			) ),
+		);
+
+		if ( is_array( $organizer ) ) {
+			$social = $organizer['social_links'] ?? ( $organizer['social'] ?? array() );
+			$drawers['organizer'] = array(
+				'label' => taka_tour_translate( 'drawer.organizer_info', 'Organizer info', $lang ),
+				'title' => taka_tour_translate( 'drawer.organizer_info', 'Organizer info', $lang ),
+				'image' => $organizer['logo'] ?? ( $organizer['logo_url'] ?? '' ),
+				'rows'  => self::clean_info_rows( array(
+					array( 'label' => taka_tour_translate( 'event.organizer', 'Organizer', $lang ), 'value' => $organizer['name'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.legal_name', 'Legal name', $lang ), 'value' => $organizer['legal_name'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.description', 'Description', $lang ), 'value' => $organizer['description'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $organizer['website'] ?? '', 'url' => $organizer['website'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.email', 'Email', $lang ), 'value' => self::list_to_string( $organizer['emails'] ?? array() ) ),
+					array( 'label' => taka_tour_translate( 'event.contact', 'Contact', $lang ), 'value' => self::list_to_string( $organizer['contact_persons'] ?? array() ) ),
+					array( 'label' => 'Instagram', 'value' => $social['instagram'] ?? '', 'url' => $social['instagram'] ?? '' ),
+					array( 'label' => 'Facebook', 'value' => $social['facebook'] ?? '', 'url' => $social['facebook'] ?? '' ),
+					array( 'label' => 'YouTube', 'value' => $social['youtube'] ?? '', 'url' => $social['youtube'] ?? '' ),
+				) ),
+			);
+		}
+
+		if ( is_array( $venue ) ) {
+			$address = $venue['address'] ?? array();
+			$drawers['venue'] = array(
+				'label' => taka_tour_translate( 'drawer.venue_info', 'Venue info', $lang ),
+				'title' => taka_tour_translate( 'drawer.venue_info', 'Venue info', $lang ),
+				'image' => $venue['image'] ?? ( $venue['image_url'] ?? '' ),
+				'rows'  => self::clean_info_rows( array(
+					array( 'label' => taka_tour_translate( 'event.venue', 'Venue', $lang ), 'value' => $venue['name'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.address', 'Address', $lang ), 'value' => self::format_address( $address ) ),
+					array( 'label' => taka_tour_translate( 'event.city', 'City', $lang ), 'value' => $address['city'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.country', 'Country', $lang ), 'value' => $address['country'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $venue['website'] ?? '', 'url' => $venue['website'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.parking', 'Parking', $lang ), 'value' => $venue['parking'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.accessibility', 'Accessibility', $lang ), 'value' => $venue['accessibility'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.notes', 'Notes', $lang ), 'value' => $venue['notes'] ?? '' ),
+				) ),
+			);
+		}
+
+		$practical = self::build_practical_information( $event, $organizer, $venue, $lang );
+		if ( ! empty( $practical ) ) {
+			$drawers['practical'] = array(
+				'label' => taka_tour_translate( 'drawer.practical_information', 'Practical information', $lang ),
+				'title' => taka_tour_translate( 'drawer.practical_information', 'Practical information', $lang ),
+				'image' => '',
+				'rows'  => $practical,
+			);
+		}
+
+		return array_filter( $drawers, static function ( $drawer ) { return ! empty( $drawer['rows'] ); } );
+	}
+
+	/** Convert nested contact/email arrays into readable text without PHP notices. */
+	private static function list_to_string( $items ) {
+		$strings = array_map(
+			static function ( $item ) {
+				if ( is_array( $item ) ) {
+					return trim( implode( ' | ', array_filter( array_map( 'strval', $item ) ) ) );
+				}
+				return trim( (string) $item );
+			},
+			(array) $items
+		);
+
+		return implode( ', ', array_filter( $strings ) );
+	}
+
+	/** Drop rows whose values are empty so drawers never show empty labels. */
+	private static function clean_info_rows( $rows ) {
+		return array_values( array_filter( $rows, static function ( $row ) { return '' !== trim( wp_strip_all_tags( (string) ( $row['value'] ?? '' ) ) ); } ) );
+	}
 
 	/** Export current WordPress data into config-compatible array. */
 	public static function export_config_from_wp() { return array( 'organizers' => self::export_organizers(), 'venues' => self::export_venues(), 'events' => self::load_events_from_wp() ); }

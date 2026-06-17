@@ -158,7 +158,19 @@
     "details_follow": "詳細は後日",
     "practical_information": "実用情報",
     "accessibility": "アクセシビリティ",
-    "notes": "備考"
+    "notes": "備考",
+    "title": "タイトル",
+    "subtitle": "サブタイトル",
+    "description": "説明",
+    "ticket_status": "チケット状況",
+    "ticket_provider": "チケット提供元",
+    "ticket_url": "チケットURL",
+    "legal_name": "正式名称",
+    "website": "ウェブサイト",
+    "email": "メール",
+    "contact": "連絡先",
+    "city": "都市",
+    "country": "国"
   },
   "country": {
     "france": "フランス"
@@ -177,5 +189,11 @@
     "event_saved": "イベントを保存しました。",
     "validation_error": "入力内容と権限を確認してください。",
     "view_frontend_section": "フロントエンドのセクションを見る"
+  },
+  "drawer": {
+    "event_details": "イベント詳細",
+    "organizer_info": "主催者情報",
+    "venue_info": "会場情報",
+    "practical_information": "実用情報"
   }
 }

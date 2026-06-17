@@ -45,10 +45,9 @@ $details          = array(
 	</dl>
 	<?php if ( '' !== $pretix_event_url ) : ?>
 		<div class="taka-seminar-pretix">
-			<?php echo taka_tour_render_template( 'partials/pretix-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<a class="taka-ticket-direct-link" href="<?php echo esc_url( $pretix_event_url ); ?>" rel="noopener"><?php echo esc_html( taka_tour_translate( 'event.ticketshop_direct', 'Ticketshop direkt öffnen' ) ); ?></a>
+			<?php echo taka_tour_render_template( 'partials/ticket-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '', 'seminar' => $seminar ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		</div>
 	<?php else : ?>
-		<p class="taka-ticket-status"><?php echo esc_html( $seminar['ticket_status_label'] ?? taka_tour_translate( 'event.ticketshop_soon', 'Ticketshop folgt' ) ); ?></p>
+		<?php echo taka_tour_render_template( 'partials/ticket-widget.php', array( 'event' => '', 'label' => $seminar['title'] ?? '', 'seminar' => $seminar ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	<?php endif; ?>
 </article>

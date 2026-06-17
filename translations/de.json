@@ -158,7 +158,19 @@
     "details_follow": "Details folgen",
     "practical_information": "Praktische Informationen",
     "accessibility": "Barrierefreiheit",
-    "notes": "Hinweise"
+    "notes": "Hinweise",
+    "title": "Titel",
+    "subtitle": "Untertitel",
+    "description": "Beschreibung",
+    "ticket_status": "Ticketstatus",
+    "ticket_provider": "Ticketanbieter",
+    "ticket_url": "Ticket-URL",
+    "legal_name": "Rechtlicher Name",
+    "website": "Website",
+    "email": "E-Mail",
+    "contact": "Kontakt",
+    "city": "Stadt",
+    "country": "Land"
   },
   "country": {
     "france": "Frankreich"
@@ -177,5 +189,11 @@
     "event_saved": "Veranstaltung gespeichert.",
     "validation_error": "Bitte prüfe deine Eingaben und Berechtigungen.",
     "view_frontend_section": "Frontend-Abschnitt ansehen"
+  },
+  "drawer": {
+    "event_details": "Event details",
+    "organizer_info": "Organizer info",
+    "venue_info": "Venue info",
+    "practical_information": "Practical information"
   }
 }

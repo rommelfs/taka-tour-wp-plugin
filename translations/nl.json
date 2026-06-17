@@ -158,7 +158,19 @@
     "details_follow": "Details volgen",
     "practical_information": "Praktische informatie",
     "accessibility": "Toegankelijkheid",
-    "notes": "Opmerkingen"
+    "notes": "Opmerkingen",
+    "title": "Titel",
+    "subtitle": "Ondertitel",
+    "description": "Beschrijving",
+    "ticket_status": "Ticketstatus",
+    "ticket_provider": "Ticketaanbieder",
+    "ticket_url": "Ticket-URL",
+    "legal_name": "Juridische naam",
+    "website": "Website",
+    "email": "E-mail",
+    "contact": "Contact",
+    "city": "Stad",
+    "country": "Land"
   },
   "country": {
     "france": "Frankrijk"
@@ -177,5 +189,11 @@
     "event_saved": "Event opgeslagen.",
     "validation_error": "Controleer je invoer en rechten.",
     "view_frontend_section": "Frontend-sectie bekijken"
+  },
+  "drawer": {
+    "event_details": "Evenementdetails",
+    "organizer_info": "Organisator info",
+    "venue_info": "Locatie info",
+    "practical_information": "Praktische informatie"
   }
 }

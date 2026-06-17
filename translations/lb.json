@@ -158,7 +158,19 @@
     "details_follow": "Detailer kommen no",
     "practical_information": "Praktesch Informatiounen",
     "accessibility": "Accessibilitéit",
-    "notes": "Hiweiser"
+    "notes": "Hiweiser",
+    "title": "Titel",
+    "subtitle": "Ënnertitel",
+    "description": "Beschreiwung",
+    "ticket_status": "Ticketstatus",
+    "ticket_provider": "Ticketubidder",
+    "ticket_url": "Ticket-URL",
+    "legal_name": "Juristeschen Numm",
+    "website": "Websäit",
+    "email": "E-Mail",
+    "contact": "Kontakt",
+    "city": "Stad",
+    "country": "Land"
   },
   "country": {
     "france": "Frankräich"
@@ -177,5 +189,11 @@
     "event_saved": "Evenement gespäichert.",
     "validation_error": "Kontrolléier w.e.g. deng Donnéeën an deng Rechter.",
     "view_frontend_section": "Frontend-Sektioun kucken"
+  },
+  "drawer": {
+    "event_details": "Event-Detailer",
+    "organizer_info": "Informatiounen zum Organisateur",
+    "venue_info": "Informatiounen zum Uert",
+    "practical_information": "Praktesch Informatiounen"
   }
 }
