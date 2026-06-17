@@ -401,3 +401,124 @@
 .taka-info-modal__card--no-logo {
 	grid-template-columns: 1fr;
 }
+
+.taka-ticket-layout {
+	align-items: start;
+	display: grid;
+	gap: clamp(1rem, 3vw, 2rem);
+	grid-template-columns: minmax(280px, .9fr) minmax(360px, 1.1fr);
+}
+
+.taka-ticket-layout__booking {
+	display: grid;
+	gap: 1rem;
+	min-width: 0;
+}
+
+.taka-ticket-layout .taka-ticket-summary {
+	align-items: stretch;
+	background: rgba(247, 243, 236, .72);
+	border: 1px solid rgba(17, 17, 17, .08);
+	border-radius: 1.2rem;
+	grid-template-columns: minmax(170px, 250px) minmax(0, 1fr);
+	margin: 0;
+	padding: clamp(.8rem, 2vw, 1.15rem);
+}
+
+.taka-ticket-layout .taka-ticket-summary__image img {
+	aspect-ratio: 16 / 11;
+	height: 100%;
+	min-height: 180px;
+}
+
+.taka-ticket-layout .taka-ticket-summary__content {
+	align-self: center;
+	display: grid;
+	gap: .8rem;
+}
+
+.taka-booking-info {
+	background: #F7F3EC;
+	border-left: 5px solid #BC002D;
+	border-radius: 1rem;
+	box-shadow: 0 14px 34px rgba(17, 17, 17, .08);
+	color: #111;
+	padding: clamp(1rem, 2.4vw, 1.35rem);
+}
+
+.taka-booking-info__title {
+	font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+	line-height: 1.15;
+	margin: 0 0 .9rem;
+}
+
+.taka-booking-info__sections {
+	display: grid;
+	gap: .85rem;
+}
+
+.taka-booking-info__section {
+	border-top: 1px solid rgba(17, 17, 17, .08);
+	padding-top: .8rem;
+}
+
+.taka-booking-info__section:first-child {
+	border-top: 0;
+	padding-top: 0;
+}
+
+.taka-booking-info__section h5 {
+	color: #BC002D;
+	font-size: .78rem;
+	font-weight: 850;
+	letter-spacing: .08em;
+	margin: 0 0 .35rem;
+	text-transform: uppercase;
+}
+
+.taka-booking-info__section p,
+.taka-booking-info__section li,
+.taka-booking-info__contact {
+	font-size: .95rem;
+	line-height: 1.55;
+}
+
+.taka-booking-info__section p,
+.taka-booking-info__contact {
+	margin: 0;
+}
+
+.taka-booking-info__section ul {
+	margin: .2rem 0 0 1.1rem;
+	padding: 0;
+}
+
+.taka-booking-info__contact {
+	border-top: 1px solid rgba(17, 17, 17, .08);
+	margin-top: .9rem;
+	padding-top: .85rem;
+}
+
+.taka-booking-info__contact span {
+	font-weight: 800;
+}
+
+.taka-booking-info a {
+	color: #BC002D;
+	font-weight: 800;
+	text-decoration-thickness: .08em;
+	text-underline-offset: .16em;
+}
+
+@media (max-width: 900px) {
+	.taka-ticket-layout,
+	.taka-ticket-layout .taka-ticket-summary {
+		grid-template-columns: 1fr;
+	}
+
+	.taka-ticket-layout .taka-ticket-summary__image img {
+		aspect-ratio: 16 / 10;
+		height: auto;
+		min-height: 0;
+	}
+}

@@ -204,5 +204,17 @@
     "organizer_info": "Organisateur",
     "venue_info": "Lieu & infos",
     "practical_information": "Informations pratiques"
+  },
+  "booking": {
+    "before_you_book": "À savoir avant de réserver",
+    "groups_clubs": "Groupes & clubs",
+    "multiple_seminars": "Plusieurs séminaires",
+    "payment": "Paiement",
+    "cancellation": "Annulation",
+    "contact_organizer": "Contacter l’organisateur",
+    "contact_before_booking": "Contactez-nous avant de réserver",
+    "refund": "Remboursement",
+    "days_before_event": "jours avant l’événement",
+    "booking_process": "Processus de réservation"
   }
 }

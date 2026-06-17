@@ -204,5 +204,17 @@
     "organizer_info": "Organizer",
     "venue_info": "Ort & Infos",
     "practical_information": "Practical information"
+  },
+  "booking": {
+    "before_you_book": "Gut zu wissen vor der Buchung",
+    "groups_clubs": "Gruppen & Vereine",
+    "multiple_seminars": "Mehrere Seminare",
+    "payment": "Zahlung",
+    "cancellation": "Rücktritt",
+    "contact_organizer": "Veranstalter kontaktieren",
+    "contact_before_booking": "Vor der Buchung Kontakt aufnehmen",
+    "refund": "Rückerstattung",
+    "days_before_event": "Tage vor der Veranstaltung",
+    "booking_process": "Buchungsablauf"
   }
 }

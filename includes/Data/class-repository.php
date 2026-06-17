@@ -12,6 +12,7 @@ class TAKA_Platform_Data {
 	const MEDIA_OPTION = 'taka_tour_media_settings';
 	const HERO_OPTION = 'taka_platform_hero_settings';
 	const SECTIONS_OPTION = 'taka_platform_content_sections';
+	const BOOKING_OPTION = 'taka_platform_booking_information';
 
 	/** Load seed/fallback tour configuration. */
 	public static function load_config() {
@@ -214,6 +215,7 @@ class TAKA_Platform_Data {
 				'description' => (string) get_post_meta( $post->ID, '_taka_short_description', true ) ?: $post->post_content,
 				'long_description' => (string) get_post_meta( $post->ID, '_taka_long_description', true ),
 				'ticket_card_text' => (string) get_post_meta( $post->ID, '_taka_ticket_card_text', true ),
+				'booking_information' => self::event_booking_information_from_meta( $post->ID ),
 				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
 				'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ),
 				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ),
@@ -271,7 +273,7 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -294,6 +296,93 @@ class TAKA_Platform_Data {
 	}
 
 	public static function get_media() { return self::images(); }
+
+
+	/** Default booking-information settings. */
+	public static function default_booking_information( $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		$is_de = 'de' === $lang;
+		return array(
+			'enabled' => '1',
+			'title' => taka_tour_translate( 'booking.before_you_book', $is_de ? 'Gut zu wissen vor der Buchung' : 'Before you book', $lang ),
+			'intro' => '',
+			'group_booking' => $is_de ? 'Gruppen sind herzlich willkommen. Wenn Sie mehrere Teilnehmer anmelden oder als Verein/Dojo eine gemeinsame Teilnahme organisieren möchten, wenden Sie sich bitte an den jeweiligen Veranstalter.' : 'Groups are very welcome. If you would like to register several participants or organize a club delegation, please contact the local organizer.',
+			'multi_event_discount' => $is_de ? 'Sie möchten mehrere Seminare der European Tour besuchen? Bitte kontaktieren Sie uns vor der Buchung. Wir erstellen gerne ein individuelles Angebot.' : 'Planning to attend multiple seminars during the European Tour? Please contact us before booking. We will gladly prepare an individual offer.',
+			'contact_email' => 'contact@kleiner-wald.de',
+			'booking_process' => '',
+			'payment_methods' => $is_de ? 'Nach Ihrer Buchung verschicken wir eine Rechnung. Die Zahlung ist per Überweisung, PayPal oder nach Absprache bar möglich. Nur vorab bezahlte Rechnungen berechtigen zur Teilnahme am Seminar.' : 'After your booking, we will send you an invoice. Payment is possible by bank transfer, PayPal or cash if agreed with the organizer. Only paid invoices confirm participation in the seminar.',
+			'cancellation_policy' => $is_de ? "bis 40 Tage vor dem Seminar: kostenloser Rücktritt\n39–30 Tage vor dem Seminar: 75% Rückerstattung\n29–14 Tage vor dem Seminar: 40% Rückerstattung\nweniger als 14 Tage vor dem Seminar: leider keine Rückerstattung" : "until 40 days before the seminar: free cancellation\n39–30 days before the seminar: 75% refund\n29–14 days before the seminar: 40% refund\nless than 14 days before the seminar: unfortunately no refund",
+			'additional_notes' => '',
+		);
+	}
+
+	/** Get global booking-information settings. */
+	public static function get_booking_information_settings( $lang = null ) {
+		$stored = function_exists( 'get_option' ) ? get_option( self::BOOKING_OPTION, array() ) : array();
+		return self::normalize_booking_information( array_merge( self::default_booking_information( $lang ), is_array( $stored ) ? $stored : array() ), true );
+	}
+
+	/** Prepare booking information for one event with organizer fallback. */
+	private static function booking_information_for_event( $event, $organizer, $lang ) {
+		$booking = self::get_booking_information_settings( $lang );
+		$override = self::normalize_booking_information( $event['booking_information'] ?? array(), false );
+		if ( ! empty( $override['override'] ) ) {
+			$booking = array_merge( $booking, array_filter( $override, static function ( $value ) { return '' !== trim( (string) $value ); } ) );
+			$booking['enabled'] = $override['enabled'] ?? $booking['enabled'];
+		}
+
+		if ( empty( $booking['title'] ) ) {
+			$booking['title'] = taka_tour_translate( 'booking.before_you_book', 'Before you book', $lang );
+		}
+
+		if ( empty( $booking['contact_email'] ) && is_array( $organizer ) && ! empty( $organizer['emails'][0] ) ) {
+			$booking['contact_email'] = (string) $organizer['emails'][0];
+		}
+
+		$sections = array(
+			array( 'key' => 'intro', 'title' => '', 'text' => $booking['intro'] ?? '' ),
+			array( 'key' => 'group_booking', 'title' => taka_tour_translate( 'booking.groups_clubs', 'Groups & clubs', $lang ), 'text' => $booking['group_booking'] ?? '' ),
+			array( 'key' => 'multi_event_discount', 'title' => taka_tour_translate( 'booking.multiple_seminars', 'Multiple seminars', $lang ), 'text' => $booking['multi_event_discount'] ?? '' ),
+			array( 'key' => 'booking_process', 'title' => taka_tour_translate( 'booking.booking_process', 'Booking process', $lang ), 'text' => $booking['booking_process'] ?? '' ),
+			array( 'key' => 'payment_methods', 'title' => taka_tour_translate( 'booking.payment', 'Payment', $lang ), 'text' => $booking['payment_methods'] ?? '' ),
+			array( 'key' => 'cancellation_policy', 'title' => taka_tour_translate( 'booking.cancellation', 'Cancellation', $lang ), 'text' => $booking['cancellation_policy'] ?? '', 'list' => self::lines_to_array( $booking['cancellation_policy'] ?? '' ) ),
+			array( 'key' => 'additional_notes', 'title' => taka_tour_translate( 'event.notes', 'Notes', $lang ), 'text' => $booking['additional_notes'] ?? '' ),
+		);
+		$booking['sections'] = array_values( array_filter( $sections, static function ( $section ) { return '' !== trim( (string) ( $section['text'] ?? '' ) ); } ) );
+		return $booking;
+	}
+
+	/** Normalize booking information arrays. */
+	private static function normalize_booking_information( $booking, $include_defaults = true ) {
+		$booking = is_array( $booking ) ? $booking : array();
+		$defaults = array( 'enabled' => '1', 'override' => '', 'title' => '', 'intro' => '', 'group_booking' => '', 'multi_event_discount' => '', 'contact_email' => '', 'booking_process' => '', 'payment_methods' => '', 'cancellation_policy' => '', 'additional_notes' => '' );
+		if ( $include_defaults ) {
+			$booking = array_merge( $defaults, $booking );
+		} else {
+			$booking = array_merge( array( 'override' => '' ), $booking );
+		}
+		foreach ( array( 'enabled', 'override' ) as $key ) {
+			if ( isset( $booking[ $key ] ) ) { $booking[ $key ] = ! empty( $booking[ $key ] ) ? '1' : '0'; }
+		}
+		return $booking;
+	}
+
+	/** Read event-specific booking-information override fields. */
+	private static function event_booking_information_from_meta( $post_id ) {
+		return self::normalize_booking_information( array(
+			'override' => (string) get_post_meta( $post_id, '_taka_booking_info_override', true ),
+			'enabled' => '' === (string) get_post_meta( $post_id, '_taka_booking_info_enabled', true ) ? '1' : (string) get_post_meta( $post_id, '_taka_booking_info_enabled', true ),
+			'title' => (string) get_post_meta( $post_id, '_taka_booking_info_title', true ),
+			'intro' => (string) get_post_meta( $post_id, '_taka_booking_info_intro', true ),
+			'group_booking' => (string) get_post_meta( $post_id, '_taka_booking_info_group_booking', true ),
+			'multi_event_discount' => (string) get_post_meta( $post_id, '_taka_booking_info_multi_event_discount', true ),
+			'contact_email' => (string) get_post_meta( $post_id, '_taka_booking_info_contact_email', true ),
+			'booking_process' => (string) get_post_meta( $post_id, '_taka_booking_info_booking_process', true ),
+			'payment_methods' => (string) get_post_meta( $post_id, '_taka_booking_info_payment_methods', true ),
+			'cancellation_policy' => (string) get_post_meta( $post_id, '_taka_booking_info_cancellation_policy', true ),
+			'additional_notes' => (string) get_post_meta( $post_id, '_taka_booking_info_additional_notes', true ),
+		), false );
+	}
 
 	/** Default editable hero settings with translation/config fallbacks. */
 	public static function default_hero_settings() {
@@ -417,6 +506,7 @@ class TAKA_Platform_Data {
 			$event['organizer_full'] = is_array( $organizer ) ? $organizer : null;
 			$event['practical_information'] = self::build_practical_information( $event, $organizer, $venue, $lang );
 			$event['info_drawers'] = self::build_info_drawers( $event, $organizer, $venue, $lang );
+			$event['booking_information'] = self::booking_information_for_event( $event, $organizer, $lang );
 			$event['ticket_overview_image'] = self::ticket_overview_image( $event );
 			$event['ticket_overview_image_alt'] = self::ticket_overview_image_alt( $event, $organizer, $lang );
 			return $event;

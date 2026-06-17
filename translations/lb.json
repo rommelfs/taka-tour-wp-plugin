@@ -204,5 +204,17 @@
     "organizer_info": "Organisateur",
     "venue_info": "Uert & Info",
     "practical_information": "Praktesch Informatiounen"
+  },
+  "booking": {
+    "before_you_book": "Gutt ze wëssen ier Dir bucht",
+    "groups_clubs": "Gruppen & Veräiner",
+    "multiple_seminars": "Méi Seminairen",
+    "payment": "Bezuelung",
+    "cancellation": "Annulatioun",
+    "contact_organizer": "Organisateur kontaktéieren",
+    "contact_before_booking": "Kontaktéiert eis virun der Buchung",
+    "refund": "Remboursement",
+    "days_before_event": "Deeg virum Event",
+    "booking_process": "Buchungsprozess"
   }
 }

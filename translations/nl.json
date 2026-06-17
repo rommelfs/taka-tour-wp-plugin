@@ -204,5 +204,17 @@
     "organizer_info": "Organisator",
     "venue_info": "Locatie & info",
     "practical_information": "Praktische informatie"
+  },
+  "booking": {
+    "before_you_book": "Goed om te weten voor je boekt",
+    "groups_clubs": "Groepen & clubs",
+    "multiple_seminars": "Meerdere seminars",
+    "payment": "Betaling",
+    "cancellation": "Annulering",
+    "contact_organizer": "Neem contact op met de organisator",
+    "contact_before_booking": "Neem contact op vóór het boeken",
+    "refund": "Terugbetaling",
+    "days_before_event": "dagen vóór het evenement",
+    "booking_process": "Boekingsproces"
   }
 }

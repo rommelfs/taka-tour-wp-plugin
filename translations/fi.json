@@ -204,5 +204,17 @@
     "organizer_info": "Järjestäjä",
     "venue_info": "Paikka & info",
     "practical_information": "Käytännön tiedot"
+  },
+  "booking": {
+    "before_you_book": "Hyvä tietää ennen varausta",
+    "groups_clubs": "Ryhmät & seurat",
+    "multiple_seminars": "Useat seminaarit",
+    "payment": "Maksu",
+    "cancellation": "Peruutus",
+    "contact_organizer": "Ota yhteyttä järjestäjään",
+    "contact_before_booking": "Ota yhteyttä ennen varausta",
+    "refund": "Hyvitys",
+    "days_before_event": "päivää ennen tapahtumaa",
+    "booking_process": "Varausprosessi"
   }
 }

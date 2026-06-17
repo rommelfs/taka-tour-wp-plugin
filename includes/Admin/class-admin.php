@@ -32,6 +32,7 @@ class TAKA_Platform_Admin {
 		add_action( 'admin_post_taka_platform_save_hero', array( __CLASS__, 'handle_save_hero' ) );
 		add_action( 'admin_post_taka_platform_save_sections', array( __CLASS__, 'handle_save_sections' ) );
 		add_action( 'admin_post_taka_platform_save_dashboard_settings', array( __CLASS__, 'handle_save_dashboard_settings' ) );
+		add_action( 'admin_post_taka_platform_save_booking_information', array( __CLASS__, 'handle_save_booking_information' ) );
 	}
 
 
@@ -468,6 +469,7 @@ class TAKA_Platform_Admin {
 	public static function render_settings() {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
 		$hero = TAKA_Platform_Data::get_hero_settings();
+		$booking = TAKA_Platform_Data::get_booking_information_settings();
 		$positions = array( 'left' => __( 'Left', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'right' => __( 'Right', 'taka-platform' ) );
 		$verticals = array( 'top' => __( 'Top', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'bottom' => __( 'Bottom', 'taka-platform' ) );
 		?>
@@ -504,6 +506,24 @@ class TAKA_Platform_Admin {
 					<?php self::settings_select_row( 'hero[vertical_alignment]', __( 'Hero vertical alignment', 'taka-platform' ), $hero['vertical_alignment'] ?? 'center', $verticals ); ?>
 				</tbody></table>
 				<?php submit_button( __( 'Save hero settings', 'taka-platform' ) ); ?>
+			</form>
+			<h2><?php echo esc_html__( 'Booking Information', 'taka-platform' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="taka_platform_save_booking_information">
+				<?php wp_nonce_field( TAKA_Platform_Data::BOOKING_OPTION, self::NONCE ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<tr><th scope="row"><?php echo esc_html__( 'Section enabled', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="booking_info[enabled]" value="1" <?php checked( (string) ( $booking['enabled'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show Before you book section near tickets', 'taka-platform' ); ?></label></td></tr>
+					<?php self::settings_text_row( 'booking_info[title]', __( 'Title', 'taka-platform' ), $booking['title'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[intro]', __( 'Intro text', 'taka-platform' ), $booking['intro'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[group_booking]', __( 'Group booking text', 'taka-platform' ), $booking['group_booking'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[multi_event_discount]', __( 'Multi-event discount text', 'taka-platform' ), $booking['multi_event_discount'] ?? '' ); ?>
+					<?php self::settings_text_row( 'booking_info[contact_email]', __( 'Contact email', 'taka-platform' ), $booking['contact_email'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[booking_process]', __( 'Booking process text', 'taka-platform' ), $booking['booking_process'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[payment_methods]', __( 'Payment methods', 'taka-platform' ), $booking['payment_methods'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[cancellation_policy]', __( 'Cancellation policy text', 'taka-platform' ), $booking['cancellation_policy'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'booking_info[additional_notes]', __( 'Additional notes', 'taka-platform' ), $booking['additional_notes'] ?? '' ); ?>
+				</tbody></table>
+				<?php submit_button( __( 'Save booking information', 'taka-platform' ) ); ?>
 			</form>
 		</div>
 		<?php
@@ -598,6 +618,18 @@ class TAKA_Platform_Admin {
 		}
 		update_option( TAKA_Platform_Data::SECTIONS_OPTION, $clean, false );
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-platform-content-sections' ) ) );
+		exit;
+	}
+
+
+	/** Save global booking-information settings. */
+	public static function handle_save_booking_information() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( TAKA_Platform_Data::BOOKING_OPTION, self::NONCE );
+		$posted = isset( $_POST['booking_info'] ) && is_array( $_POST['booking_info'] ) ? wp_unslash( $_POST['booking_info'] ) : array();
+		$clean  = self::sanitize_booking_information( $posted, true );
+		update_option( TAKA_Platform_Data::BOOKING_OPTION, $clean, false );
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
 		exit;
 	}
 
@@ -717,7 +749,7 @@ class TAKA_Platform_Admin {
 
 	private static function organizer_meta_from_config( $item ) { $social = is_array( $item['social'] ?? null ) ? $item['social'] : ( is_array( $item['social_links'] ?? null ) ? $item['social_links'] : array() ); return array( '_taka_legal_name' => $item['legal_name'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_logo_id' => (int) ( $item['logo_id'] ?? 0 ), '_taka_logo_url' => $item['logo_url'] ?? ( $item['logo'] ?? '' ), '_taka_emails' => implode( "\n", $item['emails'] ?? array() ), '_taka_contact_persons' => self::contact_persons_to_lines( $item['contact_persons'] ?? array() ), '_taka_instagram' => $social['instagram'] ?? '', '_taka_facebook' => $social['facebook'] ?? '', '_taka_youtube' => $social['youtube'] ?? '', '_taka_platform_co_organizers' => self::sanitize_co_organizers( $item['co_organizers'] ?? array() ), '_taka_active' => 1 ); }
 	private static function venue_meta_from_config( $item ) { $a = $item['address'] ?? array(); $g = $item['geo'] ?? array(); return array( '_taka_image_id' => (int) ( $item['image_id'] ?? 0 ), '_taka_image_url' => $item['image_url'] ?? ( $item['image'] ?? '' ), '_taka_parking_image_id' => (int) ( $item['parking_image_id'] ?? 0 ), '_taka_parking_image_url' => $item['parking_image_url'] ?? '', '_taka_gallery_image_ids' => implode( ',', $item['gallery_image_ids'] ?? array() ), '_taka_street' => $a['street'] ?? '', '_taka_postal_code' => $a['postal_code'] ?? '', '_taka_city' => $a['city'] ?? '', '_taka_country' => $a['country'] ?? '', '_taka_country_code' => $a['country_code'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_accessibility' => $item['accessibility'] ?? '', '_taka_notes' => $item['notes'] ?? '', '_taka_lat' => $g['lat'] ?? '', '_taka_lng' => $g['lng'] ?? '' ); }
-	private static function event_meta_from_config( $item ) { return array( '_taka_subtitle' => $item['subtitle'] ?? '', '_taka_country' => $item['country'] ?? '', '_taka_country_code' => $item['country_code'] ?? '', '_taka_flag' => $item['flag'] ?? '', '_taka_city' => $item['city'] ?? '', '_taka_date_start' => $item['date_start'] ?? '', '_taka_date_end' => $item['date_end'] ?? '', '_taka_time_start' => $item['time_start'] ?? '', '_taka_time_end' => $item['time_end'] ?? '', '_taka_doors_open' => $item['doors_open'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_format' => $item['format'] ?? '', '_taka_audience' => $item['audience'] ?? '', '_taka_level' => $item['level'] ?? '', '_taka_ticket_status' => $item['ticket_status'] ?? '', '_taka_ticket_provider' => $item['ticket_provider'] ?? '', '_taka_ticket_shop_url' => $item['ticket_shop_url'] ?? '', '_taka_image_id' => (int) ( $item['image_id'] ?? 0 ), '_taka_image_url' => $item['image_url'] ?? ( $item['image'] ?? '' ), '_taka_group_image_id' => (int) ( $item['group_image_id'] ?? 0 ), '_taka_group_image_url' => $item['group_image_url'] ?? ( $item['group_image'] ?? '' ), '_taka_gallery_image_ids' => implode( ',', $item['gallery_image_ids'] ?? array() ), '_taka_photo_credit' => $item['photo_credit'] ?? '', '_taka_languages' => implode( ',', $item['languages'] ?? array() ), '_taka_notes' => $item['notes'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_sort_order' => (int) ( $item['sort_order'] ?? 0 ) ); }
+	private static function event_meta_from_config( $item ) { $raw_booking = is_array( $item['booking_information'] ?? null ) ? $item['booking_information'] : array(); if ( ! empty( $raw_booking ) && ! isset( $raw_booking['override'] ) ) { $raw_booking['override'] = '1'; } if ( ! empty( $raw_booking ) && ! isset( $raw_booking['enabled'] ) ) { $raw_booking['enabled'] = '1'; } $booking = self::sanitize_booking_information( $raw_booking ); return array( '_taka_subtitle' => $item['subtitle'] ?? '', '_taka_country' => $item['country'] ?? '', '_taka_country_code' => $item['country_code'] ?? '', '_taka_flag' => $item['flag'] ?? '', '_taka_city' => $item['city'] ?? '', '_taka_date_start' => $item['date_start'] ?? '', '_taka_date_end' => $item['date_end'] ?? '', '_taka_time_start' => $item['time_start'] ?? '', '_taka_time_end' => $item['time_end'] ?? '', '_taka_doors_open' => $item['doors_open'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_format' => $item['format'] ?? '', '_taka_audience' => $item['audience'] ?? '', '_taka_level' => $item['level'] ?? '', '_taka_ticket_status' => $item['ticket_status'] ?? '', '_taka_ticket_provider' => $item['ticket_provider'] ?? '', '_taka_ticket_shop_url' => $item['ticket_shop_url'] ?? '', '_taka_image_id' => (int) ( $item['image_id'] ?? 0 ), '_taka_image_url' => $item['image_url'] ?? ( $item['image'] ?? '' ), '_taka_group_image_id' => (int) ( $item['group_image_id'] ?? 0 ), '_taka_group_image_url' => $item['group_image_url'] ?? ( $item['group_image'] ?? '' ), '_taka_gallery_image_ids' => implode( ',', $item['gallery_image_ids'] ?? array() ), '_taka_photo_credit' => $item['photo_credit'] ?? '', '_taka_languages' => implode( ',', $item['languages'] ?? array() ), '_taka_booking_info_override' => $booking['override'] ?? '', '_taka_booking_info_enabled' => $booking['enabled'] ?? '1', '_taka_booking_info_title' => $booking['title'] ?? '', '_taka_booking_info_intro' => $booking['intro'] ?? '', '_taka_booking_info_group_booking' => $booking['group_booking'] ?? '', '_taka_booking_info_multi_event_discount' => $booking['multi_event_discount'] ?? '', '_taka_booking_info_contact_email' => $booking['contact_email'] ?? '', '_taka_booking_info_booking_process' => $booking['booking_process'] ?? '', '_taka_booking_info_payment_methods' => $booking['payment_methods'] ?? '', '_taka_booking_info_cancellation_policy' => $booking['cancellation_policy'] ?? '', '_taka_booking_info_additional_notes' => $booking['additional_notes'] ?? '', '_taka_notes' => $item['notes'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_sort_order' => (int) ( $item['sort_order'] ?? 0 ) ); }
 
 	private static function contact_persons_to_lines( $people ) { return implode( "\n", array_map( static function ( $person ) { return is_array( $person ) ? trim( ( $person['name'] ?? '' ) . ' | ' . ( $person['email'] ?? '' ) . ' | ' . ( $person['role'] ?? '' ) ) : (string) $person; }, $people ) ); }
 	private static function find_post_id_by_config_id( $post_type, $config_id ) { if ( '' === (string) $config_id ) { return 0; } $posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_key' => '_taka_config_id', 'meta_value' => $config_id ) ); return ! empty( $posts ) ? (int) $posts[0] : 0; }
@@ -770,6 +802,7 @@ class TAKA_Platform_Admin {
 		self::textarea( $post->ID, 'short_description', __( 'Short description', 'taka-platform' ) );
 		self::textarea( $post->ID, 'long_description', __( 'Long description', 'taka-platform' ) );
 		self::textarea( $post->ID, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) );
+		self::render_event_booking_information_fields( $post->ID );
 		self::textarea( $post->ID, 'accessibility', __( 'Accessibility notes', 'taka-platform' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
 		self::textarea( $post->ID, 'notes', __( 'Notes', 'taka-platform' ) );
@@ -795,7 +828,7 @@ class TAKA_Platform_Admin {
 			}
 			update_post_meta( $post_id, '_taka_organizer_id', $posted );
 		}
-		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'date_start', 'date_end', 'time_start', 'time_end', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'accessibility', 'sort_order', 'notes', 'parking' ) );
+		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'date_start', 'date_end', 'time_start', 'time_end', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
 	}
 
 	/** Save repeatable co-organizer entries for an organizer. */
@@ -854,7 +887,8 @@ class TAKA_Platform_Admin {
 			$value = wp_unslash( $_POST[ $key ] );
 			if ( in_array( $field, array( 'logo_id', 'image_id', 'group_image_id', 'parking_image_id', 'organizer_id', 'venue_id', 'sort_order' ), true ) ) { $value = absint( $value ); }
 			elseif ( in_array( $field, array( 'website', 'ticket_shop_url', 'image_url', 'group_image_url', 'parking_image_url', 'logo_url' ), true ) ) { $value = esc_url_raw( $value ); }
-			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'short_description', 'long_description', 'ticket_card_text', 'parking', 'accessibility', 'notes' ), true ) ) { $value = sanitize_textarea_field( $value ); }
+			elseif ( 'booking_info_contact_email' === $field ) { $value = sanitize_email( $value ); }
+			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'short_description', 'long_description', 'ticket_card_text', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'parking', 'accessibility', 'notes' ), true ) ) { $value = sanitize_textarea_field( $value ); }
 			elseif ( in_array( $field, array( 'gallery_image_ids', 'venue_ids' ), true ) ) { $value = implode( ',', array_map( 'absint', preg_split( '/\s*,\s*/', (string) $value ) ) ); }
 			else { $value = sanitize_text_field( $value ); }
 			update_post_meta( $post_id, $key, $value );
@@ -915,6 +949,47 @@ class TAKA_Platform_Admin {
 			<p><label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>[active]" value="1" <?php checked( ! array_key_exists( 'active', $item ) || ! empty( $item['active'] ) ); ?>> <?php echo esc_html__( 'Active', 'taka-platform' ); ?></label></p>
 		</div>
 		<?php
+	}
+
+
+	/** Render event-specific booking-information override fields. */
+	private static function render_event_booking_information_fields( $post_id ) {
+		$prefix = '_taka_booking_info_';
+		?>
+		<div class="taka-event-booking-info" style="border:1px solid #dcdcde;padding:12px;margin:12px 0;background:#fff;">
+			<h3><?php echo esc_html__( 'Booking information override', 'taka-platform' ); ?></h3>
+			<p><label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>override" value="1" <?php checked( (string) self::meta( $post_id, 'booking_info_override' ), '1' ); ?>> <?php echo esc_html__( 'Use custom booking information for this event', 'taka-platform' ); ?></label></p>
+			<input type="hidden" name="<?php echo esc_attr( $prefix ); ?>enabled" value="0">
+			<p><label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>enabled" value="1" <?php checked( '' === (string) self::meta( $post_id, 'booking_info_enabled' ) || '1' === (string) self::meta( $post_id, 'booking_info_enabled' ) ); ?>> <?php echo esc_html__( 'Show booking information for this event', 'taka-platform' ); ?></label></p>
+			<?php self::text( $post_id, 'booking_info_title', __( 'Booking information title', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_intro', __( 'Intro text', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_group_booking', __( 'Group booking text', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_multi_event_discount', __( 'Multi-event discount text', 'taka-platform' ) ); ?>
+			<?php self::text( $post_id, 'booking_info_contact_email', __( 'Contact email', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_booking_process', __( 'Booking process text', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_payment_methods', __( 'Payment methods', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_cancellation_policy', __( 'Cancellation policy text', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'booking_info_additional_notes', __( 'Additional notes', 'taka-platform' ) ); ?>
+		</div>
+		<?php
+	}
+
+	/** Sanitize booking-information settings. */
+	private static function sanitize_booking_information( $posted, $global = false ) {
+		$posted = is_array( $posted ) ? $posted : array();
+		return array(
+			'override' => ! empty( $posted['override'] ) ? '1' : '0',
+			'enabled' => ! empty( $posted['enabled'] ) ? '1' : '0',
+			'title' => sanitize_text_field( $posted['title'] ?? '' ),
+			'intro' => sanitize_textarea_field( $posted['intro'] ?? '' ),
+			'group_booking' => sanitize_textarea_field( $posted['group_booking'] ?? '' ),
+			'multi_event_discount' => sanitize_textarea_field( $posted['multi_event_discount'] ?? '' ),
+			'contact_email' => sanitize_email( $posted['contact_email'] ?? '' ),
+			'booking_process' => sanitize_textarea_field( $posted['booking_process'] ?? '' ),
+			'payment_methods' => sanitize_textarea_field( $posted['payment_methods'] ?? '' ),
+			'cancellation_policy' => sanitize_textarea_field( $posted['cancellation_policy'] ?? '' ),
+			'additional_notes' => sanitize_textarea_field( $posted['additional_notes'] ?? '' ),
+		);
 	}
 
 	private static function nonce() { wp_nonce_field( self::NONCE, self::NONCE ); }

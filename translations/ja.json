@@ -204,5 +204,17 @@
     "organizer_info": "主催者",
     "venue_info": "会場・案内",
     "practical_information": "実用情報"
+  },
+  "booking": {
+    "before_you_book": "予約前にご確認ください",
+    "groups_clubs": "団体・クラブ",
+    "multiple_seminars": "複数セミナー",
+    "payment": "お支払い",
+    "cancellation": "キャンセル",
+    "contact_organizer": "主催者に連絡",
+    "contact_before_booking": "予約前にお問い合わせください",
+    "refund": "返金",
+    "days_before_event": "開催日前",
+    "booking_process": "予約の流れ"
   }
 }
