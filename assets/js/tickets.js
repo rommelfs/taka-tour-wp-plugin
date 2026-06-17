@@ -1,51 +1,51 @@
 (function () {
 	'use strict';
 
-	var activeDrawer = null;
+	var activeModal = null;
 
-	function closeDrawer() {
-		if (!activeDrawer) {
+	function closeModal() {
+		if (!activeModal) {
 			return;
 		}
-		activeDrawer.setAttribute('hidden', 'hidden');
-		activeDrawer.classList.remove('is-open');
-		document.documentElement.classList.remove('taka-info-drawer-open');
-		activeDrawer = null;
+		activeModal.setAttribute('hidden', 'hidden');
+		activeModal.classList.remove('is-open');
+		document.documentElement.classList.remove('taka-info-modal-open');
+		activeModal = null;
 	}
 
-	function openDrawer(id) {
-		var drawer = document.getElementById(id);
-		if (!drawer) {
+	function openModal(id) {
+		var modal = document.getElementById(id);
+		if (!modal) {
 			return;
 		}
-		closeDrawer();
-		drawer.removeAttribute('hidden');
-		drawer.classList.add('is-open');
-		document.documentElement.classList.add('taka-info-drawer-open');
-		activeDrawer = drawer;
-		var panel = drawer.querySelector('.taka-info-drawer__panel');
+		closeModal();
+		modal.removeAttribute('hidden');
+		modal.classList.add('is-open');
+		document.documentElement.classList.add('taka-info-modal-open');
+		activeModal = modal;
+		var panel = modal.querySelector('.taka-info-modal__panel');
 		if (panel) {
 			panel.focus({ preventScroll: true });
 		}
 	}
 
 	document.addEventListener('click', function (event) {
-		var openButton = event.target.closest('[data-taka-info-drawer-open]');
+		var openButton = event.target.closest('[data-taka-info-modal-open]');
 		if (openButton) {
 			event.preventDefault();
-			openDrawer(openButton.getAttribute('data-taka-info-drawer-open'));
+			openModal(openButton.getAttribute('data-taka-info-modal-open'));
 			return;
 		}
 
-		if (event.target.closest('[data-taka-info-drawer-close]')) {
+		if (event.target.closest('[data-taka-info-modal-close]')) {
 			event.preventDefault();
-			closeDrawer();
+			closeModal();
 		}
 	});
 
 	document.addEventListener('keydown', function (event) {
 		if ('Escape' === event.key) {
-			closeDrawer();
+			closeModal();
 		}
 	});
 }());

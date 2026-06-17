@@ -170,7 +170,8 @@
     "email": "E-Mail",
     "contact": "Kontakt",
     "city": "Stad",
-    "country": "Land"
+    "country": "Land",
+    "google_maps": "A Google Maps opmaachen"
   },
   "country": {
     "france": "Frankräich"
@@ -191,9 +192,9 @@
     "view_frontend_section": "Frontend-Sektioun kucken"
   },
   "drawer": {
-    "event_details": "Event-Detailer",
-    "organizer_info": "Informatiounen zum Organisateur",
-    "venue_info": "Informatiounen zum Uert",
+    "event_details": "Detailer",
+    "organizer_info": "Organisateur",
+    "venue_info": "Uert & Info",
     "practical_information": "Praktesch Informatiounen"
   }
 }

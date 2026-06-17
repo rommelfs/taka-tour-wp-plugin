@@ -15,8 +15,21 @@ defined( 'ABSPATH' ) || exit;
 			<?php endforeach; ?>
 		</div>
 		<?php foreach ( $seminars as $index => $seminar ) : ?>
-			<?php $pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar ); ?>
+			<?php
+			$pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar );
+			$time_display     = implode( '–', array_filter( array( $seminar['time_start'] ?? '', $seminar['time_end'] ?? '' ) ) );
+			?>
 			<div class="taka-tab-panel <?php echo 0 === $index ? 'is-active' : ''; ?>" data-panel="<?php echo esc_attr( $seminar['slug'] ?? $seminar['id'] ?? $index ); ?>">
+				<div class="taka-ticket-summary">
+					<h3><?php echo esc_html( $seminar['title'] ?? '' ); ?></h3>
+					<div class="taka-ticket-summary__details">
+						<?php foreach ( array( $seminar['date'] ?? '', $time_display, $seminar['venue_name'] ?? '' ) as $summary_value ) : ?>
+							<?php if ( '' !== trim( (string) $summary_value ) ) : ?>
+								<span><?php echo esc_html( $summary_value ); ?></span>
+							<?php endif; ?>
+						<?php endforeach; ?>
+					</div>
+				</div>
 				<?php echo taka_tour_render_template( 'partials/ticket-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '', 'seminar' => $seminar ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		<?php endforeach; ?>

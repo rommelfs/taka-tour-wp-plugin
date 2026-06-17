@@ -170,7 +170,8 @@
     "email": "E-mail",
     "contact": "Contact",
     "city": "Ville",
-    "country": "Pays"
+    "country": "Pays",
+    "google_maps": "Ouvrir dans Google Maps"
   },
   "country": {
     "france": "France"
@@ -191,9 +192,9 @@
     "view_frontend_section": "Voir la section publique"
   },
   "drawer": {
-    "event_details": "Détails de l’événement",
-    "organizer_info": "Infos organisateur",
-    "venue_info": "Infos lieu",
+    "event_details": "Détails",
+    "organizer_info": "Organisateur",
+    "venue_info": "Lieu & infos",
     "practical_information": "Informations pratiques"
   }
 }

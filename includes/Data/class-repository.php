@@ -435,8 +435,6 @@ class TAKA_Platform_Data {
 		);
 
 		if ( is_array( $venue ) ) {
-			$rows[] = array( 'label' => taka_tour_translate( 'event.venue', 'Ort', $lang ), 'value' => $venue['name'] ?? '' );
-			$rows[] = array( 'label' => taka_tour_translate( 'event.address', 'Adresse', $lang ), 'value' => self::format_address( $venue['address'] ?? array() ) );
 			$rows[] = array( 'label' => taka_tour_translate( 'event.parking', 'Parken', $lang ), 'value' => $venue['parking'] ?? '' );
 			$rows[] = array( 'label' => taka_tour_translate( 'event.accessibility', 'Barrierefreiheit', $lang ), 'value' => $venue['accessibility'] ?? '' );
 			$rows[] = array( 'label' => taka_tour_translate( 'event.notes', 'Hinweise', $lang ), 'value' => $venue['notes'] ?? '' );
@@ -456,7 +454,8 @@ class TAKA_Platform_Data {
 		$time = implode( '–', array_filter( array( $event['time_start'] ?? '', $event['time_end'] ?? '' ) ) );
 		$drawers = array();
 		$drawers['event'] = array(
-			'label' => taka_tour_translate( 'drawer.event_details', 'Event details', $lang ),
+			'type'  => 'event',
+			'label' => taka_tour_translate( 'drawer.event_details', 'Details', $lang ),
 			'title' => taka_tour_translate( 'drawer.event_details', 'Event details', $lang ),
 			'image' => $event['image'] ?? '',
 			'rows'  => self::clean_info_rows( array(
@@ -478,7 +477,8 @@ class TAKA_Platform_Data {
 		if ( is_array( $organizer ) ) {
 			$social = $organizer['social_links'] ?? ( $organizer['social'] ?? array() );
 			$drawers['organizer'] = array(
-				'label' => taka_tour_translate( 'drawer.organizer_info', 'Organizer info', $lang ),
+				'type'  => 'organizer',
+				'label' => taka_tour_translate( 'drawer.organizer_info', 'Organizer', $lang ),
 				'title' => taka_tour_translate( 'drawer.organizer_info', 'Organizer info', $lang ),
 				'image' => $organizer['logo'] ?? ( $organizer['logo_url'] ?? '' ),
 				'rows'  => self::clean_info_rows( array(
@@ -497,31 +497,40 @@ class TAKA_Platform_Data {
 
 		if ( is_array( $venue ) ) {
 			$address = $venue['address'] ?? array();
-			$drawers['venue'] = array(
-				'label' => taka_tour_translate( 'drawer.venue_info', 'Venue info', $lang ),
-				'title' => taka_tour_translate( 'drawer.venue_info', 'Venue info', $lang ),
-				'image' => $venue['image'] ?? ( $venue['image_url'] ?? '' ),
-				'rows'  => self::clean_info_rows( array(
-					array( 'label' => taka_tour_translate( 'event.venue', 'Venue', $lang ), 'value' => $venue['name'] ?? '' ),
-					array( 'label' => taka_tour_translate( 'event.address', 'Address', $lang ), 'value' => self::format_address( $address ) ),
-					array( 'label' => taka_tour_translate( 'event.city', 'City', $lang ), 'value' => $address['city'] ?? '' ),
-					array( 'label' => taka_tour_translate( 'event.country', 'Country', $lang ), 'value' => $address['country'] ?? '' ),
+			$venue_address = self::format_address( $address );
+			$venue_rows = array(
+				array( 'label' => taka_tour_translate( 'event.venue', 'Venue', $lang ), 'value' => $venue['name'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.address', 'Address', $lang ), 'value' => $venue_address ),
+				array( 'label' => taka_tour_translate( 'event.city', 'City', $lang ), 'value' => $address['city'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.country', 'Country', $lang ), 'value' => $address['country'] ?? '' ),
+			);
+			if ( '' !== $venue_address ) {
+				$venue_rows[] = array( 'label' => taka_tour_translate( 'event.google_maps', 'Open in Google Maps', $lang ), 'value' => taka_tour_translate( 'event.google_maps', 'Open in Google Maps', $lang ), 'url' => self::google_maps_url( $venue_address ) );
+			}
+			$venue_rows = array_merge(
+				$venue_rows,
+				array(
 					array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $venue['website'] ?? '', 'url' => $venue['website'] ?? '' ),
-					array( 'label' => taka_tour_translate( 'event.parking', 'Parking', $lang ), 'value' => $venue['parking'] ?? '' ),
-					array( 'label' => taka_tour_translate( 'event.accessibility', 'Accessibility', $lang ), 'value' => $venue['accessibility'] ?? '' ),
-					array( 'label' => taka_tour_translate( 'event.notes', 'Notes', $lang ), 'value' => $venue['notes'] ?? '' ),
-				) ),
+				)
 			);
-		}
-
-		$practical = self::build_practical_information( $event, $organizer, $venue, $lang );
-		if ( ! empty( $practical ) ) {
-			$drawers['practical'] = array(
-				'label' => taka_tour_translate( 'drawer.practical_information', 'Practical information', $lang ),
-				'title' => taka_tour_translate( 'drawer.practical_information', 'Practical information', $lang ),
-				'image' => '',
-				'rows'  => $practical,
+			$drawers['venue'] = array(
+				'type'  => 'venue',
+				'label' => taka_tour_translate( 'drawer.venue_info', 'Venue & info', $lang ),
+				'title' => taka_tour_translate( 'drawer.venue_info', 'Venue & practical information', $lang ),
+				'image' => $venue['image'] ?? ( $venue['image_url'] ?? '' ),
+				'rows'  => array_merge( self::clean_info_rows( $venue_rows ), self::build_practical_information( $event, $organizer, $venue, $lang ) ),
 			);
+		} else {
+			$practical = self::build_practical_information( $event, $organizer, $venue, $lang );
+			if ( ! empty( $practical ) ) {
+				$drawers['venue'] = array(
+					'type'  => 'venue',
+					'label' => taka_tour_translate( 'drawer.venue_info', 'Venue & info', $lang ),
+					'title' => taka_tour_translate( 'drawer.venue_info', 'Venue & practical information', $lang ),
+					'image' => '',
+					'rows'  => $practical,
+				);
+			}
 		}
 
 		return array_filter( $drawers, static function ( $drawer ) { return ! empty( $drawer['rows'] ); } );
@@ -545,6 +554,12 @@ class TAKA_Platform_Data {
 	/** Drop rows whose values are empty so drawers never show empty labels. */
 	private static function clean_info_rows( $rows ) {
 		return array_values( array_filter( $rows, static function ( $row ) { return '' !== trim( wp_strip_all_tags( (string) ( $row['value'] ?? '' ) ) ); } ) );
+	}
+
+	/** Generate a simple Google Maps search URL for an address string. */
+	private static function google_maps_url( $address ) {
+		$address = trim( (string) $address );
+		return '' === $address ? '' : 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( $address );
 	}
 
 	/** Export current WordPress data into config-compatible array. */

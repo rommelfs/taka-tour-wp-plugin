@@ -170,7 +170,8 @@
     "email": "Email",
     "contact": "Contact",
     "city": "City",
-    "country": "Country"
+    "country": "Country",
+    "google_maps": "Open in Google Maps"
   },
   "country": {
     "france": "France"
@@ -191,9 +192,9 @@
     "view_frontend_section": "View frontend section"
   },
   "drawer": {
-    "event_details": "Event details",
-    "organizer_info": "Organizer info",
-    "venue_info": "Venue info",
+    "event_details": "Details",
+    "organizer_info": "Organizer",
+    "venue_info": "Venue & info",
     "practical_information": "Practical information"
   }
 }

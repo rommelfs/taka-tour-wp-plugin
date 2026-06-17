@@ -8,17 +8,10 @@ defined( 'ABSPATH' ) || exit;
 $pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar );
 $time_parts       = array_filter( array( $seminar['time_start'] ?? '', $seminar['time_end'] ?? '' ) );
 $time_display     = implode( '–', $time_parts );
-$details          = array(
+$summary_details  = array(
 	array( 'label' => taka_tour_translate( 'event.date', 'Datum' ), 'value' => $seminar['date'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.venue', 'Ort' ), 'value' => $seminar['venue_name'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.address', 'Adresse' ), 'value' => $seminar['address'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.doors_open', 'Türen öffnen' ), 'value' => $seminar['doors_open'] ?? '' ),
 	array( 'label' => taka_tour_translate( 'event.time', 'Zeit' ), 'value' => $time_display ),
-	array( 'label' => taka_tour_translate( 'seminar.format_label', 'Format' ), 'value' => $seminar['format'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.audience', 'Zielgruppe' ), 'value' => $seminar['audience'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.level', 'Level' ), 'value' => $seminar['level'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.organizer', 'Veranstalter' ), 'value' => $seminar['organizer_name'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.parking', 'Parken' ), 'value' => $seminar['parking_display'] ?? '' ),
+	array( 'label' => taka_tour_translate( 'event.venue', 'Ort' ), 'value' => $seminar['venue_name'] ?? '' ),
 );
 ?>
 <article class="taka-seminar-card" id="seminar-<?php echo esc_attr( $seminar['slug'] ?? '' ); ?>">
@@ -27,16 +20,8 @@ $details          = array(
 	<?php if ( ! empty( $seminar['subtitle'] ) ) : ?>
 		<p class="taka-subtitle"><?php echo esc_html( $seminar['subtitle'] ); ?></p>
 	<?php endif; ?>
-	<?php if ( ! empty( $seminar['description'] ) ) : ?>
-		<p><?php echo esc_html( $seminar['description'] ); ?></p>
-	<?php endif; ?>
-	<?php foreach ( array( 'long_description', 'ticket_card_text', 'notes', 'accessibility' ) as $text_field ) : ?>
-		<?php if ( ! empty( $seminar[ $text_field ] ) ) : ?>
-			<p><?php echo esc_html( $seminar[ $text_field ] ); ?></p>
-		<?php endif; ?>
-	<?php endforeach; ?>
 	<dl class="taka-details">
-		<?php foreach ( $details as $detail ) : ?>
+		<?php foreach ( $summary_details as $detail ) : ?>
 			<?php if ( '' === trim( (string) $detail['value'] ) ) : ?>
 				<?php continue; ?>
 			<?php endif; ?>

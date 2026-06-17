@@ -170,7 +170,8 @@
     "email": "メール",
     "contact": "連絡先",
     "city": "都市",
-    "country": "国"
+    "country": "国",
+    "google_maps": "Google Mapsで開く"
   },
   "country": {
     "france": "フランス"
@@ -191,9 +192,9 @@
     "view_frontend_section": "フロントエンドのセクションを見る"
   },
   "drawer": {
-    "event_details": "イベント詳細",
-    "organizer_info": "主催者情報",
-    "venue_info": "会場情報",
+    "event_details": "詳細",
+    "organizer_info": "主催者",
+    "venue_info": "会場・案内",
     "practical_information": "実用情報"
   }
 }

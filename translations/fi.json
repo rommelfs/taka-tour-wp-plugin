@@ -170,7 +170,8 @@
     "email": "Sähköposti",
     "contact": "Yhteyshenkilö",
     "city": "Kaupunki",
-    "country": "Maa"
+    "country": "Maa",
+    "google_maps": "Avaa Google Mapsissa"
   },
   "country": {
     "france": "Ranska"
@@ -191,9 +192,9 @@
     "view_frontend_section": "Näytä frontend-osio"
   },
   "drawer": {
-    "event_details": "Tapahtuman tiedot",
-    "organizer_info": "Järjestäjän tiedot",
-    "venue_info": "Paikan tiedot",
+    "event_details": "Tiedot",
+    "organizer_info": "Järjestäjä",
+    "venue_info": "Paikka & info",
     "practical_information": "Käytännön tiedot"
   }
 }
