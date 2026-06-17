@@ -10,6 +10,8 @@ class TAKA_Platform_Data {
 	const ORGANIZER_POST_TYPE = TAKA_PLATFORM_CPT_ORGANIZER;
 	const VENUE_POST_TYPE = TAKA_PLATFORM_CPT_VENUE;
 	const MEDIA_OPTION = 'taka_tour_media_settings';
+	const HERO_OPTION = 'taka_platform_hero_settings';
+	const SECTIONS_OPTION = 'taka_platform_content_sections';
 
 	/** Load seed/fallback tour configuration. */
 	public static function load_config() {
@@ -208,7 +210,9 @@ class TAKA_Platform_Data {
 				'slug' => $post->post_name,
 				'title' => get_the_title( $post ),
 				'subtitle' => (string) get_post_meta( $post->ID, '_taka_subtitle', true ),
-				'description' => $post->post_content,
+				'description' => (string) get_post_meta( $post->ID, '_taka_short_description', true ) ?: $post->post_content,
+				'long_description' => (string) get_post_meta( $post->ID, '_taka_long_description', true ),
+				'ticket_card_text' => (string) get_post_meta( $post->ID, '_taka_ticket_card_text', true ),
 				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
 				'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ),
 				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ),
@@ -240,6 +244,7 @@ class TAKA_Platform_Data {
 				'photo_credit' => (string) get_post_meta( $post->ID, '_taka_photo_credit', true ),
 				'languages' => self::csv_to_strings( get_post_meta( $post->ID, '_taka_languages', true ) ),
 				'notes' => (string) get_post_meta( $post->ID, '_taka_notes', true ),
+				'accessibility' => (string) get_post_meta( $post->ID, '_taka_accessibility', true ),
 				'parking' => (string) get_post_meta( $post->ID, '_taka_parking', true ),
 				'sort_order' => (int) get_post_meta( $post->ID, '_taka_sort_order', true ),
 			);
@@ -263,7 +268,7 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? 0; $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? '' ); $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? 0; $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? '' ); $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -287,6 +292,87 @@ class TAKA_Platform_Data {
 
 	public static function get_media() { return self::images(); }
 
+	/** Default editable hero settings with translation/config fallbacks. */
+	public static function default_hero_settings() {
+		$images        = self::images();
+		$ticket_target = '#seminar-konz';
+		foreach ( self::get_public_events() as $event ) {
+			if ( '' !== self::pretix_event_url( $event ) ) {
+				$ticket_target = '#seminar-' . ( $event['slug'] ?? '' );
+				if ( 'konz' === ( $event['slug'] ?? '' ) ) {
+					break;
+				}
+			}
+		}
+
+		return array(
+			'kicker'                 => taka_tour_translate( 'hero.kicker', 'TAKA European Tour 2026' ),
+			'title'                  => taka_tour_translate( 'hero.headline', 'Harmony in Motion' ),
+			'description'            => taka_tour_translate( 'hero.intro', 'Eine europäische Seminarreise mit Takafumi Nakayama Sensei – von Helsinki über Berlin, die Niederlande, Belgien und Luxemburg bis in die Region Trier/Konz.' ),
+			'primary_button_label'   => taka_tour_translate( 'hero.primary_button', 'Seminare ansehen' ),
+			'primary_button_target'  => '#tour',
+			'secondary_button_label' => taka_tour_translate( 'hero.secondary_button', 'Tickets' ),
+			'secondary_button_target'=> $ticket_target,
+			'image_id'               => 0,
+			'image_url'              => $images['hero_image'] ?? '',
+			'overlay_strength'       => '0.78',
+			'text_box_enabled'       => '1',
+			'text_box_opacity'       => '0.72',
+			'text_box_max_width'     => '620px',
+			'text_position'          => 'left',
+			'vertical_alignment'     => 'center',
+		);
+	}
+
+	/** Get editable hero settings. */
+	public static function get_hero_settings() {
+		$settings = function_exists( 'get_option' ) ? get_option( self::HERO_OPTION, array() ) : array();
+		$settings = is_array( $settings ) ? $settings : array();
+		$merged   = array_merge( self::default_hero_settings(), $settings );
+		$merged['image'] = self::resolve_attachment_url( absint( $merged['image_id'] ?? 0 ), 'large', (string) ( $merged['image_url'] ?? '' ) );
+		return $merged;
+	}
+
+	/** Save-clean defaults for editable content sections. */
+	public static function default_content_sections() {
+		$images         = self::images();
+		$host_organizer = self::get_organizer( 'kleiner-wald' );
+		$sponsor_venue  = self::get_venue( 'kanso-konz' );
+		$host_logo      = $host_organizer['logo'] ?? ( $images['kleiner_wald_logo'] ?? '' );
+
+		return array(
+			'sensei'   => array( 'key' => 'sensei', 'visible' => '1', 'kicker' => taka_tour_translate( 'sections.sensei.kicker', 'Sensei' ), 'title' => taka_tour_translate( 'sections.sensei.headline', 'Takafumi Nakayama' ), 'text' => taka_tour_translate( 'sections.sensei.text', 'Präzision, Ruhe und Bewegungsqualität aus der okinawanischen Tradition.' ), 'image_id' => 0, 'image_url' => $images['taka_portrait'] ?? '', 'layout' => 'image_right', 'sort_order' => 10, 'link_url' => '', 'link_label' => '' ),
+			'training' => array( 'key' => 'training', 'visible' => '1', 'kicker' => taka_tour_translate( 'sections.training.kicker', 'Training' ), 'title' => taka_tour_translate( 'sections.training.headline', 'Karate-Do, Kobujutsu und Soft Blocking' ), 'text' => taka_tour_translate( 'sections.training.text', 'Die Seminare verbinden Grundlagen, Partnerarbeit, Timing, Distanz und Körperstruktur.' ), 'image_id' => 0, 'image_url' => '', 'layout' => 'text_only', 'sort_order' => 20, 'link_url' => '', 'link_label' => '' ),
+			'community'=> array( 'key' => 'community', 'visible' => '1', 'kicker' => taka_tour_translate( 'sections.community.kicker', 'Community' ), 'title' => taka_tour_translate( 'sections.community.headline', 'Gemeinsam trainieren' ), 'text' => taka_tour_translate( 'sections.community.text', 'Ein europäisches Treffen für ernsthaftes Training und respektvollen Austausch.' ), 'image_id' => 0, 'image_url' => '', 'layout' => 'text_only', 'sort_order' => 30, 'link_url' => '', 'link_label' => '' ),
+			'host'     => array( 'key' => 'host', 'visible' => '1', 'kicker' => taka_tour_translate( 'sections.host.kicker', 'Gastgeber' ), 'title' => taka_tour_translate( 'sections.host.headline', '5 Jahre Kleiner Wald Dojo' ), 'text' => '', 'image_id' => 0, 'image_url' => $host_logo, 'layout' => 'image_right', 'sort_order' => 40, 'link_url' => $host_organizer['website'] ?? '', 'link_label' => $host_organizer['name'] ?? '' ),
+			'sponsor'  => array( 'key' => 'sponsor', 'visible' => '1', 'kicker' => taka_tour_translate( 'sections.sponsor.kicker', 'Sponsor' ), 'title' => taka_tour_translate( 'sections.sponsor.headline', 'kanso' ), 'text' => taka_tour_translate( 'sections.sponsor.text', 'Zentrum für Körper, Geist und Seele in Konz.' ), 'image_id' => 0, 'image_url' => $images['sponsor_logo'] ?? '', 'layout' => 'text_only', 'sort_order' => 50, 'link_url' => $sponsor_venue['website'] ?? 'https://kan.so', 'link_label' => taka_tour_translate( 'sections.sponsor.link_text', 'kan.so' ) ),
+		);
+	}
+
+	/** Get editable frontend content sections. */
+	public static function get_content_sections() {
+		$stored   = function_exists( 'get_option' ) ? get_option( self::SECTIONS_OPTION, array() ) : array();
+		$stored   = is_array( $stored ) ? $stored : array();
+		$sections = array();
+		foreach ( self::default_content_sections() as $key => $default ) {
+			$item           = array_merge( $default, is_array( $stored[ $key ] ?? null ) ? $stored[ $key ] : array() );
+			$item['key']    = $key;
+			$item['image']  = self::resolve_attachment_url( absint( $item['image_id'] ?? 0 ), 'large', (string) ( $item['image_url'] ?? '' ) );
+			$sections[$key] = $item;
+		}
+		uasort( $sections, static function ( $a, $b ) { return (int) ( $a['sort_order'] ?? 0 ) <=> (int) ( $b['sort_order'] ?? 0 ); } );
+		return $sections;
+	}
+
+	/** Venues that have enough public information for the practical-info section. */
+	public static function venues_for_practical_info() {
+		return array_values( array_filter( self::get_venues(), static function ( $venue ) {
+			$address = $venue['address'] ?? array();
+			$values  = array( $venue['name'] ?? '', $venue['website'] ?? '', $venue['parking'] ?? '', $venue['accessibility'] ?? '', $venue['notes'] ?? '', $address['street'] ?? '', $address['city'] ?? '' );
+			return '' !== trim( implode( '', array_map( 'strval', $values ) ) );
+		} ) );
+	}
+
 	/** Get image grid cards for the homepage. */
 	public static function image_grid() {
 		$images = self::images();
@@ -294,7 +380,7 @@ class TAKA_Platform_Data {
 	}
 
 	/** Suggest languages from country. */
-	public static function languages_for_country( $country ) { $map = array( 'Finland' => array( 'fi', 'en', 'de' ), 'Germany' => array( 'de', 'en' ), 'Netherlands' => array( 'nl', 'en', 'de' ), 'Belgium' => array( 'fr', 'nl', 'de', 'en' ), 'Luxembourg' => array( 'fr', 'de', 'lb', 'en' ) ); return $map[ $country ] ?? array( 'en' ); }
+	public static function languages_for_country( $country ) { $map = array( 'Finland' => array( 'fi', 'en', 'de' ), 'Germany' => array( 'de', 'en' ), 'France' => array( 'fr', 'en', 'de' ), 'Netherlands' => array( 'nl', 'en', 'de' ), 'Belgium' => array( 'fr', 'nl', 'de', 'en' ), 'Luxembourg' => array( 'fr', 'de', 'lb', 'en' ) ); return $map[ $country ] ?? array( 'en' ); }
 
 	/** Get events enriched for active language and display. */
 	public static function events_for_language( $lang = null ) {

@@ -112,7 +112,7 @@
     },
     "illange": {
       "subtitle": "Illange セミナー",
-      "description": "ルクセンブルクでのセミナー開催地。",
+      "description": "フランスでのセミナー開催地。",
       "type": "セミナー"
     },
     "hosingen": {
@@ -155,6 +155,12 @@
     "level": "レベル",
     "ticketshop_direct": "チケットショップを開く",
     "ticketshop_soon": "チケットショップ準備中",
-    "details_follow": "詳細は後日"
+    "details_follow": "詳細は後日",
+    "practical_information": "実用情報",
+    "accessibility": "アクセシビリティ",
+    "notes": "備考"
+  },
+  "country": {
+    "france": "フランス"
   }
 }

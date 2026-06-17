@@ -112,7 +112,7 @@
     },
     "illange": {
       "subtitle": "Illange Seminar",
-      "description": "Seminarstatioun zu Lëtzebuerg.",
+      "description": "Seminarstatioun a Frankräich.",
       "type": "Seminar"
     },
     "hosingen": {
@@ -155,6 +155,12 @@
     "level": "Niveau",
     "ticketshop_direct": "Ticketshop direkt opmaachen",
     "ticketshop_soon": "Ticketshop kënnt geschwënn",
-    "details_follow": "Detailer kommen no"
+    "details_follow": "Detailer kommen no",
+    "practical_information": "Praktesch Informatiounen",
+    "accessibility": "Accessibilitéit",
+    "notes": "Hiweiser"
+  },
+  "country": {
+    "france": "Frankräich"
   }
 }

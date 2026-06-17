@@ -18,9 +18,11 @@ class TAKA_Platform_Admin {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post_taka_organizer', array( __CLASS__, 'save_organizer' ) );
 		add_action( 'save_post_taka_venue', array( __CLASS__, 'save_venue' ) );
-		add_action( 'save_post_taka_event', array( __CLASS__, 'save_event' ) );
-		add_action( 'admin_post_taka_tour_save_media', array( __CLASS__, 'handle_save_media' ) );
-		add_action( 'admin_post_taka_tour_import_config', array( __CLASS__, 'handle_import_config' ) );
+			add_action( 'save_post_taka_event', array( __CLASS__, 'save_event' ) );
+			add_action( 'admin_post_taka_tour_save_media', array( __CLASS__, 'handle_save_media' ) );
+			add_action( 'admin_post_taka_tour_import_config', array( __CLASS__, 'handle_import_config' ) );
+			add_action( 'admin_post_taka_platform_save_hero', array( __CLASS__, 'handle_save_hero' ) );
+			add_action( 'admin_post_taka_platform_save_sections', array( __CLASS__, 'handle_save_sections' ) );
 	}
 
 
@@ -65,9 +67,10 @@ class TAKA_Platform_Admin {
 	/** Register menu pages. */
 	public static function register_menu() {
 		add_menu_page( __( 'TAKA Platform', 'taka-platform' ), __( 'TAKA Platform', 'taka-platform' ), 'manage_options', 'taka-platform', array( __CLASS__, 'render_dashboard' ), 'dashicons-tickets-alt', 28 );
-		add_submenu_page( 'taka-platform', __( 'Dashboard', 'taka-platform' ), __( 'Dashboard', 'taka-platform' ), 'manage_options', 'taka-platform', array( __CLASS__, 'render_dashboard' ) );
-		add_submenu_page( 'taka-platform', __( 'Media', 'taka-platform' ), __( 'Media', 'taka-platform' ), 'manage_options', 'taka-tour-media', array( __CLASS__, 'render_media' ) );
-		add_submenu_page( 'taka-platform', __( 'Import / Export', 'taka-platform' ), __( 'Import / Export', 'taka-platform' ), 'manage_options', 'taka-tour-import-export', array( __CLASS__, 'render_import_export' ) );
+			add_submenu_page( 'taka-platform', __( 'Dashboard', 'taka-platform' ), __( 'Dashboard', 'taka-platform' ), 'manage_options', 'taka-platform', array( __CLASS__, 'render_dashboard' ) );
+			add_submenu_page( 'taka-platform', __( 'Media', 'taka-platform' ), __( 'Media', 'taka-platform' ), 'manage_options', 'taka-tour-media', array( __CLASS__, 'render_media' ) );
+			add_submenu_page( 'taka-platform', __( 'Content Sections', 'taka-platform' ), __( 'Content Sections', 'taka-platform' ), 'manage_options', 'taka-platform-content-sections', array( __CLASS__, 'render_content_sections' ) );
+			add_submenu_page( 'taka-platform', __( 'Import / Export', 'taka-platform' ), __( 'Import / Export', 'taka-platform' ), 'manage_options', 'taka-tour-import-export', array( __CLASS__, 'render_import_export' ) );
 		add_submenu_page( 'taka-platform', __( 'Settings', 'taka-platform' ), __( 'Settings', 'taka-platform' ), 'manage_options', 'taka-tour-settings', array( __CLASS__, 'render_settings' ) );
 	}
 
@@ -201,12 +204,132 @@ class TAKA_Platform_Admin {
 		<?php
 	}
 
-	/** Render settings placeholder. */
+	/** Render editable hero/layout settings. */
 	public static function render_settings() {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
+		$hero = TAKA_Platform_Data::get_hero_settings();
+		$positions = array( 'left' => __( 'Left', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'right' => __( 'Right', 'taka-platform' ) );
+		$verticals = array( 'top' => __( 'Top', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'bottom' => __( 'Bottom', 'taka-platform' ) );
 		?>
-		<div class="wrap"><h1><?php echo esc_html__( 'TAKA Platform Settings', 'taka-platform' ); ?></h1><p><?php echo esc_html__( 'The plugin now uses WordPress events as the primary source and config/tour-events.php as seed, fallback and backup format.', 'taka-platform' ); ?></p></div>
+		<div class="wrap">
+			<h1><?php echo esc_html__( 'TAKA Platform Settings', 'taka-platform' ); ?></h1>
+			<p><?php echo esc_html__( 'The plugin uses WordPress events as the primary source and config/tour-events.php as seed, fallback and backup format.', 'taka-platform' ); ?></p>
+			<h2><?php echo esc_html__( 'Hero section', 'taka-platform' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="taka_platform_save_hero">
+				<?php wp_nonce_field( TAKA_Platform_Data::HERO_OPTION, self::NONCE ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<?php self::settings_text_row( 'hero[kicker]', __( 'Hero kicker', 'taka-platform' ), $hero['kicker'] ?? '' ); ?>
+					<?php self::settings_text_row( 'hero[title]', __( 'Hero title', 'taka-platform' ), $hero['title'] ?? '' ); ?>
+					<?php self::settings_textarea_row( 'hero[description]', __( 'Hero subtitle / description', 'taka-platform' ), $hero['description'] ?? '' ); ?>
+					<?php self::settings_text_row( 'hero[primary_button_label]', __( 'Primary button label', 'taka-platform' ), $hero['primary_button_label'] ?? '' ); ?>
+					<?php self::settings_text_row( 'hero[primary_button_target]', __( 'Primary button target', 'taka-platform' ), $hero['primary_button_target'] ?? '' ); ?>
+					<?php self::settings_text_row( 'hero[secondary_button_label]', __( 'Secondary button label', 'taka-platform' ), $hero['secondary_button_label'] ?? '' ); ?>
+					<?php self::settings_text_row( 'hero[secondary_button_target]', __( 'Secondary button target', 'taka-platform' ), $hero['secondary_button_target'] ?? '' ); ?>
+					<?php self::settings_media_row( 'hero[image_id]', 'hero[image_url]', 'taka_platform_hero_image', __( 'Hero image', 'taka-platform' ), absint( $hero['image_id'] ?? 0 ), (string) ( $hero['image_url'] ?? '' ) ); ?>
+					<?php self::settings_text_row( 'hero[overlay_strength]', __( 'Hero overlay strength (0–1)', 'taka-platform' ), $hero['overlay_strength'] ?? '0.78' ); ?>
+					<tr><th scope="row"><?php echo esc_html__( 'Hero text box', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="hero[text_box_enabled]" value="1" <?php checked( (string) ( $hero['text_box_enabled'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show readable text box', 'taka-platform' ); ?></label></td></tr>
+					<?php self::settings_text_row( 'hero[text_box_opacity]', __( 'Text box opacity (0–1)', 'taka-platform' ), $hero['text_box_opacity'] ?? '0.72' ); ?>
+					<?php self::settings_text_row( 'hero[text_box_max_width]', __( 'Text box max width', 'taka-platform' ), $hero['text_box_max_width'] ?? '620px' ); ?>
+					<?php self::settings_select_row( 'hero[text_position]', __( 'Hero text position', 'taka-platform' ), $hero['text_position'] ?? 'left', $positions ); ?>
+					<?php self::settings_select_row( 'hero[vertical_alignment]', __( 'Hero vertical alignment', 'taka-platform' ), $hero['vertical_alignment'] ?? 'center', $verticals ); ?>
+				</tbody></table>
+				<?php submit_button( __( 'Save hero settings', 'taka-platform' ) ); ?>
+			</form>
+		</div>
 		<?php
+	}
+
+	/** Render editable frontend content sections. */
+	public static function render_content_sections() {
+		if ( ! current_user_can( 'manage_options' ) ) { return; }
+		$sections = TAKA_Platform_Data::get_content_sections();
+		$layouts = array( 'text_only' => __( 'Text only', 'taka-platform' ), 'image_left' => __( 'Image left', 'taka-platform' ), 'image_right' => __( 'Image right', 'taka-platform' ), 'background' => __( 'Full background image', 'taka-platform' ) );
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html__( 'TAKA Platform Content Sections', 'taka-platform' ); ?></h1>
+			<p><?php echo esc_html__( 'Edit reusable homepage sections without changing templates. Empty hidden sections are not rendered.', 'taka-platform' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="taka_platform_save_sections">
+				<?php wp_nonce_field( TAKA_Platform_Data::SECTIONS_OPTION, self::NONCE ); ?>
+				<?php foreach ( $sections as $key => $section ) : ?>
+					<div class="postbox" style="padding: 1rem; max-width: 960px;">
+						<h2><?php echo esc_html( $key ); ?></h2>
+						<table class="form-table" role="presentation"><tbody>
+							<tr><th scope="row"><?php echo esc_html__( 'Visible', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( (string) ( $section['visible'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show section', 'taka-platform' ); ?></label></td></tr>
+							<?php self::settings_text_row( 'sections[' . $key . '][kicker]', __( 'Kicker', 'taka-platform' ), $section['kicker'] ?? '' ); ?>
+							<?php self::settings_text_row( 'sections[' . $key . '][title]', __( 'Title', 'taka-platform' ), $section['title'] ?? '' ); ?>
+							<?php self::settings_textarea_row( 'sections[' . $key . '][text]', __( 'Text', 'taka-platform' ), $section['text'] ?? '' ); ?>
+							<?php self::settings_media_row( 'sections[' . $key . '][image_id]', 'sections[' . $key . '][image_url]', 'taka_section_' . $key . '_image', __( 'Image', 'taka-platform' ), absint( $section['image_id'] ?? 0 ), (string) ( $section['image_url'] ?? '' ) ); ?>
+							<?php self::settings_select_row( 'sections[' . $key . '][layout]', __( 'Layout', 'taka-platform' ), $section['layout'] ?? 'text_only', $layouts ); ?>
+							<?php self::settings_text_row( 'sections[' . $key . '][sort_order]', __( 'Sort order', 'taka-platform' ), $section['sort_order'] ?? 0 ); ?>
+							<?php self::settings_text_row( 'sections[' . $key . '][link_url]', __( 'Optional link URL', 'taka-platform' ), $section['link_url'] ?? '' ); ?>
+							<?php self::settings_text_row( 'sections[' . $key . '][link_label]', __( 'Optional link label', 'taka-platform' ), $section['link_label'] ?? '' ); ?>
+						</tbody></table>
+					</div>
+				<?php endforeach; ?>
+				<?php submit_button( __( 'Save content sections', 'taka-platform' ) ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/** Save editable hero settings. */
+	public static function handle_save_hero() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( TAKA_Platform_Data::HERO_OPTION, self::NONCE );
+		$posted = isset( $_POST['hero'] ) && is_array( $_POST['hero'] ) ? wp_unslash( $_POST['hero'] ) : array();
+		$clean  = array(
+			'kicker'                 => sanitize_text_field( $posted['kicker'] ?? '' ),
+			'title'                  => sanitize_text_field( $posted['title'] ?? '' ),
+			'description'            => sanitize_textarea_field( $posted['description'] ?? '' ),
+			'primary_button_label'   => sanitize_text_field( $posted['primary_button_label'] ?? '' ),
+			'primary_button_target'  => sanitize_text_field( $posted['primary_button_target'] ?? '' ),
+			'secondary_button_label' => sanitize_text_field( $posted['secondary_button_label'] ?? '' ),
+			'secondary_button_target'=> sanitize_text_field( $posted['secondary_button_target'] ?? '' ),
+			'image_id'               => absint( $posted['image_id'] ?? 0 ),
+			'image_url'              => esc_url_raw( $posted['image_url'] ?? '' ),
+			'overlay_strength'       => self::sanitize_decimal( $posted['overlay_strength'] ?? '0.78', '0.78' ),
+			'text_box_enabled'       => ! empty( $posted['text_box_enabled'] ) ? '1' : '0',
+			'text_box_opacity'       => self::sanitize_decimal( $posted['text_box_opacity'] ?? '0.72', '0.72' ),
+			'text_box_max_width'     => sanitize_text_field( $posted['text_box_max_width'] ?? '620px' ),
+			'text_position'          => in_array( $posted['text_position'] ?? 'left', array( 'left', 'center', 'right' ), true ) ? sanitize_key( $posted['text_position'] ) : 'left',
+			'vertical_alignment'     => in_array( $posted['vertical_alignment'] ?? 'center', array( 'top', 'center', 'bottom' ), true ) ? sanitize_key( $posted['vertical_alignment'] ) : 'center',
+		);
+		update_option( TAKA_Platform_Data::HERO_OPTION, $clean, false );
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
+		exit;
+	}
+
+	/** Save editable content sections. */
+	public static function handle_save_sections() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( TAKA_Platform_Data::SECTIONS_OPTION, self::NONCE );
+		$posted   = isset( $_POST['sections'] ) && is_array( $_POST['sections'] ) ? wp_unslash( $_POST['sections'] ) : array();
+		$defaults = TAKA_Platform_Data::default_content_sections();
+		$clean    = array();
+		foreach ( $defaults as $key => $default ) {
+			$item = is_array( $posted[ $key ] ?? null ) ? $posted[ $key ] : array();
+			$layout = sanitize_key( $item['layout'] ?? ( $default['layout'] ?? 'text_only' ) );
+			if ( ! in_array( $layout, array( 'text_only', 'image_left', 'image_right', 'background' ), true ) ) {
+				$layout = 'text_only';
+			}
+			$clean[ $key ] = array(
+				'visible'    => ! empty( $item['visible'] ) ? '1' : '0',
+				'kicker'     => sanitize_text_field( $item['kicker'] ?? '' ),
+				'title'      => sanitize_text_field( $item['title'] ?? '' ),
+				'text'       => sanitize_textarea_field( $item['text'] ?? '' ),
+				'image_id'   => absint( $item['image_id'] ?? 0 ),
+				'image_url'  => esc_url_raw( $item['image_url'] ?? '' ),
+				'layout'     => $layout,
+				'sort_order' => (int) ( $item['sort_order'] ?? 0 ),
+				'link_url'   => esc_url_raw( $item['link_url'] ?? '' ),
+				'link_label' => sanitize_text_field( $item['link_label'] ?? '' ),
+			);
+		}
+		update_option( TAKA_Platform_Data::SECTIONS_OPTION, $clean, false );
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-platform-content-sections' ) ) );
+		exit;
 	}
 
 	/** Process config import. */
@@ -365,6 +488,10 @@ class TAKA_Platform_Admin {
 		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-platform' ), false, __( 'Select group photo', 'taka-platform' ) );
 		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
+		self::textarea( $post->ID, 'short_description', __( 'Short description', 'taka-platform' ) );
+		self::textarea( $post->ID, 'long_description', __( 'Long description', 'taka-platform' ) );
+		self::textarea( $post->ID, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) );
+		self::textarea( $post->ID, 'accessibility', __( 'Accessibility notes', 'taka-platform' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
 		self::textarea( $post->ID, 'notes', __( 'Notes', 'taka-platform' ) );
 		self::textarea( $post->ID, 'parking', __( 'Parking notes', 'taka-platform' ) );
@@ -384,7 +511,7 @@ class TAKA_Platform_Admin {
 			$value = wp_unslash( $_POST[ $key ] );
 			if ( in_array( $field, array( 'logo_id', 'image_id', 'group_image_id', 'parking_image_id', 'organizer_id', 'venue_id', 'sort_order' ), true ) ) { $value = absint( $value ); }
 			elseif ( in_array( $field, array( 'website', 'ticket_shop_url', 'image_url', 'group_image_url', 'parking_image_url', 'logo_url' ), true ) ) { $value = esc_url_raw( $value ); }
-			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'parking', 'accessibility', 'notes' ), true ) ) { $value = sanitize_textarea_field( $value ); }
+			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'short_description', 'long_description', 'ticket_card_text', 'parking', 'accessibility', 'notes' ), true ) ) { $value = sanitize_textarea_field( $value ); }
 			elseif ( in_array( $field, array( 'gallery_image_ids', 'venue_ids' ), true ) ) { $value = implode( ',', array_map( 'absint', preg_split( '/\s*,\s*/', (string) $value ) ) ); }
 			else { $value = sanitize_text_field( $value ); }
 			update_post_meta( $post_id, $key, $value );
@@ -399,6 +526,11 @@ class TAKA_Platform_Admin {
 	private static function url( $post_id, $field, $label ) { self::field( $label, '<input class="widefat" type="url" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( self::meta( $post_id, $field ) ) . '">' ); }
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
+	private static function settings_text_row( $name, $label, $value ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td><input class="regular-text" type="text" name="' . esc_attr( $name ) . '" value="' . esc_attr( (string) $value ) . '"></td></tr>'; }
+	private static function settings_textarea_row( $name, $label, $value ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td><textarea class="large-text" rows="4" name="' . esc_attr( $name ) . '">' . esc_textarea( (string) $value ) . '</textarea></td></tr>'; }
+	private static function settings_select_row( $name, $label, $value, $options ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td><select name="' . esc_attr( $name ) . '">'; foreach ( $options as $key => $option_label ) { echo '<option value="' . esc_attr( $key ) . '" ' . selected( (string) $value, (string) $key, false ) . '>' . esc_html( $option_label ) . '</option>'; } echo '</select></td></tr>'; }
+	private static function settings_media_row( $id_name, $url_name, $input_id, $label, $id, $url ) { echo '<tr><th scope="row">' . esc_html( $label ) . '</th><td><input id="' . esc_attr( $input_id ) . '" type="hidden" name="' . esc_attr( $id_name ) . '" value="' . esc_attr( (string) $id ) . '"> <button type="button" class="button" data-taka-media-pick data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html__( 'Select image', 'taka-platform' ) . '</button> <button type="button" class="button" data-taka-media-remove data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html__( 'Remove image', 'taka-platform' ) . '</button><div id="' . esc_attr( $input_id . '_preview' ) . '">'; self::image_preview( $id, $url ); echo '</div><p><label>' . esc_html__( 'Fallback URL', 'taka-platform' ) . '<br><input class="regular-text" type="url" name="' . esc_attr( $url_name ) . '" value="' . esc_attr( $url ) . '"></label></p></td></tr>'; }
+	private static function sanitize_decimal( $value, $default ) { $value = (string) $value; return preg_match( '/^(0(\.\d+)?|1(\.0+)?)$/', $value ) ? $value : $default; }
 	private static function media_field( $post_id, $field, $label, $multiple = false, $button_label = null ) { $value = (string) self::meta( $post_id, $field ); $input_id = 'taka_' . $field . '_' . $post_id; $button_label = $button_label ?: __( 'Select image', 'taka-platform' ); $html = '<input id="' . esc_attr( $input_id ) . '" type="hidden" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( $value ) . '"> <button type="button" class="button" data-taka-media-pick data-multiple="' . ( $multiple ? '1' : '0' ) . '" data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html( $button_label ) . '</button> <button type="button" class="button" data-taka-media-remove data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html__( 'Remove image', 'taka-platform' ) . '</button><div id="' . esc_attr( $input_id . '_preview' ) . '">'; ob_start(); self::image_previews( $value ); $html .= ob_get_clean() . '</div>'; self::field( $label, $html ); }
 	private static function relation( $post_id, $field, $label, $post_type ) { $current = (int) self::meta( $post_id, $field ); $posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ); $html = '<select name="_taka_' . esc_attr( $field ) . '"><option value="">—</option>'; foreach ( $posts as $post ) { $html .= '<option value="' . esc_attr( $post->ID ) . '" ' . selected( $current, $post->ID, false ) . '>' . esc_html( get_the_title( $post ) ) . '</option>'; } $html .= '</select>'; self::field( $label, $html ); }
 	private static function image_preview( $id, $fallback_url = '' ) { $url = $id && function_exists( 'wp_get_attachment_image_url' ) ? wp_get_attachment_image_url( $id, 'thumbnail' ) : $fallback_url; if ( $url ) { echo '<img src="' . esc_url( $url ) . '" style="max-width:180px;height:auto;display:block;margin-top:8px;" alt="">'; } }

@@ -112,7 +112,7 @@
     },
     "illange": {
       "subtitle": "Séminaire Illange",
-      "description": "Étape de séminaire au Luxembourg.",
+      "description": "Étape de séminaire en France.",
       "type": "Séminaire"
     },
     "hosingen": {
@@ -155,6 +155,12 @@
     "level": "Niveau",
     "ticketshop_direct": "Ouvrir la billetterie",
     "ticketshop_soon": "Billetterie à venir",
-    "details_follow": "Détails à venir"
+    "details_follow": "Détails à venir",
+    "practical_information": "Informations pratiques",
+    "accessibility": "Accessibilité",
+    "notes": "Notes"
+  },
+  "country": {
+    "france": "France"
   }
 }

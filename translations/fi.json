@@ -112,7 +112,7 @@
     },
     "illange": {
       "subtitle": "Illange-seminaari",
-      "description": "Seminaaripysähdys Luxemburgissa.",
+      "description": "Seminaaripysäkki Ranskassa.",
       "type": "Seminaari"
     },
     "hosingen": {
@@ -155,6 +155,12 @@
     "level": "Taso",
     "ticketshop_direct": "Avaa lipunmyynti",
     "ticketshop_soon": "Lipunmyynti tulossa",
-    "details_follow": "Lisätiedot myöhemmin"
+    "details_follow": "Lisätiedot myöhemmin",
+    "practical_information": "Käytännön tiedot",
+    "accessibility": "Esteettömyys",
+    "notes": "Huomiot"
+  },
+  "country": {
+    "france": "Ranska"
   }
 }

@@ -112,7 +112,7 @@
     },
     "illange": {
       "subtitle": "Illange seminar",
-      "description": "Seminarstop in Luxemburg.",
+      "description": "Seminarstop in Frankrijk.",
       "type": "Seminar"
     },
     "hosingen": {
@@ -155,6 +155,12 @@
     "level": "Niveau",
     "ticketshop_direct": "Ticketshop openen",
     "ticketshop_soon": "Ticketshop volgt",
-    "details_follow": "Details volgen"
+    "details_follow": "Details volgen",
+    "practical_information": "Praktische informatie",
+    "accessibility": "Toegankelijkheid",
+    "notes": "Opmerkingen"
+  },
+  "country": {
+    "france": "Frankrijk"
   }
 }

@@ -51,10 +51,11 @@ The WordPress admin menu is branded **TAKA Platform** and includes:
 - Organizers (`taka_organizer`)
 - Venues (`taka_venue`)
 - Media
+- Content Sections
 - Import / Export
 - Settings
 
-The dashboard explains the long form: **TAKA – Ticketing, Attendance, Knowledge & Administration**.
+The dashboard explains the long form: **TAKA – Ticketing, Attendance, Knowledge & Administration**. Settings expose editable hero copy, hero image/layout controls, overlay strength and readable text-box options. Content Sections expose editable Sensei, Training, Community, Host and Sponsor blocks with visibility, image, layout and sort controls.
 
 ## Data model
 
@@ -126,6 +127,10 @@ Assets are split into platform files such as `assets/css/frontend.css`, `assets/
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v1.1.1
+
+- Added editable hero, content sections and dynamic venue practical information while removing hardcoded frontend texts.
 
 ### v1.1.0
 

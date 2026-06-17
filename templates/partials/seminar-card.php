@@ -30,6 +30,11 @@ $details          = array(
 	<?php if ( ! empty( $seminar['description'] ) ) : ?>
 		<p><?php echo esc_html( $seminar['description'] ); ?></p>
 	<?php endif; ?>
+	<?php foreach ( array( 'long_description', 'ticket_card_text', 'notes', 'accessibility' ) as $text_field ) : ?>
+		<?php if ( ! empty( $seminar[ $text_field ] ) ) : ?>
+			<p><?php echo esc_html( $seminar[ $text_field ] ); ?></p>
+		<?php endif; ?>
+	<?php endforeach; ?>
 	<dl class="taka-details">
 		<?php foreach ( $details as $detail ) : ?>
 			<?php if ( '' === trim( (string) $detail['value'] ) ) : ?>
