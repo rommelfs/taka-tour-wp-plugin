@@ -57,6 +57,10 @@ The WordPress admin menu is branded **TAKA Platform** and includes:
 
 The dashboard explains the long form: **TAKA – Ticketing, Attendance, Knowledge & Administration**. Settings expose editable hero copy, hero image/layout controls, overlay strength and readable text-box options. Content Sections expose editable Sensei, Training, Community, Host and Sponsor blocks with visibility, image, layout and sort controls.
 
+## Organizer access control
+
+Version 1.2.0 adds the `taka_organizer` role. Administrators can assign users to one or more organizer CPTs from the WordPress user profile. Organizer users can access the TAKA Platform dashboard, upload media and create/edit only events assigned to their organizer(s); administrators continue to manage everything.
+
 ## Data model
 
 Events support tour/event concepts such as title, subtitle, description, organizer, venues, dates, times, doors-open, timezone, format, audience, level, ticket provider, ticket URL, action/group/gallery media, languages, notes, parking and sort order.
@@ -127,6 +131,10 @@ Assets are split into platform files such as `assets/css/frontend.css`, `assets/
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v1.2.0
+
+- Added organizer user role, user-to-organizer assignments and scoped event editing for organizer self-service.
 
 ### v1.1.1
 
