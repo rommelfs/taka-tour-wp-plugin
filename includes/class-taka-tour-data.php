@@ -180,7 +180,10 @@ class Taka_Tour_Data {
 				'notes' => (string) get_post_meta( $post->ID, '_taka_notes', true ),
 				'geo' => array( 'lat' => self::nullable_meta( $post->ID, 'lat' ), 'lng' => self::nullable_meta( $post->ID, 'lng' ) ),
 				'image_id' => $image_id,
-				'image_url' => self::resolve_attachment_url( $image_id ),
+				'image_url' => self::resolve_attachment_url( $image_id, 'large', (string) get_post_meta( $post->ID, '_taka_image_url', true ) ),
+				'image' => self::resolve_attachment_url( $image_id, 'large', (string) get_post_meta( $post->ID, '_taka_image_url', true ) ),
+				'parking_image_id' => absint( get_post_meta( $post->ID, '_taka_parking_image_id', true ) ),
+				'parking_image_url' => self::resolve_attachment_url( absint( get_post_meta( $post->ID, '_taka_parking_image_id', true ) ), 'large', (string) get_post_meta( $post->ID, '_taka_parking_image_url', true ) ),
 				'gallery_image_ids' => self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ),
 			);
 			$items[ $id ] = $item;
@@ -229,7 +232,11 @@ class Taka_Tour_Data {
 				'image_id' => $image_id,
 				'image_url' => (string) get_post_meta( $post->ID, '_taka_image_url', true ),
 				'image' => self::resolve_attachment_url( $image_id, 'large', (string) get_post_meta( $post->ID, '_taka_image_url', true ) ),
+				'group_image_id' => absint( get_post_meta( $post->ID, '_taka_group_image_id', true ) ),
+				'group_image_url' => self::resolve_attachment_url( absint( get_post_meta( $post->ID, '_taka_group_image_id', true ) ), 'large', (string) get_post_meta( $post->ID, '_taka_group_image_url', true ) ),
 				'gallery_image_ids' => self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ),
+				'gallery_urls' => self::attachment_urls( self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ) ),
+				'gallery' => self::attachment_urls( self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ) ),
 				'photo_credit' => (string) get_post_meta( $post->ID, '_taka_photo_credit', true ),
 				'languages' => self::csv_to_strings( get_post_meta( $post->ID, '_taka_languages', true ) ),
 				'notes' => (string) get_post_meta( $post->ID, '_taka_notes', true ),
@@ -250,13 +257,13 @@ class Taka_Tour_Data {
 	/** Normalize config venues. */
 	private static function normalize_config_venues( $venues ) {
 		$items = array();
-		foreach ( $venues as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['image_id'] = 0; $item['image_url'] = $item['image'] ?? ''; $item['gallery_image_ids'] = array(); $items[ (string) $id ] = $item; }
+		foreach ( $venues as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['image_id'] = $item['image_id'] ?? 0; $item['image_url'] = $item['image_url'] ?? ( $item['image'] ?? '' ); $item['parking_image_id'] = $item['parking_image_id'] ?? 0; $item['parking_image_url'] = $item['parking_image_url'] ?? ''; $item['gallery_image_ids'] = $item['gallery_image_ids'] ?? array(); $items[ (string) $id ] = $item; }
 		return $items;
 	}
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? 0; $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? '' ); $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -274,7 +281,7 @@ class Taka_Tour_Data {
 	public static function images() {
 		$fallbacks = array( 'hero_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-hero.jpg', 'group_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-group.jpg', 'portrait_image' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-portrait.jpg', 'group_large' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Foto-04.10.23-20-02-21-scaled-1.jpg', 'kids_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kids-Seminar-Trier.jpeg', 'taka_portrait' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Taka-Tour-2023-Berlin-Foto-30.09.23-17-00-52-1-scaled-1-e1781613695325.jpg', 'kobudo' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Kobudo-Seminar-Trier-e1781607374996.jpeg', 'community_group' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gruppe-trier-2025.jpg', 'together_practice' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-gemeinsam-2025.jpg', 'softblock' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/taka-softblock-e1781607328699.jpeg', 'kleiner_wald_logo' => 'https://takatour.eu/wp-content/uploads/sites/7/2026/06/Logo-Kleiner-Wald.svg', 'sponsor_logo' => '' );
 		$settings = self::get_global_media_settings();
-		foreach ( $fallbacks as $key => $url ) { $fallbacks[ $key ] = self::resolve_attachment_url( absint( $settings[ $key . '_id' ] ?? 0 ), 'large', $url ); }
+		foreach ( $fallbacks as $key => $url ) { $fallbacks[ $key ] = self::resolve_attachment_url( absint( $settings[ $key . '_id' ] ?? 0 ), 'large', (string) ( $settings[ $key . '_url' ] ?? $url ) ?: $url ); }
 		return $fallbacks;
 	}
 
@@ -334,6 +341,7 @@ class Taka_Tour_Data {
 
 	/** Helpers. */
 	private static function resolve_attachment_url( $attachment_id, $size = 'large', $fallback = '' ) { $url = $attachment_id && function_exists( 'wp_get_attachment_image_url' ) ? wp_get_attachment_image_url( $attachment_id, $size ) : ''; return $url ?: $fallback; }
+	private static function attachment_urls( $ids, $size = 'large' ) { return array_values( array_filter( array_map( static function ( $id ) use ( $size ) { return self::resolve_attachment_url( $id, $size ); }, (array) $ids ) ) ); }
 	private static function nullable_meta( $post_id, $key ) { $value = get_post_meta( $post_id, '_taka_' . $key, true ); return '' === $value ? null : $value; }
 	private static function lines_to_array( $value ) { return array_values( array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) $value ) ) ) ); }
 	private static function csv_to_ints( $value ) { return array_values( array_filter( array_map( 'absint', preg_split( '/\s*,\s*/', (string) $value ) ) ) ); }

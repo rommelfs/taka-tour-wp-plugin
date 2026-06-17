@@ -84,7 +84,7 @@ class Taka_Tour_Admin {
 		wp_enqueue_script( 'taka-tour-admin' );
 		wp_add_inline_script(
 			'taka-tour-admin',
-			"document.addEventListener('click',function(e){var b=e.target.closest('[data-taka-media-pick]');if(!b){return;}e.preventDefault();var target=document.getElementById(b.getAttribute('data-target'));var preview=document.getElementById(b.getAttribute('data-preview'));var frame=wp.media({title:b.getAttribute('data-title')||'Select media',multiple:false,library:{type:'image'}});frame.on('select',function(){var a=frame.state().get('selection').first().toJSON();if(target){target.value=a.id||'';}if(preview){preview.innerHTML=a.url?'<img src=\"'+a.url+'\" style=\"max-width:180px;height:auto;display:block;margin-top:8px;\" alt=\"\">':'';}});frame.open();});"
+			"document.addEventListener('click',function(e){var pick=e.target.closest('[data-taka-media-pick]');var remove=e.target.closest('[data-taka-media-remove]');if(remove){e.preventDefault();var rt=document.getElementById(remove.getAttribute('data-target'));var rp=document.getElementById(remove.getAttribute('data-preview'));if(rt){rt.value='';}if(rp){rp.innerHTML='';}return;}if(!pick){return;}e.preventDefault();var target=document.getElementById(pick.getAttribute('data-target'));var preview=document.getElementById(pick.getAttribute('data-preview'));var multiple=pick.getAttribute('data-multiple')==='1';var frame=wp.media({title:pick.getAttribute('data-title')||'Select media',multiple:multiple,library:{type:'image'}});frame.on('select',function(){var selection=frame.state().get('selection');var ids=[];var html='';selection.each(function(item){var a=item.toJSON();if(a.id){ids.push(a.id);}var url=(a.sizes&&a.sizes.thumbnail?a.sizes.thumbnail.url:a.url)||'';if(url){html+='<img src=\"'+url+'\" style=\"max-width:110px;height:auto;margin:4px;vertical-align:middle;\" alt=\"\">';}});if(target){target.value=ids.join(',');}if(preview){preview.innerHTML=html;}});frame.open();});"
 		);
 	}
 
@@ -131,13 +131,15 @@ class Taka_Tour_Admin {
 				<?php wp_nonce_field( self::MEDIA_OPTION, self::NONCE ); ?>
 				<table class="form-table" role="presentation"><tbody>
 				<?php foreach ( $fields as $key => $label ) : ?>
-					<?php $id = absint( $media[ $key . '_id' ] ?? 0 ); ?>
+					<?php $id = absint( $media[ $key . '_id' ] ?? 0 ); $url = (string) ( $media[ $key . '_url' ] ?? '' ); ?>
 					<tr>
 						<th scope="row"><label for="taka_media_<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th>
 						<td>
-							<input id="taka_media_<?php echo esc_attr( $key ); ?>" type="number" name="media[<?php echo esc_attr( $key ); ?>_id]" value="<?php echo esc_attr( (string) $id ); ?>">
-							<button type="button" class="button" data-taka-media-pick data-target="taka_media_<?php echo esc_attr( $key ); ?>" data-preview="taka_media_preview_<?php echo esc_attr( $key ); ?>"><?php echo esc_html__( 'Select from media library', 'taka-tour' ); ?></button>
-							<div id="taka_media_preview_<?php echo esc_attr( $key ); ?>"><?php self::image_preview( $id ); ?></div>
+							<input id="taka_media_<?php echo esc_attr( $key ); ?>" type="hidden" name="media[<?php echo esc_attr( $key ); ?>_id]" value="<?php echo esc_attr( (string) $id ); ?>">
+							<button type="button" class="button" data-taka-media-pick data-target="taka_media_<?php echo esc_attr( $key ); ?>" data-preview="taka_media_preview_<?php echo esc_attr( $key ); ?>"><?php echo esc_html__( 'Select image', 'taka-tour' ); ?></button>
+							<button type="button" class="button" data-taka-media-remove data-target="taka_media_<?php echo esc_attr( $key ); ?>" data-preview="taka_media_preview_<?php echo esc_attr( $key ); ?>"><?php echo esc_html__( 'Remove image', 'taka-tour' ); ?></button>
+							<div id="taka_media_preview_<?php echo esc_attr( $key ); ?>"><?php self::image_preview( $id, $url ); ?></div>
+							<p><label><?php echo esc_html__( 'Fallback URL', 'taka-tour' ); ?><br><input class="regular-text" type="url" name="media[<?php echo esc_attr( $key ); ?>_url]" value="<?php echo esc_attr( $url ); ?>"></label></p>
 						</td>
 					</tr>
 				<?php endforeach; ?>
@@ -156,6 +158,7 @@ class Taka_Tour_Admin {
 		$clean = array();
 		foreach ( Taka_Tour_Data::global_media_fields() as $key => $label ) {
 			$clean[ $key . '_id' ] = absint( $posted[ $key . '_id' ] ?? 0 );
+			$clean[ $key . '_url' ] = esc_url_raw( $posted[ $key . '_url' ] ?? '' );
 		}
 		update_option( self::MEDIA_OPTION, $clean, false );
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-media' ) ) );
@@ -175,12 +178,21 @@ class Taka_Tour_Admin {
 				<div class="notice notice-info"><p><?php echo esc_html( $result['message'] ?? '' ); ?></p><pre><?php echo esc_html( print_r( $result['summary'] ?? array(), true ) ); ?></pre></div>
 			<?php endif; ?>
 			<h2><?php echo esc_html__( 'Import config/tour-events.php', 'taka-tour' ); ?></h2>
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="taka_tour_import_config">
 				<?php wp_nonce_field( 'taka_tour_import_config', self::IMPORT_NONCE ); ?>
-				<p><label><input type="checkbox" name="dry_run" value="1" checked> <?php echo esc_html__( 'Dry run / preview only', 'taka-tour' ); ?></label></p>
-				<p><label><?php echo esc_html__( 'Import mode', 'taka-tour' ); ?> <select name="mode"><option value="missing"><?php echo esc_html__( 'Import missing only', 'taka-tour' ); ?></option><option value="update"><?php echo esc_html__( 'Update existing', 'taka-tour' ); ?></option><option value="overwrite"><?php echo esc_html__( 'Overwrite existing', 'taka-tour' ); ?></option></select></label></p>
-				<p><label><input type="checkbox" name="delete_existing" value="1"> <?php echo esc_html__( 'Delete existing plugin data before import', 'taka-tour' ); ?></label></p>
+				<table class="form-table" role="presentation"><tbody>
+					<tr><th scope="row"><?php echo esc_html__( 'Import source', 'taka-tour' ); ?></th><td>
+						<p><label><input type="radio" name="source" value="bundled" checked> <?php echo esc_html__( 'Bundled config/tour-events.php', 'taka-tour' ); ?></label></p>
+						<p><label><input type="radio" name="source" value="upload"> <?php echo esc_html__( 'Upload PHP config file', 'taka-tour' ); ?></label><br><input type="file" name="config_file" accept=".php"></p>
+						<p><label><input type="radio" name="source" value="json"> <?php echo esc_html__( 'Paste JSON', 'taka-tour' ); ?></label><br><textarea class="large-text code" rows="8" name="config_json" placeholder="{ &quot;organizers&quot;: {}, &quot;venues&quot;: {}, &quot;events&quot;: [] }"></textarea></p>
+					</td></tr>
+					<tr><th scope="row"><?php echo esc_html__( 'Options', 'taka-tour' ); ?></th><td>
+						<p><label><input type="checkbox" name="dry_run" value="1" checked> <?php echo esc_html__( 'Dry run / preview only', 'taka-tour' ); ?></label></p>
+						<p><label><?php echo esc_html__( 'Import mode', 'taka-tour' ); ?> <select name="mode"><option value="missing"><?php echo esc_html__( 'Import missing only', 'taka-tour' ); ?></option><option value="update"><?php echo esc_html__( 'Update existing', 'taka-tour' ); ?></option><option value="overwrite"><?php echo esc_html__( 'Overwrite existing', 'taka-tour' ); ?></option></select></label></p>
+						<p><label><input type="checkbox" name="delete_existing" value="1"> <?php echo esc_html__( 'Delete existing plugin data before import', 'taka-tour' ); ?></label></p>
+					</td></tr>
+				</tbody></table>
 				<?php submit_button( __( 'Run import', 'taka-tour' ) ); ?>
 			</form>
 			<h2><?php echo esc_html__( 'Export WordPress data', 'taka-tour' ); ?></h2>
@@ -208,15 +220,70 @@ class Taka_Tour_Admin {
 		$mode = sanitize_key( wp_unslash( $_POST['mode'] ?? 'missing' ) );
 		if ( ! in_array( $mode, array( 'missing', 'update', 'overwrite' ), true ) ) { $mode = 'missing'; }
 		$delete_existing = ! empty( $_POST['delete_existing'] );
-		$summary = self::import_config( $mode, $dry_run, $delete_existing );
+		$source = sanitize_key( wp_unslash( $_POST['source'] ?? 'bundled' ) );
+		$loaded = self::load_import_source( $source );
+		if ( is_wp_error( $loaded ) ) {
+			set_transient( 'taka_tour_import_result', array( 'message' => $loaded->get_error_message(), 'summary' => array() ), 60 );
+			wp_safe_redirect( admin_url( 'admin.php?page=taka-tour-import-export' ) );
+			exit;
+		}
+		$summary = self::import_config( $mode, $dry_run, $delete_existing, $loaded );
 		set_transient( 'taka_tour_import_result', array( 'message' => $dry_run ? __( 'Dry run completed.', 'taka-tour' ) : __( 'Import completed.', 'taka-tour' ), 'summary' => $summary ), 60 );
 		wp_safe_redirect( admin_url( 'admin.php?page=taka-tour-import-export' ) );
 		exit;
 	}
 
+	/** Load a selected import source and validate the event-tour structure. */
+	private static function load_import_source( $source ) {
+		if ( 'bundled' === $source ) {
+			return self::validate_import_config( Taka_Tour_Data::load_config() );
+		}
+
+		if ( 'json' === $source ) {
+			$json = isset( $_POST['config_json'] ) ? wp_unslash( $_POST['config_json'] ) : '';
+			$data = json_decode( (string) $json, true );
+			if ( JSON_ERROR_NONE !== json_last_error() ) {
+				return new WP_Error( 'taka_tour_invalid_json', __( 'Invalid JSON import data.', 'taka-tour' ) );
+			}
+			return self::validate_import_config( $data );
+		}
+
+		if ( 'upload' === $source ) {
+			if ( empty( $_FILES['config_file']['tmp_name'] ) || ! is_uploaded_file( $_FILES['config_file']['tmp_name'] ) ) {
+				return new WP_Error( 'taka_tour_missing_upload', __( 'No PHP config file uploaded.', 'taka-tour' ) );
+			}
+			$name = sanitize_file_name( $_FILES['config_file']['name'] ?? '' );
+			if ( 'php' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) ) {
+				return new WP_Error( 'taka_tour_invalid_upload', __( 'Uploaded config must be a PHP file.', 'taka-tour' ) );
+			}
+			if ( function_exists( 'exec' ) && defined( 'PHP_BINARY' ) ) {
+				$output = array();
+				$status = 0;
+				@exec( escapeshellarg( PHP_BINARY ) . ' -l ' . escapeshellarg( $_FILES['config_file']['tmp_name'] ), $output, $status );
+				if ( 0 !== (int) $status ) {
+					return new WP_Error( 'taka_tour_invalid_php_config', __( 'Uploaded PHP config failed syntax validation.', 'taka-tour' ) );
+				}
+			}
+			ob_start();
+			$data = ( static function ( $file ) { return require $file; } )( $_FILES['config_file']['tmp_name'] );
+			ob_end_clean();
+			return self::validate_import_config( $data );
+		}
+
+		return new WP_Error( 'taka_tour_unknown_source', __( 'Unknown import source.', 'taka-tour' ) );
+	}
+
+	/** Validate import structure. */
+	private static function validate_import_config( $data ) {
+		if ( ! is_array( $data ) || ! isset( $data['organizers'], $data['venues'], $data['events'] ) || ! is_array( $data['organizers'] ) || ! is_array( $data['venues'] ) || ! is_array( $data['events'] ) ) {
+			return new WP_Error( 'taka_tour_invalid_config', __( 'Import data must contain organizers, venues and events arrays.', 'taka-tour' ) );
+		}
+		return $data;
+	}
+
 	/** Import config data idempotently. */
-	private static function import_config( $mode, $dry_run, $delete_existing ) {
-		$config = Taka_Tour_Data::load_config();
+	private static function import_config( $mode, $dry_run, $delete_existing, $config = null ) {
+		$config = is_array( $config ) ? $config : Taka_Tour_Data::load_config();
 		$summary = array( 'organizers' => array( 'created' => 0, 'updated' => 0, 'skipped' => 0 ), 'venues' => array( 'created' => 0, 'updated' => 0, 'skipped' => 0 ), 'events' => array( 'created' => 0, 'updated' => 0, 'skipped' => 0 ), 'warnings' => array() );
 		if ( $delete_existing && ! $dry_run ) { self::delete_plugin_posts(); }
 		foreach ( $config['organizers'] ?? array() as $id => $item ) { self::upsert_config_post( 'taka_organizer', $id, $item['name'] ?? $id, '', self::organizer_meta_from_config( $item ), $mode, $dry_run, $summary['organizers'] ); }
@@ -242,13 +309,17 @@ class Taka_Tour_Admin {
 		if ( $existing ) { $post_data['ID'] = $existing; $post_id = wp_update_post( $post_data, true ); $summary['updated']++; } else { $post_id = wp_insert_post( $post_data, true ); $summary['created']++; }
 		if ( is_wp_error( $post_id ) ) { $summary['skipped']++; return 0; }
 		update_post_meta( $post_id, '_taka_config_id', sanitize_text_field( $config_id ) );
-		foreach ( $meta as $key => $value ) { update_post_meta( $post_id, $key, $value ); }
+		foreach ( $meta as $key => $value ) {
+			$is_media_id = in_array( $key, array( '_taka_logo_id', '_taka_image_id', '_taka_group_image_id', '_taka_parking_image_id', '_taka_gallery_image_ids' ), true );
+			if ( $existing && 'overwrite' !== $mode && $is_media_id && '' !== (string) get_post_meta( $post_id, $key, true ) ) { continue; }
+			update_post_meta( $post_id, $key, $value );
+		}
 		return (int) $post_id;
 	}
 
-	private static function organizer_meta_from_config( $item ) { return array( '_taka_legal_name' => $item['legal_name'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_logo_url' => $item['logo'] ?? '', '_taka_emails' => implode( "\n", $item['emails'] ?? array() ), '_taka_contact_persons' => self::contact_persons_to_lines( $item['contact_persons'] ?? array() ), '_taka_instagram' => $item['social']['instagram'] ?? '', '_taka_facebook' => $item['social']['facebook'] ?? '', '_taka_youtube' => $item['social']['youtube'] ?? '', '_taka_active' => 1 ); }
-	private static function venue_meta_from_config( $item ) { $a = $item['address'] ?? array(); $g = $item['geo'] ?? array(); return array( '_taka_street' => $a['street'] ?? '', '_taka_postal_code' => $a['postal_code'] ?? '', '_taka_city' => $a['city'] ?? '', '_taka_country' => $a['country'] ?? '', '_taka_country_code' => $a['country_code'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_accessibility' => $item['accessibility'] ?? '', '_taka_notes' => $item['notes'] ?? '', '_taka_lat' => $g['lat'] ?? '', '_taka_lng' => $g['lng'] ?? '' ); }
-	private static function event_meta_from_config( $item ) { return array( '_taka_subtitle' => $item['subtitle'] ?? '', '_taka_country' => $item['country'] ?? '', '_taka_country_code' => $item['country_code'] ?? '', '_taka_flag' => $item['flag'] ?? '', '_taka_city' => $item['city'] ?? '', '_taka_date_start' => $item['date_start'] ?? '', '_taka_date_end' => $item['date_end'] ?? '', '_taka_time_start' => $item['time_start'] ?? '', '_taka_time_end' => $item['time_end'] ?? '', '_taka_doors_open' => $item['doors_open'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_format' => $item['format'] ?? '', '_taka_audience' => $item['audience'] ?? '', '_taka_level' => $item['level'] ?? '', '_taka_ticket_status' => $item['ticket_status'] ?? '', '_taka_ticket_provider' => $item['ticket_provider'] ?? '', '_taka_ticket_shop_url' => $item['ticket_shop_url'] ?? '', '_taka_image_url' => $item['image'] ?? '', '_taka_photo_credit' => $item['photo_credit'] ?? '', '_taka_languages' => implode( ',', $item['languages'] ?? array() ), '_taka_notes' => $item['notes'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_sort_order' => (int) ( $item['sort_order'] ?? 0 ) ); }
+	private static function organizer_meta_from_config( $item ) { return array( '_taka_legal_name' => $item['legal_name'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_logo_id' => (int) ( $item['logo_id'] ?? 0 ), '_taka_logo_url' => $item['logo_url'] ?? ( $item['logo'] ?? '' ), '_taka_emails' => implode( "\n", $item['emails'] ?? array() ), '_taka_contact_persons' => self::contact_persons_to_lines( $item['contact_persons'] ?? array() ), '_taka_instagram' => $item['social']['instagram'] ?? '', '_taka_facebook' => $item['social']['facebook'] ?? '', '_taka_youtube' => $item['social']['youtube'] ?? '', '_taka_active' => 1 ); }
+	private static function venue_meta_from_config( $item ) { $a = $item['address'] ?? array(); $g = $item['geo'] ?? array(); return array( '_taka_image_id' => (int) ( $item['image_id'] ?? 0 ), '_taka_image_url' => $item['image_url'] ?? ( $item['image'] ?? '' ), '_taka_parking_image_id' => (int) ( $item['parking_image_id'] ?? 0 ), '_taka_parking_image_url' => $item['parking_image_url'] ?? '', '_taka_gallery_image_ids' => implode( ',', $item['gallery_image_ids'] ?? array() ), '_taka_street' => $a['street'] ?? '', '_taka_postal_code' => $a['postal_code'] ?? '', '_taka_city' => $a['city'] ?? '', '_taka_country' => $a['country'] ?? '', '_taka_country_code' => $a['country_code'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_accessibility' => $item['accessibility'] ?? '', '_taka_notes' => $item['notes'] ?? '', '_taka_lat' => $g['lat'] ?? '', '_taka_lng' => $g['lng'] ?? '' ); }
+	private static function event_meta_from_config( $item ) { return array( '_taka_subtitle' => $item['subtitle'] ?? '', '_taka_country' => $item['country'] ?? '', '_taka_country_code' => $item['country_code'] ?? '', '_taka_flag' => $item['flag'] ?? '', '_taka_city' => $item['city'] ?? '', '_taka_date_start' => $item['date_start'] ?? '', '_taka_date_end' => $item['date_end'] ?? '', '_taka_time_start' => $item['time_start'] ?? '', '_taka_time_end' => $item['time_end'] ?? '', '_taka_doors_open' => $item['doors_open'] ?? '', '_taka_timezone' => $item['timezone'] ?? '', '_taka_format' => $item['format'] ?? '', '_taka_audience' => $item['audience'] ?? '', '_taka_level' => $item['level'] ?? '', '_taka_ticket_status' => $item['ticket_status'] ?? '', '_taka_ticket_provider' => $item['ticket_provider'] ?? '', '_taka_ticket_shop_url' => $item['ticket_shop_url'] ?? '', '_taka_image_id' => (int) ( $item['image_id'] ?? 0 ), '_taka_image_url' => $item['image_url'] ?? ( $item['image'] ?? '' ), '_taka_group_image_id' => (int) ( $item['group_image_id'] ?? 0 ), '_taka_group_image_url' => $item['group_image_url'] ?? ( $item['group_image'] ?? '' ), '_taka_gallery_image_ids' => implode( ',', $item['gallery_image_ids'] ?? array() ), '_taka_photo_credit' => $item['photo_credit'] ?? '', '_taka_languages' => implode( ',', $item['languages'] ?? array() ), '_taka_notes' => $item['notes'] ?? '', '_taka_parking' => $item['parking'] ?? '', '_taka_sort_order' => (int) ( $item['sort_order'] ?? 0 ) ); }
 
 	private static function contact_persons_to_lines( $people ) { return implode( "\n", array_map( static function ( $person ) { return is_array( $person ) ? trim( ( $person['name'] ?? '' ) . ' | ' . ( $person['email'] ?? '' ) . ' | ' . ( $person['role'] ?? '' ) ) : (string) $person; }, $people ) ); }
 	private static function find_post_id_by_config_id( $post_type, $config_id ) { if ( '' === (string) $config_id ) { return 0; } $posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_key' => '_taka_config_id', 'meta_value' => $config_id ) ); return ! empty( $posts ) ? (int) $posts[0] : 0; }
@@ -259,7 +330,7 @@ class Taka_Tour_Admin {
 		self::nonce();
 		self::text( $post->ID, 'legal_name', __( 'Legal name', 'taka-tour' ) );
 		self::url( $post->ID, 'website', __( 'Website', 'taka-tour' ) );
-		self::media_field( $post->ID, 'logo_id', __( 'Logo', 'taka-tour' ) );
+		self::media_field( $post->ID, 'logo_id', __( 'Logo', 'taka-tour' ), false, __( 'Select logo', 'taka-tour' ) );
 		self::url( $post->ID, 'logo_url', __( 'Fallback logo URL', 'taka-tour' ) );
 		self::textarea( $post->ID, 'emails', __( 'Email addresses (one per line)', 'taka-tour' ) );
 		self::textarea( $post->ID, 'contact_persons', __( 'Contact persons (one per line)', 'taka-tour' ) );
@@ -274,8 +345,11 @@ class Taka_Tour_Admin {
 		self::nonce();
 		foreach ( array( 'street' => 'Street', 'postal_code' => 'Postal code', 'city' => 'City', 'country' => 'Country', 'country_code' => 'Country code', 'timezone' => 'Timezone', 'lat' => 'Geo lat', 'lng' => 'Geo lng' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-tour' ) ); }
 		self::url( $post->ID, 'website', __( 'Website', 'taka-tour' ) );
-		self::media_field( $post->ID, 'image_id', __( 'Venue image', 'taka-tour' ) );
-		self::text( $post->ID, 'gallery_image_ids', __( 'Gallery image IDs, comma-separated', 'taka-tour' ) );
+		self::media_field( $post->ID, 'image_id', __( 'Venue photo', 'taka-tour' ), false, __( 'Select venue photo', 'taka-tour' ) );
+		self::url( $post->ID, 'image_url', __( 'Fallback venue photo URL', 'taka-tour' ) );
+		self::media_field( $post->ID, 'parking_image_id', __( 'Parking/arrival photo', 'taka-tour' ), false, __( 'Select parking photo', 'taka-tour' ) );
+		self::url( $post->ID, 'parking_image_url', __( 'Fallback parking photo URL', 'taka-tour' ) );
+		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-tour' ), true, __( 'Select gallery images', 'taka-tour' ) );
 		self::textarea( $post->ID, 'parking', __( 'Parking notes', 'taka-tour' ) );
 		self::textarea( $post->ID, 'accessibility', __( 'Accessibility', 'taka-tour' ) );
 		self::textarea( $post->ID, 'notes', __( 'Special notes', 'taka-tour' ) );
@@ -289,17 +363,19 @@ class Taka_Tour_Admin {
 		self::relation( $post->ID, 'venue_id', __( 'Primary venue', 'taka-tour' ), 'taka_venue' );
 		self::text( $post->ID, 'venue_ids', __( 'Additional venue IDs, comma-separated', 'taka-tour' ) );
 		self::url( $post->ID, 'ticket_shop_url', __( 'Ticket shop URL', 'taka-tour' ) );
-		self::media_field( $post->ID, 'image_id', __( 'Featured image', 'taka-tour' ) );
-		self::url( $post->ID, 'image_url', __( 'Fallback image URL', 'taka-tour' ) );
-		self::text( $post->ID, 'gallery_image_ids', __( 'Gallery image IDs, comma-separated', 'taka-tour' ) );
+		self::media_field( $post->ID, 'image_id', __( 'Event action photo', 'taka-tour' ), false, __( 'Select action photo', 'taka-tour' ) );
+		self::url( $post->ID, 'image_url', __( 'Fallback action photo URL', 'taka-tour' ) );
+		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-tour' ), false, __( 'Select group photo', 'taka-tour' ) );
+		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-tour' ) );
+		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-tour' ), true, __( 'Select gallery images', 'taka-tour' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-tour' ) );
 		self::textarea( $post->ID, 'notes', __( 'Notes', 'taka-tour' ) );
 		self::textarea( $post->ID, 'parking', __( 'Parking notes', 'taka-tour' ) );
 	}
 
 	public static function save_organizer( $post_id ) { self::save( $post_id, array( 'legal_name', 'website', 'logo_id', 'logo_url', 'emails', 'contact_persons', 'instagram', 'facebook', 'youtube', 'active' ) ); }
-	public static function save_venue( $post_id ) { self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'timezone', 'lat', 'lng', 'website', 'image_id', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); }
-	public static function save_event( $post_id ) { self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'date_start', 'date_end', 'time_start', 'time_end', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'gallery_image_ids', 'sort_order', 'notes', 'parking' ) ); }
+	public static function save_venue( $post_id ) { self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); }
+	public static function save_event( $post_id ) { self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'date_start', 'date_end', 'time_start', 'time_end', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'sort_order', 'notes', 'parking' ) ); }
 
 	/** Save fields. */
 	private static function save( $post_id, $fields ) {
@@ -309,8 +385,8 @@ class Taka_Tour_Admin {
 			$key = '_taka_' . $field;
 			if ( ! isset( $_POST[ $key ] ) ) { delete_post_meta( $post_id, $key ); continue; }
 			$value = wp_unslash( $_POST[ $key ] );
-			if ( in_array( $field, array( 'logo_id', 'image_id', 'organizer_id', 'venue_id', 'sort_order' ), true ) ) { $value = absint( $value ); }
-			elseif ( in_array( $field, array( 'website', 'ticket_shop_url', 'image_url', 'logo_url' ), true ) ) { $value = esc_url_raw( $value ); }
+			if ( in_array( $field, array( 'logo_id', 'image_id', 'group_image_id', 'parking_image_id', 'organizer_id', 'venue_id', 'sort_order' ), true ) ) { $value = absint( $value ); }
+			elseif ( in_array( $field, array( 'website', 'ticket_shop_url', 'image_url', 'group_image_url', 'parking_image_url', 'logo_url' ), true ) ) { $value = esc_url_raw( $value ); }
 			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'parking', 'accessibility', 'notes' ), true ) ) { $value = sanitize_textarea_field( $value ); }
 			elseif ( in_array( $field, array( 'gallery_image_ids', 'venue_ids' ), true ) ) { $value = implode( ',', array_map( 'absint', preg_split( '/\s*,\s*/', (string) $value ) ) ); }
 			else { $value = sanitize_text_field( $value ); }
@@ -326,7 +402,8 @@ class Taka_Tour_Admin {
 	private static function url( $post_id, $field, $label ) { self::field( $label, '<input class="widefat" type="url" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( self::meta( $post_id, $field ) ) . '">' ); }
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
-	private static function media_field( $post_id, $field, $label ) { $id = absint( self::meta( $post_id, $field ) ); $input_id = 'taka_' . $field . '_' . $post_id; $html = '<input id="' . esc_attr( $input_id ) . '" type="number" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( (string) $id ) . '"> <button type="button" class="button" data-taka-media-pick data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html__( 'Select from media library', 'taka-tour' ) . '</button><span id="' . esc_attr( $input_id . '_preview' ) . '">'; ob_start(); self::image_preview( $id ); $html .= ob_get_clean() . '</span>'; self::field( $label, $html ); }
+	private static function media_field( $post_id, $field, $label, $multiple = false, $button_label = null ) { $value = (string) self::meta( $post_id, $field ); $input_id = 'taka_' . $field . '_' . $post_id; $button_label = $button_label ?: __( 'Select image', 'taka-tour' ); $html = '<input id="' . esc_attr( $input_id ) . '" type="hidden" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( $value ) . '"> <button type="button" class="button" data-taka-media-pick data-multiple="' . ( $multiple ? '1' : '0' ) . '" data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html( $button_label ) . '</button> <button type="button" class="button" data-taka-media-remove data-target="' . esc_attr( $input_id ) . '" data-preview="' . esc_attr( $input_id . '_preview' ) . '">' . esc_html__( 'Remove image', 'taka-tour' ) . '</button><div id="' . esc_attr( $input_id . '_preview' ) . '">'; ob_start(); self::image_previews( $value ); $html .= ob_get_clean() . '</div>'; self::field( $label, $html ); }
 	private static function relation( $post_id, $field, $label, $post_type ) { $current = (int) self::meta( $post_id, $field ); $posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ); $html = '<select name="_taka_' . esc_attr( $field ) . '"><option value="">—</option>'; foreach ( $posts as $post ) { $html .= '<option value="' . esc_attr( $post->ID ) . '" ' . selected( $current, $post->ID, false ) . '>' . esc_html( get_the_title( $post ) ) . '</option>'; } $html .= '</select>'; self::field( $label, $html ); }
-	private static function image_preview( $id ) { $url = $id && function_exists( 'wp_get_attachment_image_url' ) ? wp_get_attachment_image_url( $id, 'thumbnail' ) : ''; if ( $url ) { echo '<img src="' . esc_url( $url ) . '" style="max-width:180px;height:auto;display:block;margin-top:8px;" alt="">'; } }
+	private static function image_preview( $id, $fallback_url = '' ) { $url = $id && function_exists( 'wp_get_attachment_image_url' ) ? wp_get_attachment_image_url( $id, 'thumbnail' ) : $fallback_url; if ( $url ) { echo '<img src="' . esc_url( $url ) . '" style="max-width:180px;height:auto;display:block;margin-top:8px;" alt="">'; } }
+	private static function image_previews( $ids ) { foreach ( array_filter( array_map( 'absint', preg_split( '/\s*,\s*/', (string) $ids ) ) ) as $id ) { self::image_preview( $id ); } }
 }

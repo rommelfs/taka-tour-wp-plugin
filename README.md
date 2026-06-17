@@ -34,7 +34,7 @@ The admin UI uses native WordPress posts, meta boxes, nonces, capability checks,
 
 ## Event model
 
-Events support: `id`, `slug`, `title`, `subtitle`, `description`, `country`, `country_code`, `flag`, `city`, `date_start`, `date_end`, `time_start`, `time_end`, `doors_open`, `timezone`, `organizer`, `venue`, `venues`, `format`, `audience`, `level`, `status`, `ticket_status`, `ticket_provider`, `ticket_shop_url`, `image_id`, `image_url`, `gallery_image_ids`, `photo_credit`, `languages`, `notes`, `parking` and `sort_order`.
+Events support: `id`, `slug`, `title`, `subtitle`, `description`, `country`, `country_code`, `flag`, `city`, `date_start`, `date_end`, `time_start`, `time_end`, `doors_open`, `timezone`, `organizer`, `venue`, `venues`, `format`, `audience`, `level`, `status`, `ticket_status`, `ticket_provider`, `ticket_shop_url`, `image_id`, `image_url`, `group_image_id`, `group_image_url`, `gallery_image_ids`, `gallery_urls`, `photo_credit`, `languages`, `notes`, `parking` and `sort_order`.
 
 Only published `taka_event` posts appear on the frontend. Events are sorted by `sort_order`, `date_start`, `time_start` and title. Optional missing fields are skipped instead of producing warnings.
 
@@ -42,13 +42,13 @@ Only published `taka_event` posts appear on the frontend. Events are sorted by `
 
 Organizers support `name`, `legal_name`, `website`, `logo_id`, `logo_url`, `emails`, `contact_persons`, `social_links`, `description` and `active`.
 
-Venues support address fields, `timezone`, `website`, `parking`, `accessibility`, `notes`, `geo.lat`, `geo.lng`, `image_id` and `gallery_image_ids`.
+Venues support address fields, `timezone`, `website`, `parking`, `accessibility`, `notes`, `geo.lat`, `geo.lng`, `image_id`, `image_url`, `parking_image_id`, `parking_image_url` and `gallery_image_ids`.
 
 Events can reference one organizer, one primary venue and additional venue IDs.
 
 ## Import / Export
 
-The Import / Export screen can import `config/tour-events.php` as:
+The Import / Export screen can import from the bundled `config/tour-events.php`, an uploaded compatible PHP config file or pasted JSON with `organizers`, `venues` and `events`. All sources support:
 
 - dry run / preview
 - import missing only
@@ -62,7 +62,7 @@ Export provides the current WordPress data as a PHP array compatible with the co
 
 ## Media handling
 
-Global media settings store WordPress attachment IDs for hero, portrait, gallery, logo and sponsor imagery. Events, organizers and venues also store attachment IDs plus optional fallback URLs.
+Global media settings store WordPress attachment IDs and fallback URLs for hero, portrait, gallery, logo and sponsor imagery. Organizers have logo IDs, events have action/group/gallery image IDs, and venues have venue/parking image IDs plus optional fallback URLs.
 
 Frontend image resolution order is:
 
@@ -94,6 +94,14 @@ The compact selector remains:
 Belgium dropdown: Nederlands, Français, Deutsch. Luxembourg dropdown: Lëtzebuergesch, Français, Deutsch.
 
 ## Changelog
+
+### v1.0.2
+
+- Added WordPress Media Library integration for organizer logos, event photos, venue photos, galleries and global media settings.
+
+### v1.0.1
+
+- Added external import sources for uploaded PHP config files and pasted JSON while preserving dry-run, update modes and duplicate prevention.
 
 ### v1.0.0
 
