@@ -189,7 +189,18 @@
     "seminar_description": "Seminarbeschrijving",
     "venue_website": "Website van de locatie",
     "seminar_photo": "Seminarfoto",
-    "photo_coming_soon": "Foto volgt"
+    "photo_coming_soon": "Foto volgt",
+    "event_organizers": "Eventorganisatoren",
+    "add_organizer": "Organisator toevoegen",
+    "relationship_co_organizer": "Co-organisator",
+    "relationship_host": "Gastheer",
+    "relationship_supporting_organizer": "Ondersteunende organisator",
+    "relationship_partner": "Partner",
+    "custom_label": "Aangepast label",
+    "visible": "Zichtbaar",
+    "relationship": "Relatie",
+    "primary_organizer": "Hoofdorganisator",
+    "additional_organizers": "Aanvullende organisatoren"
   },
   "country": {
     "france": "Frankrijk"

@@ -189,7 +189,18 @@
     "seminar_description": "Seminarbeschreibung",
     "venue_website": "Website des Veranstaltungsortes",
     "seminar_photo": "Seminarfoto",
-    "photo_coming_soon": "Foto folgt"
+    "photo_coming_soon": "Foto folgt",
+    "event_organizers": "Veranstalter des Events",
+    "add_organizer": "Veranstalter hinzufügen",
+    "relationship_co_organizer": "Co-Veranstalter",
+    "relationship_host": "Gastgeber",
+    "relationship_supporting_organizer": "Unterstützender Veranstalter",
+    "relationship_partner": "Partner",
+    "custom_label": "Eigene Bezeichnung",
+    "visible": "Sichtbar",
+    "relationship": "Beziehung",
+    "primary_organizer": "Hauptveranstalter",
+    "additional_organizers": "Weitere Veranstalter"
   },
   "country": {
     "france": "Frankreich"

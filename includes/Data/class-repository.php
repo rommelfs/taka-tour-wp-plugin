@@ -15,6 +15,50 @@ class TAKA_Platform_Data {
 	const BOOKING_OPTION = 'taka_platform_booking_information';
 	const TICKETS_OPTION = 'taka_platform_ticket_section_settings';
 
+
+
+	/** Event-level organizer relationship type labels. */
+	public static function organizer_relationship_type_labels( $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		return array(
+			'organizer' => taka_tour_translate( 'event.organizer', 'Organizer', $lang ),
+			'co_organizer' => taka_tour_translate( 'event.relationship_co_organizer', 'Co-organizer', $lang ),
+			'host' => taka_tour_translate( 'event.relationship_host', 'Host', $lang ),
+			'supporting_organizer' => taka_tour_translate( 'event.relationship_supporting_organizer', 'Supporting organizer', $lang ),
+			'partner' => taka_tour_translate( 'event.relationship_partner', 'Partner', $lang ),
+		);
+	}
+
+	/** Normalize event organizer relationships from WP meta or config. */
+	public static function normalize_event_organizer_relationships( $items, $legacy_organizer = 0 ) {
+		if ( ! is_array( $items ) ) { $items = array(); }
+		$clean = array();
+		$seen = array();
+		$allowed = array_keys( self::organizer_relationship_type_labels( 'en' ) );
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) { continue; }
+			$organizer_id = sanitize_text_field( (string) ( $item['organizer_id'] ?? ( $item['id'] ?? '' ) ) );
+			$type = sanitize_key( $item['relationship_type'] ?? 'organizer' );
+			$type = in_array( $type, $allowed, true ) ? $type : 'organizer';
+			if ( '' === $organizer_id || '0' === $organizer_id ) { continue; }
+			$key = $organizer_id . '|' . $type;
+			if ( isset( $seen[ $key ] ) ) { continue; }
+			$seen[ $key ] = true;
+			$clean[] = array(
+				'organizer_id' => $organizer_id,
+				'relationship_type' => $type,
+				'custom_label' => sanitize_text_field( (string) ( $item['custom_label'] ?? '' ) ),
+				'visible' => array_key_exists( 'visible', $item ) ? ( ! empty( $item['visible'] ) ? 1 : 0 ) : 1,
+				'sort_order' => (int) ( $item['sort_order'] ?? 0 ),
+			);
+		}
+		if ( empty( $clean ) && '' !== (string) $legacy_organizer && '0' !== (string) $legacy_organizer ) {
+			$clean[] = array( 'organizer_id' => (string) $legacy_organizer, 'relationship_type' => 'organizer', 'custom_label' => '', 'visible' => 1, 'sort_order' => 10 );
+		}
+		usort( $clean, static function ( $a, $b ) { return ( (int) $a['sort_order'] <=> (int) $b['sort_order'] ) ?: strcmp( (string) $a['relationship_type'], (string) $b['relationship_type'] ); } );
+		return $clean;
+	}
+
 	/** Load seed/fallback tour configuration. */
 	public static function load_config() {
 		static $config = null;
@@ -121,7 +165,7 @@ class TAKA_Platform_Data {
 
 	/** Get public events by organizer. */
 	public static function get_events_by_organizer( $organizer_id ) {
-		return array_values( array_filter( self::get_public_events(), static function ( $event ) use ( $organizer_id ) { return (string) $organizer_id === (string) ( $event['organizer'] ?? '' ); } ) );
+		return array_values( array_filter( self::get_public_events(), static function ( $event ) use ( $organizer_id ) { if ( (string) $organizer_id === (string) ( $event['organizer'] ?? '' ) ) { return true; } foreach ( $event['organizers'] ?? array() as $relationship ) { if ( (string) $organizer_id === (string) ( $relationship['organizer_id'] ?? '' ) ) { return true; } } return false; } ) );
 	}
 
 	/** Get public events by venue. */
@@ -207,6 +251,8 @@ class TAKA_Platform_Data {
 			$venue_id = (string) absint( get_post_meta( $post->ID, '_taka_venue_id', true ) );
 			$additional_venues = array_map( 'strval', self::csv_to_ints( get_post_meta( $post->ID, '_taka_venue_ids', true ) ) );
 			$venues = array_values( array_unique( array_filter( array_merge( array( $venue_id ), $additional_venues ) ) ) );
+			$legacy_organizer_id = (string) absint( get_post_meta( $post->ID, '_taka_organizer_id', true ) );
+			$organizer_relationships = self::normalize_event_organizer_relationships( get_post_meta( $post->ID, '_taka_event_organizers', true ), $legacy_organizer_id );
 			$events[] = array(
 				'id' => (string) $post->ID,
 				'config_id' => (string) get_post_meta( $post->ID, '_taka_config_id', true ),
@@ -229,7 +275,8 @@ class TAKA_Platform_Data {
 				'doors_open' => (string) get_post_meta( $post->ID, '_taka_doors_open', true ),
 				'program_items' => self::normalize_program_items( get_post_meta( $post->ID, '_taka_program_items', true ) ),
 				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ),
-				'organizer' => (string) absint( get_post_meta( $post->ID, '_taka_organizer_id', true ) ),
+				'organizer' => $legacy_organizer_id,
+				'organizers' => $organizer_relationships,
 				'venue' => $venue_id,
 				'venues' => $venues,
 				'format' => (string) get_post_meta( $post->ID, '_taka_format', true ),
@@ -276,7 +323,7 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); $event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' ); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -710,7 +757,9 @@ class TAKA_Platform_Data {
 		$venues = self::get_venues();
 		return array_map( static function ( $event ) use ( $lang, $organizers, $venues ) {
 			$slug = $event['slug'] ?? '';
-			$organizer = $organizers[ (string) ( $event['organizer'] ?? '' ) ] ?? null;
+			$organizer_relationships = self::enrich_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '', $organizers, $lang );
+			$primary_relationship = $organizer_relationships[0] ?? null;
+			$organizer = is_array( $primary_relationship ) ? ( $primary_relationship['organizer'] ?? null ) : ( $organizers[ (string) ( $event['organizer'] ?? '' ) ] ?? null );
 			$venue = $venues[ (string) ( $event['venue'] ?? '' ) ] ?? null;
 			$event['languages'] = ! empty( $event['languages'] ) ? $event['languages'] : self::languages_for_country( $event['country'] ?? '' );
 			$event['subtitle'] = taka_tour_translate( 'seminars.' . $slug . '.subtitle', $event['subtitle'] ?? '', $lang );
@@ -731,6 +780,7 @@ class TAKA_Platform_Data {
 			$event['date'] = self::format_event_date( $event );
 			$event['program_groups'] = self::program_groups( $event['program_items'], $lang );
 			$event['program_summary'] = self::program_summary_text( $event['program_items'], $lang );
+			$event['organizer_relationships'] = $organizer_relationships;
 			$event['organizer_data'] = is_array( $organizer ) ? $organizer : null;
 			$event['organizer_name'] = is_array( $organizer ) ? ( $organizer['name'] ?? '' ) : '';
 			$event['hosts'] = 'Details folgen' === $event['organizer_name'] ? taka_tour_translate( 'event.details_follow', 'Details folgen', $lang ) : $event['organizer_name'];
@@ -773,6 +823,24 @@ class TAKA_Platform_Data {
 	}
 
 	/** Build meaningful alt text for the ticket overview image. */
+
+	/** Enrich organizer relationships with full organizer data and translated labels. */
+	private static function enrich_event_organizer_relationships( $relationships, $legacy_organizer, $organizers, $lang ) {
+		$labels = self::organizer_relationship_type_labels( $lang );
+		$items = self::normalize_event_organizer_relationships( $relationships, $legacy_organizer );
+		$out = array();
+		foreach ( $items as $item ) {
+			if ( empty( $item['visible'] ) ) { continue; }
+			$organizer = $organizers[ (string) $item['organizer_id'] ] ?? null;
+			if ( ! is_array( $organizer ) ) { continue; }
+			$item['label'] = '' !== (string) $item['custom_label'] ? (string) $item['custom_label'] : ( $labels[ $item['relationship_type'] ] ?? $labels['organizer'] );
+			$item['organizer'] = $organizer;
+			$item['drawer_key'] = 'organizer_' . sanitize_key( (string) $item['organizer_id'] ) . '_' . sanitize_key( $item['relationship_type'] );
+			$out[] = $item;
+		}
+		return $out;
+	}
+
 	private static function ticket_overview_image_alt( $event, $organizer, $lang ) {
 		$title = trim( (string) ( $event['title'] ?? '' ) );
 		if ( '' !== $title ) {
@@ -856,6 +924,33 @@ class TAKA_Platform_Data {
 					array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $organizer['website'] ?? '', 'url' => $organizer['website'] ?? '' ),
 					array( 'label' => taka_tour_translate( 'event.email', 'Email', $lang ), 'value' => self::list_to_string( $organizer['emails'] ?? array() ) ),
 					array( 'label' => taka_tour_translate( 'event.contact', 'Contact', $lang ), 'value' => self::list_to_string( $organizer['contact_persons'] ?? array() ) ),
+					array( 'label' => 'Instagram', 'value' => $social['instagram'] ?? '', 'url' => $social['instagram'] ?? '' ),
+					array( 'label' => 'Facebook', 'value' => $social['facebook'] ?? '', 'url' => $social['facebook'] ?? '' ),
+					array( 'label' => 'YouTube', 'value' => $social['youtube'] ?? '', 'url' => $social['youtube'] ?? '' ),
+				) ),
+			);
+		}
+
+		foreach ( $event['organizer_relationships'] ?? array() as $relationship ) {
+			$rel_organizer = $relationship['organizer'] ?? null;
+			if ( ! is_array( $rel_organizer ) ) { continue; }
+			$key = $relationship['drawer_key'] ?? ( 'organizer_' . sanitize_key( (string) ( $relationship['organizer_id'] ?? '' ) ) );
+			$social = $rel_organizer['social_links'] ?? ( $rel_organizer['social'] ?? array() );
+			$drawers[ $key ] = array(
+				'type'  => 'organizer',
+				'label' => $relationship['label'] ?? taka_tour_translate( 'event.organizer', 'Organizer', $lang ),
+				'title' => $rel_organizer['name'] ?? ( $relationship['label'] ?? '' ),
+				'image' => $rel_organizer['logo'] ?? ( $rel_organizer['logo_url'] ?? '' ),
+				'cards_title' => taka_tour_translate( 'event.co_organizers', 'Co-organizers', $lang ),
+				'cards' => self::co_organizer_cards( $rel_organizer['co_organizers'] ?? array(), $lang ),
+				'rows'  => self::clean_info_rows( array(
+					array( 'label' => taka_tour_translate( 'event.relationship', 'Relationship', $lang ), 'value' => $relationship['label'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.organizer', 'Organizer', $lang ), 'value' => $rel_organizer['name'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.legal_name', 'Legal name', $lang ), 'value' => $rel_organizer['legal_name'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.description', 'Description', $lang ), 'value' => $rel_organizer['description'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $rel_organizer['website'] ?? '', 'url' => $rel_organizer['website'] ?? '' ),
+					array( 'label' => taka_tour_translate( 'event.email', 'Email', $lang ), 'value' => self::list_to_string( $rel_organizer['emails'] ?? array() ) ),
+					array( 'label' => taka_tour_translate( 'event.contact', 'Contact', $lang ), 'value' => self::list_to_string( $rel_organizer['contact_persons'] ?? array() ) ),
 					array( 'label' => 'Instagram', 'value' => $social['instagram'] ?? '', 'url' => $social['instagram'] ?? '' ),
 					array( 'label' => 'Facebook', 'value' => $social['facebook'] ?? '', 'url' => $social['facebook'] ?? '' ),
 					array( 'label' => 'YouTube', 'value' => $social['youtube'] ?? '', 'url' => $social['youtube'] ?? '' ),

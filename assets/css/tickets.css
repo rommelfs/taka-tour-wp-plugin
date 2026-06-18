@@ -1212,3 +1212,42 @@
 	outline: 2px solid #BC002D;
 	outline-offset: 3px;
 }
+
+/* v1.4.7 event organizer relationship display */
+.taka-ticket-organizer-list {
+	display: grid;
+	gap: .55rem;
+	width: 100%;
+}
+
+.taka-ticket-organizer-list__item {
+	align-items: center;
+	display: grid;
+	gap: .65rem;
+	grid-template-columns: auto minmax(0, 1fr);
+}
+
+.taka-ticket-organizer-list__item img {
+	background: #fff;
+	border-radius: .45rem;
+	max-height: 42px;
+	max-width: 92px;
+	object-fit: contain;
+	padding: .2rem;
+}
+
+.taka-ticket-organizer-list__content {
+	display: grid;
+	gap: .08rem;
+	min-width: 0;
+}
+
+.taka-ticket-organizer-list__role {
+	color: #BC002D;
+	font-size: .68rem !important;
+	font-weight: 900 !important;
+	letter-spacing: .08em;
+	margin: 0 !important;
+	opacity: 1 !important;
+	text-transform: uppercase;
+}

@@ -251,11 +251,14 @@ class TAKA_Platform_Admin {
 		if ( user_can( $user_id, 'manage_options' ) ) {
 			return true;
 		}
+		$assigned = self::get_user_organizer_ids( $user_id );
+		if ( empty( $assigned ) ) { return false; }
 		$organizer_id = absint( get_post_meta( $post_id, '_taka_organizer_id', true ) );
-		if ( ! $organizer_id ) {
-			return false;
+		if ( $organizer_id && in_array( $organizer_id, $assigned, true ) ) { return true; }
+		foreach ( TAKA_Platform_Data::normalize_event_organizer_relationships( get_post_meta( $post_id, '_taka_event_organizers', true ), $organizer_id ) as $relationship ) {
+			if ( in_array( absint( $relationship['organizer_id'] ?? 0 ), $assigned, true ) ) { return true; }
 		}
-		return in_array( $organizer_id, self::get_user_organizer_ids( $user_id ), true );
+		return false;
 	}
 
 	/** Load event posts for assigned organizer IDs. */
@@ -263,20 +266,31 @@ class TAKA_Platform_Admin {
 		if ( empty( $organizer_ids ) ) {
 			return array();
 		}
-		return get_posts(
-			array(
-				'post_type'      => TAKA_PLATFORM_CPT_EVENT,
-				'post_status'    => array( 'publish', 'draft', 'pending', 'future', 'private' ),
-				'posts_per_page' => -1,
-				'meta_query'     => array(
-					array(
-						'key'     => '_taka_organizer_id',
-						'value'   => array_map( 'strval', $organizer_ids ),
-						'compare' => 'IN',
-					),
-				),
-			)
-		);
+		$event_ids = self::get_event_ids_for_organizers( $organizer_ids );
+		if ( empty( $event_ids ) ) { return array(); }
+		return get_posts( array( 'post_type' => TAKA_PLATFORM_CPT_EVENT, 'post_status' => array( 'publish', 'draft', 'pending', 'future', 'private' ), 'posts_per_page' => -1, 'post__in' => $event_ids ) );
+	}
+
+
+	/** Find event IDs related to any of the given organizer IDs. */
+	private static function get_event_ids_for_organizers( $organizer_ids ) {
+		$organizer_ids = array_values( array_unique( array_filter( array_map( 'absint', (array) $organizer_ids ) ) ) );
+		if ( empty( $organizer_ids ) ) { return array(); }
+		$ids = get_posts( array( 'post_type' => TAKA_PLATFORM_CPT_EVENT, 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids' ) );
+		$out = array();
+		foreach ( $ids as $event_id ) {
+			if ( self::event_has_any_organizer( (int) $event_id, $organizer_ids ) ) { $out[] = (int) $event_id; }
+		}
+		return $out;
+	}
+
+	private static function event_has_any_organizer( $event_id, $organizer_ids ) {
+		$legacy = absint( get_post_meta( $event_id, '_taka_organizer_id', true ) );
+		if ( $legacy && in_array( $legacy, $organizer_ids, true ) ) { return true; }
+		foreach ( TAKA_Platform_Data::normalize_event_organizer_relationships( get_post_meta( $event_id, '_taka_event_organizers', true ), $legacy ) as $relationship ) {
+			if ( in_array( absint( $relationship['organizer_id'] ?? 0 ), $organizer_ids, true ) ) { return true; }
+		}
+		return false;
 	}
 
 	/** Render user-profile organizer assignment field for administrators. */
@@ -335,16 +349,8 @@ class TAKA_Platform_Admin {
 			$query->set( 'post__in', array( 0 ) );
 			return;
 		}
-		$query->set(
-			'meta_query',
-			array(
-				array(
-					'key'     => '_taka_organizer_id',
-					'value'   => array_map( 'strval', $organizer_ids ),
-					'compare' => 'IN',
-				),
-			)
-		);
+		$event_ids = self::get_event_ids_for_organizers( $organizer_ids );
+		$query->set( 'post__in', ! empty( $event_ids ) ? $event_ids : array( 0 ) );
 	}
 
 	/** Enforce organizer-scoped event editing at capability level. */
@@ -907,7 +913,12 @@ class TAKA_Platform_Admin {
 		foreach ( $config['events'] ?? array() as $item ) {
 			$id = $item['id'] ?? ( $item['slug'] ?? '' );
 			$meta = self::event_meta_from_config( $item );
-			$meta['_taka_organizer_id'] = self::find_post_id_by_config_id( TAKA_PLATFORM_CPT_ORGANIZER, $item['organizer'] ?? '' );
+			$relationships = self::event_organizer_relationships_from_config( $item );
+			foreach ( $relationships as &$relationship ) { $relationship['organizer_id'] = (string) self::find_post_id_by_config_id( TAKA_PLATFORM_CPT_ORGANIZER, $relationship['organizer_id'] ?? '' ); }
+			unset( $relationship );
+			$relationships = TAKA_Platform_Data::normalize_event_organizer_relationships( $relationships, self::find_post_id_by_config_id( TAKA_PLATFORM_CPT_ORGANIZER, $item['organizer'] ?? '' ) );
+			$meta['_taka_event_organizers'] = $relationships;
+			$meta['_taka_organizer_id'] = ! empty( $relationships ) ? absint( $relationships[0]['organizer_id'] ?? 0 ) : self::find_post_id_by_config_id( TAKA_PLATFORM_CPT_ORGANIZER, $item['organizer'] ?? '' );
 			$meta['_taka_venue_id'] = self::find_post_id_by_config_id( TAKA_PLATFORM_CPT_VENUE, $item['venue'] ?? '' );
 			self::upsert_config_post( TAKA_PLATFORM_CPT_EVENT, $id, $item['title'] ?? $id, $item['description'] ?? '', $meta, $mode, $dry_run, $summary['events'], $item['slug'] ?? '' );
 		}
@@ -944,6 +955,15 @@ class TAKA_Platform_Admin {
 			update_post_meta( $post_id, $key, $value );
 		}
 		return (int) $post_id;
+	}
+
+
+	private static function event_organizer_relationships_from_config( $item ) {
+		$relationships = is_array( $item['organizers'] ?? null ) ? $item['organizers'] : array();
+		if ( empty( $relationships ) && ! empty( $item['organizer'] ) ) {
+			$relationships[] = array( 'organizer_id' => $item['organizer'], 'relationship_type' => 'organizer', 'custom_label' => '', 'visible' => true, 'sort_order' => 10 );
+		}
+		return TAKA_Platform_Data::normalize_event_organizer_relationships( $relationships, '' );
 	}
 
 	private static function organizer_meta_from_config( $item ) { $social = is_array( $item['social'] ?? null ) ? $item['social'] : ( is_array( $item['social_links'] ?? null ) ? $item['social_links'] : array() ); return array( '_taka_legal_name' => $item['legal_name'] ?? '', '_taka_website' => $item['website'] ?? '', '_taka_logo_id' => (int) ( $item['logo_id'] ?? 0 ), '_taka_logo_url' => $item['logo_url'] ?? ( $item['logo'] ?? '' ), '_taka_emails' => implode( "\n", $item['emails'] ?? array() ), '_taka_contact_persons' => self::contact_persons_to_lines( $item['contact_persons'] ?? array() ), '_taka_instagram' => $social['instagram'] ?? '', '_taka_facebook' => $social['facebook'] ?? '', '_taka_youtube' => $social['youtube'] ?? '', '_taka_platform_co_organizers' => self::sanitize_co_organizers( $item['co_organizers'] ?? array() ), '_taka_active' => 1 ); }
@@ -990,7 +1010,8 @@ class TAKA_Platform_Admin {
 		self::nonce();
 		foreach ( array( 'subtitle' => 'Subtitle', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'city' => 'City', 'doors_open' => 'Doors open', 'timezone' => 'Timezone', 'format' => 'Format', 'audience' => 'Audience', 'level' => 'Level', 'ticket_provider' => 'Ticket provider', 'ticket_status' => 'Ticket status', 'photo_credit' => 'Photo credit', 'languages' => 'Languages, comma-separated' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::render_event_program_fields( $post->ID );
-		self::organizer_relation( $post->ID, 'organizer_id', __( 'Organizer', 'taka-platform' ) );
+		self::organizer_relation( $post->ID, 'organizer_id', __( 'Primary organizer', 'taka-platform' ) );
+		self::render_event_organizer_relationship_fields( $post->ID );
 		self::relation( $post->ID, 'venue_id', __( 'Primary venue', 'taka-platform' ), TAKA_PLATFORM_CPT_VENUE );
 		self::text( $post->ID, 'venue_ids', __( 'Additional venue IDs, comma-separated', 'taka-platform' ) );
 		self::url( $post->ID, 'ticket_shop_url', __( 'Ticket shop URL', 'taka-platform' ) );
@@ -1016,6 +1037,10 @@ class TAKA_Platform_Admin {
 	}
 	public static function save_venue( $post_id ) { self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); }
 	public static function save_event( $post_id ) {
+		$posted_relationships = self::sanitize_event_organizer_relationships( $_POST['taka_platform_event_organizers'] ?? array() );
+		if ( ! empty( $posted_relationships ) ) {
+			$_POST['_taka_organizer_id'] = (string) absint( $posted_relationships[0]['organizer_id'] ?? 0 );
+		}
 		if ( ! self::current_user_is_platform_admin() ) {
 			$assigned = self::get_current_user_organizer_ids();
 			$existing = absint( get_post_meta( $post_id, '_taka_organizer_id', true ) );
@@ -1030,7 +1055,44 @@ class TAKA_Platform_Admin {
 			update_post_meta( $post_id, '_taka_organizer_id', $posted );
 		}
 		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'ticket_tab_label', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
+		self::save_event_organizer_relationships( $post_id, $posted_relationships );
 		self::save_event_program_items( $post_id );
+	}
+
+	private static function render_event_organizer_relationship_fields( $post_id ) {
+		$legacy = absint( get_post_meta( $post_id, '_taka_organizer_id', true ) );
+		$items = TAKA_Platform_Data::normalize_event_organizer_relationships( get_post_meta( $post_id, '_taka_event_organizers', true ), $legacy );
+		$types = TAKA_Platform_Data::organizer_relationship_type_labels();
+		$assigned = self::current_user_is_platform_admin() ? array() : self::get_current_user_organizer_ids();
+		$posts_args = array( 'post_type' => TAKA_PLATFORM_CPT_ORGANIZER, 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' );
+		if ( ! self::current_user_is_platform_admin() ) { $posts_args['post__in'] = ! empty( $assigned ) ? $assigned : array( 0 ); }
+		$organizers = get_posts( $posts_args );
+		if ( empty( $items ) && 1 === count( $assigned ) ) { $items[] = array( 'organizer_id' => (string) $assigned[0], 'relationship_type' => 'organizer', 'custom_label' => '', 'visible' => 1, 'sort_order' => 10 ); }
+		?>
+		<div class="taka-event-organizers" data-taka-event-organizers>
+			<h3><?php echo esc_html__( 'Event organizers', 'taka-platform' ); ?></h3>
+			<p class="description"><?php echo esc_html__( 'Assign one or more organizer profiles with a role for this event.', 'taka-platform' ); ?> <a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . TAKA_PLATFORM_CPT_ORGANIZER ) ); ?>"><?php echo esc_html__( 'Add new organizer', 'taka-platform' ); ?></a></p>
+			<div data-taka-event-organizer-list>
+				<?php foreach ( $items as $index => $item ) : ?><?php self::render_event_organizer_relationship_row( (int) $index, $item, $organizers, $types ); ?><?php endforeach; ?>
+			</div>
+			<button type="button" class="button" data-taka-event-organizer-add><?php echo esc_html__( 'Add organizer', 'taka-platform' ); ?></button>
+			<template data-taka-event-organizer-template><?php self::render_event_organizer_relationship_row( '__index__', array( 'relationship_type' => 'organizer', 'visible' => 1, 'sort_order' => 10 ), $organizers, $types ); ?></template>
+		</div>
+		<?php
+	}
+
+	private static function render_event_organizer_relationship_row( $index, $item, $organizers, $types ) {
+		$index_attr = esc_attr( (string) $index );
+		$prefix = 'taka_platform_event_organizers[' . $index_attr . ']';
+		?>
+		<div class="taka-event-organizer-item" data-taka-event-organizer-item style="border:1px solid #dcdcde;padding:12px;margin:12px 0;background:#fff;">
+			<p><strong><?php echo esc_html__( 'Event organizer', 'taka-platform' ); ?></strong> <button type="button" class="button-link-delete" data-taka-event-organizer-remove><?php echo esc_html__( 'Remove organizer', 'taka-platform' ); ?></button></p>
+			<p><label><?php echo esc_html__( 'Organizer', 'taka-platform' ); ?><br><select name="<?php echo esc_attr( $prefix ); ?>[organizer_id]"><option value="">—</option><?php foreach ( $organizers as $organizer ) : ?><option value="<?php echo esc_attr( (string) $organizer->ID ); ?>" <?php selected( (string) ( $item['organizer_id'] ?? '' ), (string) $organizer->ID ); ?>><?php echo esc_html( get_the_title( $organizer ) ); ?></option><?php endforeach; ?></select></label></p>
+			<p><label><?php echo esc_html__( 'Relationship', 'taka-platform' ); ?><br><select name="<?php echo esc_attr( $prefix ); ?>[relationship_type]"><?php foreach ( $types as $type => $label ) : ?><option value="<?php echo esc_attr( $type ); ?>" <?php selected( $item['relationship_type'] ?? 'organizer', $type ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select></label></p>
+			<p><label><?php echo esc_html__( 'Custom label', 'taka-platform' ); ?><br><input type="text" class="regular-text" name="<?php echo esc_attr( $prefix ); ?>[custom_label]" value="<?php echo esc_attr( $item['custom_label'] ?? '' ); ?>"></label></p>
+			<p><label><?php echo esc_html__( 'Sort order', 'taka-platform' ); ?><br><input type="number" name="<?php echo esc_attr( $prefix ); ?>[sort_order]" value="<?php echo esc_attr( (string) ( $item['sort_order'] ?? 0 ) ); ?>" style="width:90px"></label> <label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>[visible]" value="1" <?php checked( ! isset( $item['visible'] ) || ! empty( $item['visible'] ) ); ?>> <?php echo esc_html__( 'Visible', 'taka-platform' ); ?></label></p>
+		</div>
+		<?php
 	}
 
 	private static function render_event_program_fields( $post_id ) {
@@ -1067,6 +1129,39 @@ class TAKA_Platform_Admin {
 			<p><label><?php echo esc_html__( 'Notes', 'taka-platform' ); ?> <textarea class="widefat" rows="2" name="<?php echo esc_attr( $name ); ?>[notes]"><?php echo esc_textarea( $item['notes'] ?? '' ); ?></textarea></label></p>
 		</div>
 		<?php
+	}
+
+	private static function save_event_organizer_relationships( $post_id, $items = null ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) { return; }
+		if ( ! isset( $_POST[ self::NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) || ! current_user_can( 'edit_post', $post_id ) ) { return; }
+		$items = is_array( $items ) ? $items : self::sanitize_event_organizer_relationships( $_POST['taka_platform_event_organizers'] ?? array() );
+		if ( ! self::current_user_is_platform_admin() ) {
+			$assigned = self::get_current_user_organizer_ids();
+			$items = array_values( array_filter( $items, static function ( $item ) use ( $assigned ) { return in_array( absint( $item['organizer_id'] ?? 0 ), $assigned, true ); } ) );
+		}
+		if ( empty( $items ) ) { return; }
+		update_post_meta( $post_id, '_taka_event_organizers', $items );
+		update_post_meta( $post_id, '_taka_organizer_id', absint( $items[0]['organizer_id'] ?? 0 ) );
+	}
+
+	private static function sanitize_event_organizer_relationships( $items ) {
+		$items = is_array( $items ) ? wp_unslash( $items ) : array();
+		$allowed = array_keys( TAKA_Platform_Data::organizer_relationship_type_labels( 'en' ) );
+		$clean = array();
+		$seen = array();
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) { continue; }
+			$organizer_id = absint( $item['organizer_id'] ?? 0 );
+			$type = sanitize_key( $item['relationship_type'] ?? 'organizer' );
+			$type = in_array( $type, $allowed, true ) ? $type : 'organizer';
+			if ( ! $organizer_id ) { continue; }
+			$key = $organizer_id . '|' . $type;
+			if ( isset( $seen[ $key ] ) ) { continue; }
+			$seen[ $key ] = true;
+			$clean[] = array( 'organizer_id' => (string) $organizer_id, 'relationship_type' => $type, 'custom_label' => sanitize_text_field( $item['custom_label'] ?? '' ), 'visible' => ! empty( $item['visible'] ) ? 1 : 0, 'sort_order' => (int) ( $item['sort_order'] ?? 0 ) );
+		}
+		usort( $clean, static function ( $a, $b ) { return ( (int) $a['sort_order'] <=> (int) $b['sort_order'] ) ?: strcmp( (string) $a['relationship_type'], (string) $b['relationship_type'] ); } );
+		return $clean;
 	}
 
 	private static function save_event_program_items( $post_id ) {

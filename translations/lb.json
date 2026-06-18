@@ -189,7 +189,18 @@
     "seminar_description": "Seminarbeschreiwung",
     "venue_website": "Websäit vum Veranstaltungsuert",
     "seminar_photo": "Seminarfoto",
-    "photo_coming_soon": "Foto kënnt geschwënn"
+    "photo_coming_soon": "Foto kënnt geschwënn",
+    "event_organizers": "Event-Organisateuren",
+    "add_organizer": "Organisateur derbäisetzen",
+    "relationship_co_organizer": "Co-Organisateur",
+    "relationship_host": "Host",
+    "relationship_supporting_organizer": "Ënnerstëtzenden Organisateur",
+    "relationship_partner": "Partner",
+    "custom_label": "Eege Bezeechnung",
+    "visible": "Siichtbar",
+    "relationship": "Relatioun",
+    "primary_organizer": "Haaptorganisateur",
+    "additional_organizers": "Zousätzlech Organisateuren"
   },
   "country": {
     "france": "Frankräich"

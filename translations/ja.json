@@ -189,7 +189,18 @@
     "seminar_description": "セミナー説明",
     "venue_website": "会場ウェブサイト",
     "seminar_photo": "セミナー写真",
-    "photo_coming_soon": "写真は近日公開"
+    "photo_coming_soon": "写真は近日公開",
+    "event_organizers": "イベント主催者",
+    "add_organizer": "主催者を追加",
+    "relationship_co_organizer": "共同主催者",
+    "relationship_host": "ホスト",
+    "relationship_supporting_organizer": "協力主催者",
+    "relationship_partner": "パートナー",
+    "custom_label": "カスタムラベル",
+    "visible": "表示",
+    "relationship": "関係",
+    "primary_organizer": "主催者",
+    "additional_organizers": "追加主催者"
   },
   "country": {
     "france": "フランス"

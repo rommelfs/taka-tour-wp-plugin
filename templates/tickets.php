@@ -29,6 +29,7 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 			$drawers          = is_array( $seminar['info_drawers'] ?? null ) ? $seminar['info_drawers'] : array();
 			$event_key        = sanitize_html_class( (string) $panel_key );
 			$organizer        = is_array( $seminar['organizer_full'] ?? null ) ? $seminar['organizer_full'] : array();
+			$organizer_relationships = is_array( $seminar['organizer_relationships'] ?? null ) ? $seminar['organizer_relationships'] : array();
 			$address          = $seminar['address'] ?? '';
 			$organizer_drawer = isset( $drawers['organizer'] ) ? 'taka-info-modal-' . $event_key . '-organizer' : '';
 			$venue_drawer     = isset( $drawers['venue'] ) ? 'taka-info-modal-' . $event_key . '-venue' : '';
@@ -67,7 +68,21 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 								<?php if ( ! empty( $seminar['venue_name'] ) ) : ?>
 									<div class="taka-ticket-meta-row taka-ticket-meta-row--wide taka-ticket-meta-row--venue"><dt><?php echo esc_html( taka_tour_translate( 'event.venue', 'Venue' ) ); ?></dt><dd><?php if ( '' !== $venue_drawer ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $venue_drawer ); ?>"><?php echo esc_html( $seminar['venue_name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><?php echo esc_html( $seminar['venue_name'] ); ?><?php endif; ?><?php if ( ! empty( $seminar['city'] ) || ! empty( $seminar['country'] ) ) : ?><span><?php echo esc_html( trim( ( $seminar['city'] ?? '' ) . ', ' . ( $seminar['country'] ?? '' ), ', ' ) ); ?></span><?php endif; ?></dd></div>
 								<?php endif; ?>
-								<?php if ( ! empty( $organizer['name'] ) ) : ?>
+								<?php if ( ! empty( $organizer_relationships ) ) : ?>
+									<div class="taka-ticket-meta-row taka-ticket-meta-row--wide taka-ticket-meta-row--organizer">
+										<dt><?php echo esc_html( taka_tour_translate( 'event.event_organizers', 'Event organizers' ) ); ?></dt>
+										<dd><div class="taka-ticket-organizer-list">
+											<?php foreach ( $organizer_relationships as $relationship ) : ?>
+												<?php $rel_org = is_array( $relationship['organizer'] ?? null ) ? $relationship['organizer'] : array(); $rel_drawer = ! empty( $relationship['drawer_key'] ) ? 'taka-info-modal-' . $event_key . '-' . sanitize_html_class( (string) $relationship['drawer_key'] ) : ''; ?>
+												<?php if ( empty( $rel_org['name'] ) ) { continue; } ?>
+												<div class="taka-ticket-organizer-list__item">
+													<?php if ( ! empty( $rel_org['logo'] ) ) : ?><img src="<?php echo esc_url( $rel_org['logo'] ); ?>" alt="<?php echo esc_attr( $rel_org['name'] ); ?>" loading="lazy"><?php endif; ?>
+													<span class="taka-ticket-organizer-list__content"><span class="taka-ticket-organizer-list__role"><?php echo esc_html( $relationship['label'] ?? taka_tour_translate( 'event.organizer', 'Organizer' ) ); ?></span><?php if ( '' !== $rel_drawer && isset( $drawers[ $relationship['drawer_key'] ] ) ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $rel_drawer ); ?>"><?php echo esc_html( $rel_org['name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><span><?php echo esc_html( $rel_org['name'] ); ?></span><?php endif; ?></span>
+												</div>
+											<?php endforeach; ?>
+										</div></dd>
+									</div>
+								<?php elseif ( ! empty( $organizer['name'] ) ) : ?>
 									<div class="taka-ticket-meta-row taka-ticket-meta-row--wide taka-ticket-meta-row--organizer"><dt><?php echo esc_html( taka_tour_translate( 'event.organizer', 'Organizer' ) ); ?></dt><dd><?php if ( ! empty( $organizer['logo'] ) ) : ?><img src="<?php echo esc_url( $organizer['logo'] ); ?>" alt="<?php echo esc_attr( $organizer['name'] ); ?>" loading="lazy"><?php endif; ?><?php if ( '' !== $organizer_drawer ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $organizer_drawer ); ?>"><?php echo esc_html( $organizer['name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><span><?php echo esc_html( $organizer['name'] ); ?></span><?php endif; ?></dd></div>
 								<?php endif; ?>
 							</dl>
@@ -91,7 +106,7 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 						<?php if ( ! empty( $drawers ) ) : ?>
 							<div class="taka-ticket-info-actions" aria-label="<?php echo esc_attr__( 'Ticket information', 'taka-platform' ); ?>">
 								<?php foreach ( $drawers as $drawer_key => $drawer ) : ?>
-									<?php if ( 'event' === $drawer_key || ( 'organizer' === $drawer_key && '' !== $organizer_drawer && ! empty( $organizer['name'] ) ) || ( 'venue' === $drawer_key && '' !== $venue_drawer && ! empty( $seminar['venue_name'] ) ) ) { continue; } ?>
+									<?php if ( 'event' === $drawer_key || ( 'organizer' === ( $drawer['type'] ?? '' ) && ! empty( $organizer_relationships ) ) || ( 'organizer' === $drawer_key && '' !== $organizer_drawer && ! empty( $organizer['name'] ) ) || ( 'venue' === $drawer_key && '' !== $venue_drawer && ! empty( $seminar['venue_name'] ) ) ) { continue; } ?>
 									<?php $drawer_id = 'taka-info-modal-' . $event_key . '-' . sanitize_html_class( (string) $drawer_key ); ?>
 									<button type="button" class="taka-ticket-info-button" data-taka-info-modal-open="<?php echo esc_attr( $drawer_id ); ?>"><?php echo esc_html( $drawer['label'] ?? $drawer['title'] ?? '' ); ?></button>
 								<?php endforeach; ?>

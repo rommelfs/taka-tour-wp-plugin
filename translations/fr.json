@@ -189,7 +189,18 @@
     "seminar_description": "Description du séminaire",
     "venue_website": "Site du lieu",
     "seminar_photo": "Photo du séminaire",
-    "photo_coming_soon": "Photo à venir"
+    "photo_coming_soon": "Photo à venir",
+    "event_organizers": "Organisateurs de l’événement",
+    "add_organizer": "Ajouter un organisateur",
+    "relationship_co_organizer": "Co-organisateur",
+    "relationship_host": "Hôte",
+    "relationship_supporting_organizer": "Organisateur de soutien",
+    "relationship_partner": "Partenaire",
+    "custom_label": "Libellé personnalisé",
+    "visible": "Visible",
+    "relationship": "Relation",
+    "primary_organizer": "Organisateur principal",
+    "additional_organizers": "Organisateurs supplémentaires"
   },
   "country": {
     "france": "France"

@@ -136,6 +136,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.4.7
+
+- Added event-level organizer relationships with multiple organizers, roles, logos and frontend display.
+
 ### v1.4.6
 
 - Fixed Pretix widget CSS isolation and removed unstable button borders from clickable organizer and venue info triggers.

@@ -189,7 +189,18 @@
     "seminar_description": "Seminar description",
     "venue_website": "Venue website",
     "seminar_photo": "Seminar photo",
-    "photo_coming_soon": "Photo coming soon"
+    "photo_coming_soon": "Photo coming soon",
+    "event_organizers": "Event organizers",
+    "add_organizer": "Add organizer",
+    "relationship_co_organizer": "Co-organizer",
+    "relationship_host": "Host",
+    "relationship_supporting_organizer": "Supporting organizer",
+    "relationship_partner": "Partner",
+    "custom_label": "Custom label",
+    "visible": "Visible",
+    "relationship": "Relationship",
+    "primary_organizer": "Primary organizer",
+    "additional_organizers": "Additional organizers"
   },
   "country": {
     "france": "France"

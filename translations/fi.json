@@ -189,7 +189,18 @@
     "seminar_description": "Seminaarin kuvaus",
     "venue_website": "Tapahtumapaikan verkkosivusto",
     "seminar_photo": "Seminaarikuva",
-    "photo_coming_soon": "Kuva tulossa"
+    "photo_coming_soon": "Kuva tulossa",
+    "event_organizers": "Tapahtuman järjestäjät",
+    "add_organizer": "Lisää järjestäjä",
+    "relationship_co_organizer": "Yhteisjärjestäjä",
+    "relationship_host": "Isäntä",
+    "relationship_supporting_organizer": "Tukijärjestäjä",
+    "relationship_partner": "Kumppani",
+    "custom_label": "Mukautettu nimiö",
+    "visible": "Näkyvissä",
+    "relationship": "Suhde",
+    "primary_organizer": "Pääjärjestäjä",
+    "additional_organizers": "Muut järjestäjät"
   },
   "country": {
     "france": "Ranska"

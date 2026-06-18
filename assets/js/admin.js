@@ -61,3 +61,34 @@ document.addEventListener('click', function (event) {
     }
   }
 });
+
+
+document.addEventListener('click', function (event) {
+  var addEventOrganizer = event.target.closest('[data-taka-event-organizer-add]');
+  var removeEventOrganizer = event.target.closest('[data-taka-event-organizer-remove]');
+
+  if (addEventOrganizer) {
+    event.preventDefault();
+    var root = addEventOrganizer.closest('[data-taka-event-organizers]');
+    var list = root ? root.querySelector('[data-taka-event-organizer-list]') : null;
+    var template = root ? root.querySelector('[data-taka-event-organizer-template]') : null;
+    if (!list || !template) {
+      return;
+    }
+    var index = Date.now().toString();
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = template.innerHTML.replace(/__index__/g, index).trim();
+    while (wrapper.firstChild) {
+      list.appendChild(wrapper.firstChild);
+    }
+    return;
+  }
+
+  if (removeEventOrganizer) {
+    event.preventDefault();
+    var item = removeEventOrganizer.closest('[data-taka-event-organizer-item]');
+    if (item) {
+      item.remove();
+    }
+  }
+});
