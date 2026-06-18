@@ -183,7 +183,8 @@
     "co_organizers": "共催者",
     "add_co_organizer": "共催者を追加",
     "remove_co_organizer": "共催者を削除",
-    "logo": "ロゴ"
+    "logo": "ロゴ",
+    "schedule": "スケジュール"
   },
   "country": {
     "france": "フランス"

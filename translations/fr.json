@@ -183,7 +183,8 @@
     "co_organizers": "Co-organisateurs",
     "add_co_organizer": "Ajouter un co-organisateur",
     "remove_co_organizer": "Supprimer le co-organisateur",
-    "logo": "Logo"
+    "logo": "Logo",
+    "schedule": "Programme"
   },
   "country": {
     "france": "France"

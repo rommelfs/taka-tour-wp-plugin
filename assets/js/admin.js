@@ -31,3 +31,33 @@ document.addEventListener('click', function (event) {
     }
   }
 });
+
+document.addEventListener('click', function (event) {
+  var addProgram = event.target.closest('[data-taka-program-add]');
+  var removeProgram = event.target.closest('[data-taka-program-remove]');
+
+  if (addProgram) {
+    event.preventDefault();
+    var root = addProgram.closest('[data-taka-program-items]');
+    var list = root ? root.querySelector('[data-taka-program-list]') : null;
+    var template = root ? root.querySelector('[data-taka-program-template]') : null;
+    if (!list || !template) {
+      return;
+    }
+    var index = Date.now().toString();
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = template.innerHTML.replace(/__index__/g, index).trim();
+    while (wrapper.firstChild) {
+      list.appendChild(wrapper.firstChild);
+    }
+    return;
+  }
+
+  if (removeProgram) {
+    event.preventDefault();
+    var item = removeProgram.closest('[data-taka-program-item]');
+    if (item) {
+      item.remove();
+    }
+  }
+});

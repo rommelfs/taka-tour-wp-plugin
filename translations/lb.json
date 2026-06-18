@@ -183,7 +183,8 @@
     "co_organizers": "Matorganisateuren",
     "add_co_organizer": "Matorganisateur derbäisetzen",
     "remove_co_organizer": "Matorganisateur ewechhuelen",
-    "logo": "Logo"
+    "logo": "Logo",
+    "schedule": "Programm"
   },
   "country": {
     "france": "Frankräich"

@@ -10,7 +10,7 @@ $time_parts       = array_filter( array( $seminar['time_start'] ?? '', $seminar[
 $time_display     = implode( '–', $time_parts );
 $summary_details  = array(
 	array( 'label' => taka_tour_translate( 'event.date', 'Datum' ), 'value' => $seminar['date'] ?? '' ),
-	array( 'label' => taka_tour_translate( 'event.time', 'Zeit' ), 'value' => $time_display ),
+	array( 'label' => taka_tour_translate( 'event.time', 'Zeit' ), 'value' => empty( $seminar['program_groups'] ) ? $time_display : '' ),
 	array( 'label' => taka_tour_translate( 'event.venue', 'Ort' ), 'value' => $seminar['venue_name'] ?? '' ),
 );
 ?>
@@ -31,6 +31,13 @@ $summary_details  = array(
 			<div><dt><?php echo esc_html( $detail['label'] ); ?></dt><dd><?php echo esc_html( $detail['value'] ); ?></dd></div>
 		<?php endforeach; ?>
 	</dl>
+	<?php if ( ! empty( $seminar['program_groups'] ) ) : ?>
+		<div class="taka-program-summary taka-program-summary--card">
+			<?php foreach ( $seminar['program_groups'] as $program_group ) : ?>
+				<div class="taka-program-summary__day"><strong><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong><?php foreach ( $program_group['items'] as $program_item ) : ?><span><?php echo esc_html( trim( implode( ' ', array_filter( array( implode( '–', array_filter( array( $program_item['time_start'] ?? '', $program_item['time_end'] ?? '' ) ) ), $program_item['title'] ?? '' ) ) ) ) ); ?></span><?php endforeach; ?></div>
+			<?php endforeach; ?>
+		</div>
+	<?php endif; ?>
 	<?php if ( '' !== $pretix_event_url ) : ?>
 		<div class="taka-seminar-pretix">
 			<?php echo taka_tour_render_template( 'partials/ticket-widget.php', array( 'event' => $pretix_event_url, 'label' => $seminar['title'] ?? '', 'seminar' => $seminar ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>

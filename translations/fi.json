@@ -183,7 +183,8 @@
     "co_organizers": "Yhteisjärjestäjät",
     "add_co_organizer": "Lisää yhteisjärjestäjä",
     "remove_co_organizer": "Poista yhteisjärjestäjä",
-    "logo": "Logo"
+    "logo": "Logo",
+    "schedule": "Ohjelma"
   },
   "country": {
     "france": "Ranska"

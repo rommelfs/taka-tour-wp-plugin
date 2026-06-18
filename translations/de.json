@@ -183,7 +183,8 @@
     "co_organizers": "Co-Veranstalter",
     "add_co_organizer": "Co-Veranstalter hinzufügen",
     "remove_co_organizer": "Co-Veranstalter entfernen",
-    "logo": "Logo"
+    "logo": "Logo",
+    "schedule": "Programm"
   },
   "country": {
     "france": "Frankreich"

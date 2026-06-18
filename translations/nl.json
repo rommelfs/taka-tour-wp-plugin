@@ -183,7 +183,8 @@
     "co_organizers": "Medeorganisatoren",
     "add_co_organizer": "Medeorganisator toevoegen",
     "remove_co_organizer": "Medeorganisator verwijderen",
-    "logo": "Logo"
+    "logo": "Logo",
+    "schedule": "Programma"
   },
   "country": {
     "france": "Frankrijk"

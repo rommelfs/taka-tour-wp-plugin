@@ -136,6 +136,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.4.3
+
+- Added flexible multi-day event program items with translated grouped schedule display and refined clickable organizer/venue info cards.
+
 ### v1.4.2
 
 - Fixed multilingual rendering and language picker behavior, restored translation completeness workflow, cleaned ticket info actions and connected hero navigation to ticket tabs.

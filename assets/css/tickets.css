@@ -874,3 +874,50 @@
 	color: #BC002D;
 	outline: none;
 }
+
+/* v1.4.3 flexible program display and lighter info rows */
+.taka-program-summary {
+	background: rgba(255,255,255,.72);
+	border-radius: .85rem;
+	display: grid;
+	gap: .55rem;
+	padding: .75rem;
+}
+
+.taka-program-summary__day {
+	display: grid;
+	gap: .16rem;
+	grid-template-columns: minmax(88px, .28fr) minmax(0, 1fr);
+}
+
+.taka-program-summary__day strong {
+	color: #BC002D;
+	font-size: .78rem;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+}
+
+.taka-program-summary__day span {
+	font-size: .92rem;
+	font-weight: 720;
+	line-height: 1.35;
+}
+
+.taka-ticket-meta-link {
+	background: rgba(255,255,255,.28);
+	border: 0;
+	border-radius: .45rem;
+	display: inline-flex;
+	gap: .35rem;
+	padding: .12rem .28rem;
+	transition: background .18s ease, color .18s ease;
+}
+
+.taka-ticket-meta-link:hover,
+.taka-ticket-meta-link:focus-visible {
+	background: rgba(188,0,45,.08);
+	border: 0;
+}
+.taka-info-modal__row dd {
+	white-space: pre-line;
+}

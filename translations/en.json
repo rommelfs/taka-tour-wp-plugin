@@ -183,7 +183,8 @@
     "co_organizers": "Co-organizers",
     "add_co_organizer": "Add co-organizer",
     "remove_co_organizer": "Remove co-organizer",
-    "logo": "Logo"
+    "logo": "Logo",
+    "schedule": "Schedule"
   },
   "country": {
     "france": "France"

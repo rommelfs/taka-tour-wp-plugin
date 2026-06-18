@@ -784,3 +784,32 @@
 .taka-content-section--full_background .taka-content-section__media img {
 	object-fit: cover;
 }
+
+/* v1.4.3 flexible program summary */
+.taka-program-summary {
+	background: rgba(255,255,255,.72);
+	border-radius: .85rem;
+	display: grid;
+	gap: .55rem;
+	margin-top: .75rem;
+	padding: .75rem;
+}
+
+.taka-program-summary__day {
+	display: grid;
+	gap: .16rem;
+	grid-template-columns: minmax(88px, .28fr) minmax(0, 1fr);
+}
+
+.taka-program-summary__day strong {
+	color: #BC002D;
+	font-size: .78rem;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+}
+
+.taka-program-summary__day span {
+	font-size: .92rem;
+	font-weight: 720;
+	line-height: 1.35;
+}

@@ -227,6 +227,7 @@ class TAKA_Platform_Data {
 				'time_start' => (string) get_post_meta( $post->ID, '_taka_time_start', true ),
 				'time_end' => (string) get_post_meta( $post->ID, '_taka_time_end', true ),
 				'doors_open' => (string) get_post_meta( $post->ID, '_taka_doors_open', true ),
+				'program_items' => self::normalize_program_items( get_post_meta( $post->ID, '_taka_program_items', true ) ),
 				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ),
 				'organizer' => (string) absint( get_post_meta( $post->ID, '_taka_organizer_id', true ) ),
 				'venue' => $venue_id,
@@ -275,7 +276,7 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -626,6 +627,73 @@ class TAKA_Platform_Data {
 	/** Suggest languages from country. */
 	public static function languages_for_country( $country ) { $map = array( 'Finland' => array( 'fi', 'en', 'de' ), 'Germany' => array( 'de', 'en' ), 'France' => array( 'fr', 'en', 'de' ), 'Netherlands' => array( 'nl', 'en', 'de' ), 'Belgium' => array( 'fr', 'nl', 'de', 'en' ), 'Luxembourg' => array( 'fr', 'de', 'lb', 'en' ) ); return $map[ $country ] ?? array( 'en' ); }
 
+	/** Normalize flexible event program items with legacy date/time fallback. */
+	public static function normalize_program_items( $items, $event = array() ) {
+		if ( ! is_array( $items ) ) { $items = array(); }
+		$normalized = array();
+		foreach ( $items as $index => $item ) {
+			if ( ! is_array( $item ) ) { continue; }
+			$date = sanitize_text_field( $item['date'] ?? '' );
+			$start = sanitize_text_field( $item['time_start'] ?? ( $item['start_time'] ?? '' ) );
+			$end = sanitize_text_field( $item['time_end'] ?? ( $item['end_time'] ?? '' ) );
+			$title = sanitize_text_field( $item['title'] ?? '' );
+			$notes = sanitize_textarea_field( $item['notes'] ?? ( $item['description'] ?? '' ) );
+			$type = sanitize_key( $item['type'] ?? 'seminar' );
+			if ( '' === $date && '' === $start && '' === $end && '' === $title && '' === $notes ) { continue; }
+			$normalized[] = array( 'date' => $date, 'time_start' => $start, 'time_end' => $end, 'title' => $title, 'notes' => $notes, 'type' => $type ?: 'seminar', 'sort_order' => (int) ( $item['sort_order'] ?? $index ) );
+		}
+		if ( empty( $normalized ) && ( ! empty( $event['date_start'] ) || ! empty( $event['time_start'] ) || ! empty( $event['time_end'] ) ) ) {
+			$normalized[] = array( 'date' => (string) ( $event['date_start'] ?? '' ), 'time_start' => (string) ( $event['time_start'] ?? '' ), 'time_end' => (string) ( $event['time_end'] ?? '' ), 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 0 );
+			if ( ! empty( $event['date_end'] ) && ( $event['date_end'] !== ( $event['date_start'] ?? '' ) ) ) {
+				$normalized[] = array( 'date' => (string) $event['date_end'], 'time_start' => '', 'time_end' => '', 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 1 );
+			}
+		}
+		usort( $normalized, static function ( $a, $b ) { return array( $a['date'], $a['sort_order'], $a['time_start'] ) <=> array( $b['date'], $b['sort_order'], $b['time_start'] ); } );
+		return $normalized;
+	}
+
+	private static function program_groups( $items, $lang ) {
+		$groups = array();
+		foreach ( self::normalize_program_items( $items ) as $item ) {
+			$date = (string) ( $item['date'] ?? '' );
+			if ( '' === $date ) { $date = 'unscheduled'; }
+			if ( ! isset( $groups[ $date ] ) ) {
+				$groups[ $date ] = array( 'date' => $date, 'label' => 'unscheduled' === $date ? taka_tour_translate( 'event.date', 'Date', $lang ) : self::weekday_name( $date, $lang ), 'items' => array() );
+			}
+			$groups[ $date ]['items'][] = $item;
+		}
+		return array_values( $groups );
+	}
+
+	private static function program_summary_text( $items, $lang ) {
+		$lines = array();
+		foreach ( self::program_groups( $items, $lang ) as $group ) {
+			foreach ( $group['items'] as $item ) {
+				$time = implode( '–', array_filter( array( $item['time_start'] ?? '', $item['time_end'] ?? '' ) ) );
+				$text = trim( implode( ' ', array_filter( array( $group['label'] ?? '', $time, $item['title'] ?? '' ) ) ) );
+				if ( ! empty( $item['notes'] ) ) { $text .= "\n" . $item['notes']; }
+				if ( '' !== $text ) { $lines[] = $text; }
+			}
+		}
+		return implode( "\n\n", $lines );
+	}
+
+	private static function weekday_name( $date, $lang ) {
+		$ts = strtotime( $date );
+		if ( false === $ts ) { return $date; }
+		$index = (int) gmdate( 'w', $ts );
+		$names = array(
+			'en' => array( 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ),
+			'de' => array( 'Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag' ),
+			'fr' => array( 'Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi' ),
+			'nl' => array( 'Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag' ),
+			'lb' => array( 'Sonndeg', 'Méindeg', 'Dënschdeg', 'Mëttwoch', 'Donneschdeg', 'Freideg', 'Samschdeg' ),
+			'fi' => array( 'Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai' ),
+			'ja' => array( '日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日' ),
+		);
+		return $names[ $lang ][ $index ] ?? $names['en'][ $index ];
+	}
+
 	/** Get events enriched for active language and display. */
 	public static function events_for_language( $lang = null ) {
 		$lang = $lang ?: taka_tour_current_language();
@@ -644,7 +712,16 @@ class TAKA_Platform_Data {
 			$event['parking'] = taka_tour_translate( 'seminars.' . $slug . '.parking', $event['parking'] ?? '', $lang );
 			$event['type'] = $event['format'];
 			$event['country_label'] = taka_tour_translate( 'country.' . sanitize_key( $event['country'] ?? '' ), $event['country'] ?? '', $lang );
+			$event['program_items'] = self::normalize_program_items( $event['program_items'] ?? array(), $event );
+			if ( ! empty( $event['program_items'] ) ) {
+				$event['date_start'] = $event['date_start'] ?: ( $event['program_items'][0]['date'] ?? '' );
+				$last_program_item = end( $event['program_items'] );
+				$event['date_end'] = $event['date_end'] ?: ( $last_program_item['date'] ?? '' );
+				reset( $event['program_items'] );
+			}
 			$event['date'] = self::format_event_date( $event );
+			$event['program_groups'] = self::program_groups( $event['program_items'], $lang );
+			$event['program_summary'] = self::program_summary_text( $event['program_items'], $lang );
 			$event['organizer_data'] = is_array( $organizer ) ? $organizer : null;
 			$event['organizer_name'] = is_array( $organizer ) ? ( $organizer['name'] ?? '' ) : '';
 			$event['hosts'] = 'Details folgen' === $event['organizer_name'] ? taka_tour_translate( 'event.details_follow', 'Details folgen', $lang ) : $event['organizer_name'];
@@ -731,6 +808,7 @@ class TAKA_Platform_Data {
 	/** Build prepared drawer view data; templates should not query raw meta. */
 	private static function build_info_drawers( $event, $organizer, $venue, $lang ) {
 		$time = implode( '–', array_filter( array( $event['time_start'] ?? '', $event['time_end'] ?? '' ) ) );
+		$schedule = $event['program_summary'] ?? self::program_summary_text( $event['program_items'] ?? array(), $lang );
 		$drawers = array();
 		$drawers['event'] = array(
 			'type'  => 'event',
@@ -742,7 +820,7 @@ class TAKA_Platform_Data {
 				array( 'label' => taka_tour_translate( 'event.subtitle', 'Subtitle', $lang ), 'value' => $event['subtitle'] ?? '' ),
 				array( 'label' => taka_tour_translate( 'event.description', 'Description', $lang ), 'value' => $event['description'] ?? '' ),
 				array( 'label' => taka_tour_translate( 'event.date', 'Date', $lang ), 'value' => $event['date'] ?? '' ),
-				array( 'label' => taka_tour_translate( 'event.time', 'Time', $lang ), 'value' => $time ),
+				array( 'label' => taka_tour_translate( 'event.schedule', 'Schedule', $lang ), 'value' => $schedule ?: $time ),
 				array( 'label' => taka_tour_translate( 'event.doors_open', 'Doors open', $lang ), 'value' => $event['doors_open'] ?? '' ),
 				array( 'label' => taka_tour_translate( 'seminar.format_label', 'Format', $lang ), 'value' => $event['format'] ?? '' ),
 				array( 'label' => taka_tour_translate( 'event.audience', 'Audience', $lang ), 'value' => $event['audience'] ?? '' ),
