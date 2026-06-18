@@ -813,3 +813,35 @@
 	font-weight: 720;
 	line-height: 1.35;
 }
+
+/* v1.4.4 grouped timetable polish */
+.taka-program-summary h4 {
+	color: #BC002D;
+	font-size: .78rem;
+	font-weight: 900;
+	letter-spacing: .08em;
+	margin: 0 0 .55rem;
+	text-transform: uppercase;
+}
+
+.taka-program-summary__day {
+	align-items: start;
+	grid-template-columns: minmax(95px, .22fr) minmax(0, 1fr);
+}
+
+.taka-program-summary__items {
+	display: grid;
+	gap: .32rem;
+}
+
+.taka-program-summary__item {
+	align-items: baseline;
+	display: grid;
+	gap: .65rem;
+	grid-template-columns: minmax(84px, max-content) minmax(0, 1fr);
+}
+
+.taka-program-summary__time {
+	font-variant-numeric: tabular-nums;
+	font-weight: 850;
+}

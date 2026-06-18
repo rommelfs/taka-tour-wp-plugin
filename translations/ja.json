@@ -184,7 +184,10 @@
     "add_co_organizer": "共催者を追加",
     "remove_co_organizer": "共催者を削除",
     "logo": "ロゴ",
-    "schedule": "スケジュール"
+    "schedule": "スケジュール",
+    "seminar_plan": "セミナー予定",
+    "seminar_description": "セミナー説明",
+    "venue_website": "会場ウェブサイト"
   },
   "country": {
     "france": "フランス"

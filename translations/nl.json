@@ -184,7 +184,10 @@
     "add_co_organizer": "Medeorganisator toevoegen",
     "remove_co_organizer": "Medeorganisator verwijderen",
     "logo": "Logo",
-    "schedule": "Programma"
+    "schedule": "Programma",
+    "seminar_plan": "Seminarprogramma",
+    "seminar_description": "Seminarbeschrijving",
+    "venue_website": "Website van de locatie"
   },
   "country": {
     "france": "Frankrijk"

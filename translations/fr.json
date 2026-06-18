@@ -184,7 +184,10 @@
     "add_co_organizer": "Ajouter un co-organisateur",
     "remove_co_organizer": "Supprimer le co-organisateur",
     "logo": "Logo",
-    "schedule": "Programme"
+    "schedule": "Programme",
+    "seminar_plan": "Programme du séminaire",
+    "seminar_description": "Description du séminaire",
+    "venue_website": "Site du lieu"
   },
   "country": {
     "france": "France"

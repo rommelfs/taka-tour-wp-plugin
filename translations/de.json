@@ -184,7 +184,10 @@
     "add_co_organizer": "Co-Veranstalter hinzufügen",
     "remove_co_organizer": "Co-Veranstalter entfernen",
     "logo": "Logo",
-    "schedule": "Programm"
+    "schedule": "Programm",
+    "seminar_plan": "Seminarplan",
+    "seminar_description": "Seminarbeschreibung",
+    "venue_website": "Website des Veranstaltungsortes"
   },
   "country": {
     "france": "Frankreich"

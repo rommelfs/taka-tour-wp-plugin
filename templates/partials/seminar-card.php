@@ -33,8 +33,9 @@ $summary_details  = array(
 	</dl>
 	<?php if ( ! empty( $seminar['program_groups'] ) ) : ?>
 		<div class="taka-program-summary taka-program-summary--card">
+			<h4><?php echo esc_html( taka_tour_translate( 'event.seminar_plan', 'Seminar plan' ) ); ?></h4>
 			<?php foreach ( $seminar['program_groups'] as $program_group ) : ?>
-				<div class="taka-program-summary__day"><strong><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong><?php foreach ( $program_group['items'] as $program_item ) : ?><span><?php echo esc_html( trim( implode( ' ', array_filter( array( implode( '–', array_filter( array( $program_item['time_start'] ?? '', $program_item['time_end'] ?? '' ) ) ), $program_item['title'] ?? '' ) ) ) ) ); ?></span><?php endforeach; ?></div>
+				<div class="taka-program-summary__day"><strong class="taka-program-summary__day-label"><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong><div class="taka-program-summary__items"><?php foreach ( $program_group['items'] as $program_item ) : ?><div class="taka-program-summary__item"><span class="taka-program-summary__time"><?php echo esc_html( implode( '–', array_filter( array( $program_item['time_start'] ?? '', $program_item['time_end'] ?? '' ) ) ) ); ?></span><span class="taka-program-summary__title"><?php echo esc_html( $program_item['title'] ?? '' ); ?></span></div><?php endforeach; ?></div></div>
 			<?php endforeach; ?>
 		</div>
 	<?php endif; ?>

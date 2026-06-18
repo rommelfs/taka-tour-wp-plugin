@@ -69,18 +69,21 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 							</dl>
 							<?php if ( ! empty( $seminar['program_groups'] ) ) : ?>
 								<div class="taka-program-summary" aria-label="<?php echo esc_attr( taka_tour_translate( 'event.schedule', 'Schedule' ) ); ?>">
+									<h4><?php echo esc_html( taka_tour_translate( 'event.seminar_plan', 'Seminar plan' ) ); ?></h4>
 									<?php foreach ( $seminar['program_groups'] as $program_group ) : ?>
 										<div class="taka-program-summary__day">
-											<strong><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong>
-											<?php foreach ( $program_group['items'] as $program_item ) : ?>
-												<span><?php echo esc_html( trim( implode( ' ', array_filter( array( implode( '–', array_filter( array( $program_item['time_start'] ?? '', $program_item['time_end'] ?? '' ) ) ), $program_item['title'] ?? '' ) ) ) ) ); ?></span>
-											<?php endforeach; ?>
+											<strong class="taka-program-summary__day-label"><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong>
+											<div class="taka-program-summary__items">
+												<?php foreach ( $program_group['items'] as $program_item ) : ?>
+													<div class="taka-program-summary__item"><span class="taka-program-summary__time"><?php echo esc_html( implode( '–', array_filter( array( $program_item['time_start'] ?? '', $program_item['time_end'] ?? '' ) ) ) ); ?></span><span class="taka-program-summary__title"><?php echo esc_html( $program_item['title'] ?? '' ); ?></span></div>
+												<?php endforeach; ?>
+											</div>
 										</div>
 									<?php endforeach; ?>
 								</div>
 							<?php endif; ?>
 						</div>
-						<?php if ( ! empty( $seminar['description'] ) ) : ?><p class="taka-ticket-event-panel__description"><?php echo esc_html( $seminar['description'] ); ?></p><?php endif; ?>
+						<?php if ( ! empty( $seminar['description'] ) ) : ?><section class="taka-ticket-event-description"><h4><?php echo esc_html( taka_tour_translate( 'event.seminar_description', 'Seminar description' ) ); ?></h4><p class="taka-ticket-event-panel__description"><?php echo esc_html( $seminar['description'] ); ?></p></section><?php endif; ?>
 						<?php if ( ! empty( $drawers ) ) : ?>
 							<div class="taka-ticket-info-actions" aria-label="<?php echo esc_attr__( 'Ticket information', 'taka-platform' ); ?>">
 								<?php foreach ( $drawers as $drawer_key => $drawer ) : ?>

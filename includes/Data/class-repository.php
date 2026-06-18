@@ -334,8 +334,17 @@ class TAKA_Platform_Data {
 			$booking['enabled'] = $override['enabled'] ?? $booking['enabled'];
 		}
 
+		$lang_defaults = self::default_booking_information( $lang );
+		$en_defaults = self::default_booking_information( 'en' );
 		foreach ( array( 'title', 'intro', 'group_booking', 'multi_event_discount', 'booking_process', 'payment_methods', 'cancellation_policy', 'additional_notes' ) as $field ) {
-			$booking[ $field ] = taka_platform_get_translated_value( $booking[ $field ] ?? '', $lang, 'en' );
+			$value = $booking[ $field ] ?? '';
+			if ( is_array( $value ) ) {
+				$booking[ $field ] = taka_platform_get_translated_value( $value, $lang, 'en' );
+			} elseif ( '' !== (string) ( $en_defaults[ $field ] ?? '' ) && (string) $value === (string) $en_defaults[ $field ] ) {
+				$booking[ $field ] = (string) ( $lang_defaults[ $field ] ?? $value );
+			} else {
+				$booking[ $field ] = (string) $value;
+			}
 		}
 
 		if ( empty( $booking['title'] ) ) {
@@ -866,21 +875,16 @@ class TAKA_Platform_Data {
 			if ( '' !== $venue_address ) {
 				$venue_rows[] = array( 'label' => taka_tour_translate( 'event.google_maps', 'Open in Google Maps', $lang ), 'value' => taka_tour_translate( 'event.google_maps', 'Open in Google Maps', $lang ), 'url' => self::google_maps_url( $venue_address ) );
 			}
-			$venue_rows = array_merge(
-				$venue_rows,
-				array(
-					array( 'label' => taka_tour_translate( 'event.website', 'Website', $lang ), 'value' => $venue['website'] ?? '', 'url' => $venue['website'] ?? '' ),
-				)
-			);
+			$venue_rows[] = array( 'label' => taka_tour_translate( 'event.venue_website', 'Venue website', $lang ), 'value' => $venue['website'] ?? '', 'url' => $venue['website'] ?? '' );
 			$drawers['venue'] = array(
 				'type'  => 'venue',
 				'label' => taka_tour_translate( 'drawer.venue_info', 'Venue & info', $lang ),
 				'title' => taka_tour_translate( 'drawer.venue_info', 'Venue & practical information', $lang ),
 				'image' => $venue['image'] ?? ( $venue['image_url'] ?? '' ),
-				'rows'  => array_merge( self::clean_info_rows( $venue_rows ), self::build_practical_information( $event, $organizer, $venue, $lang ) ),
+				'rows'  => array_merge( self::clean_info_rows( $venue_rows ), self::build_practical_information( $event, null, $venue, $lang ) ),
 			);
 		} else {
-			$practical = self::build_practical_information( $event, $organizer, $venue, $lang );
+			$practical = self::build_practical_information( $event, null, $venue, $lang );
 			if ( ! empty( $practical ) ) {
 				$drawers['venue'] = array(
 					'type'  => 'venue',

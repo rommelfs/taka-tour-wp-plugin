@@ -184,7 +184,10 @@
     "add_co_organizer": "Lisää yhteisjärjestäjä",
     "remove_co_organizer": "Poista yhteisjärjestäjä",
     "logo": "Logo",
-    "schedule": "Ohjelma"
+    "schedule": "Ohjelma",
+    "seminar_plan": "Seminaariohjelma",
+    "seminar_description": "Seminaarin kuvaus",
+    "venue_website": "Tapahtumapaikan verkkosivusto"
   },
   "country": {
     "france": "Ranska"

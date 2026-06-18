@@ -921,3 +921,80 @@
 .taka-info-modal__row dd {
 	white-space: pre-line;
 }
+
+/* v1.4.4 ticket panel and grouped timetable polish */
+.taka-ticket-booking-panel {
+	align-items: stretch;
+}
+
+.taka-ticket-event-panel {
+	height: 100%;
+}
+
+.taka-ticket-event-panel__body {
+	align-items: start;
+	grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+}
+
+.taka-program-summary {
+	grid-column: 1 / -1;
+	padding: .95rem;
+}
+
+.taka-program-summary h4,
+.taka-ticket-event-description h4 {
+	color: #BC002D;
+	font-size: .78rem;
+	font-weight: 900;
+	letter-spacing: .08em;
+	margin: 0 0 .55rem;
+	text-transform: uppercase;
+}
+
+.taka-program-summary__day {
+	align-items: start;
+	grid-template-columns: minmax(95px, .22fr) minmax(0, 1fr);
+}
+
+.taka-program-summary__items {
+	display: grid;
+	gap: .32rem;
+}
+
+.taka-program-summary__item {
+	align-items: baseline;
+	display: grid;
+	gap: .65rem;
+	grid-template-columns: minmax(84px, max-content) minmax(0, 1fr);
+}
+
+.taka-program-summary__time {
+	font-variant-numeric: tabular-nums;
+	font-weight: 850;
+}
+
+.taka-program-summary__title:empty {
+	display: none;
+}
+
+.taka-ticket-event-description {
+	background: rgba(255,255,255,.55);
+	border-radius: .85rem;
+	padding: .85rem .95rem;
+}
+
+.taka-ticket-event-panel__description {
+	margin: 0;
+}
+
+.taka-ticket-meta-link {
+	box-shadow: none;
+}
+
+@media (max-width: 920px) {
+	.taka-ticket-event-panel__body,
+	.taka-program-summary__day,
+	.taka-program-summary__item {
+		grid-template-columns: 1fr;
+	}
+}

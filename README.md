@@ -136,6 +136,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.4.4
+
+- Polished ticket panel layout, fixed grouped program timetable display, removed redundant venue details and restored translated booking information rendering.
+
 ### v1.4.3
 
 - Added flexible multi-day event program items with translated grouped schedule display and refined clickable organizer/venue info cards.

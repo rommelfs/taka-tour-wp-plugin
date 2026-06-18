@@ -184,7 +184,10 @@
     "add_co_organizer": "Add co-organizer",
     "remove_co_organizer": "Remove co-organizer",
     "logo": "Logo",
-    "schedule": "Schedule"
+    "schedule": "Schedule",
+    "seminar_plan": "Seminar plan",
+    "seminar_description": "Seminar description",
+    "venue_website": "Venue website"
   },
   "country": {
     "france": "France"

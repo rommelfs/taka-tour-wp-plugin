@@ -184,7 +184,10 @@
     "add_co_organizer": "Matorganisateur derbäisetzen",
     "remove_co_organizer": "Matorganisateur ewechhuelen",
     "logo": "Logo",
-    "schedule": "Programm"
+    "schedule": "Programm",
+    "seminar_plan": "Seminarplang",
+    "seminar_description": "Seminarbeschreiwung",
+    "venue_website": "Websäit vum Veranstaltungsuert"
   },
   "country": {
     "france": "Frankräich"
