@@ -327,8 +327,12 @@ class TAKA_Platform_Data {
 		$booking = self::get_booking_information_settings( $lang );
 		$override = self::normalize_booking_information( $event['booking_information'] ?? array(), false );
 		if ( ! empty( $override['override'] ) ) {
-			$booking = array_merge( $booking, array_filter( $override, static function ( $value ) { return '' !== trim( (string) $value ); } ) );
+			$booking = array_merge( $booking, array_filter( $override, static function ( $value ) { return is_array( $value ) ? '' !== trim( implode( '', array_map( 'strval', $value ) ) ) : '' !== trim( (string) $value ); } ) );
 			$booking['enabled'] = $override['enabled'] ?? $booking['enabled'];
+		}
+
+		foreach ( array( 'title', 'intro', 'group_booking', 'multi_event_discount', 'booking_process', 'payment_methods', 'cancellation_policy', 'additional_notes' ) as $field ) {
+			$booking[ $field ] = taka_platform_get_translated_value( $booking[ $field ] ?? '', $lang, 'en' );
 		}
 
 		if ( empty( $booking['title'] ) ) {
@@ -363,6 +367,9 @@ class TAKA_Platform_Data {
 		}
 		foreach ( array( 'enabled', 'override' ) as $key ) {
 			if ( isset( $booking[ $key ] ) ) { $booking[ $key ] = ! empty( $booking[ $key ] ) ? '1' : '0'; }
+		}
+		foreach ( array( 'title', 'intro', 'group_booking', 'multi_event_discount', 'booking_process', 'payment_methods', 'cancellation_policy', 'additional_notes' ) as $key ) {
+			if ( isset( $booking[ $key ] ) ) { $booking[ $key ] = self::normalize_dynamic_text_value( $booking[ $key ] ); }
 		}
 		return $booking;
 	}
@@ -443,8 +450,9 @@ class TAKA_Platform_Data {
 	}
 
 	/** Get editable frontend content sections, including user-added sections. */
-	public static function get_content_sections() {
+	public static function get_content_sections( $resolve_translations = true ) {
 		$config   = self::load_config();
+		$lang     = taka_tour_current_language();
 		$stored   = function_exists( 'get_option' ) ? get_option( self::SECTIONS_OPTION, array() ) : array();
 		$stored   = is_array( $stored ) ? $stored : array();
 		$sections = array();
@@ -467,6 +475,7 @@ class TAKA_Platform_Data {
 		}
 		foreach ( $sections as $key => $section ) {
 			$section = self::normalize_content_section( $section );
+			if ( $resolve_translations ) { $section = self::resolve_dynamic_section_translations( $section, $lang ); }
 			$section['key']             = $key;
 			$section['image']           = self::resolve_attachment_url( absint( $section['image_id'] ?? 0 ), 'full', (string) ( $section['image_url'] ?? '' ) );
 			$section['secondary_image'] = self::resolve_attachment_url( absint( $section['secondary_image_id'] ?? 0 ), 'full', (string) ( $section['secondary_image_url'] ?? '' ) );
@@ -503,11 +512,11 @@ class TAKA_Platform_Data {
 			'visible'             => ! empty( $section['visible'] ?? $section['enabled'] ?? '1' ) ? '1' : '0',
 			'enabled'             => ! empty( $section['visible'] ?? $section['enabled'] ?? '1' ),
 			'sort_order'          => (int) ( $section['sort_order'] ?? 0 ),
-			'kicker'              => (string) ( $section['kicker'] ?? '' ),
-			'title'               => (string) ( $section['title'] ?? '' ),
-			'subtitle'            => (string) ( $section['subtitle'] ?? '' ),
-			'text'                => (string) ( $section['text'] ?? ( $section['body'] ?? '' ) ),
-			'body'                => (string) ( $section['body'] ?? ( $section['text'] ?? '' ) ),
+			'kicker'              => self::normalize_dynamic_text_value( $section['kicker'] ?? '' ),
+			'title'               => self::normalize_dynamic_text_value( $section['title'] ?? '' ),
+			'subtitle'            => self::normalize_dynamic_text_value( $section['subtitle'] ?? '' ),
+			'text'                => self::normalize_dynamic_text_value( $section['text'] ?? ( $section['body'] ?? '' ) ),
+			'body'                => self::normalize_dynamic_text_value( $section['body'] ?? ( $section['text'] ?? '' ) ),
 			'image_id'            => absint( $section['image_id'] ?? 0 ),
 			'image_url'           => (string) ( $section['image_url'] ?? ( $section['image'] ?? '' ) ),
 			'secondary_image_id'  => absint( $section['secondary_image_id'] ?? 0 ),
@@ -517,13 +526,34 @@ class TAKA_Platform_Data {
 			'layout'              => $layout,
 			'background_style'    => sanitize_key( $section['background_style'] ?? 'plain' ),
 			'button_url'          => (string) ( $section['button_url'] ?? ( $section['link_url'] ?? '' ) ),
-			'button_label'        => (string) ( $section['button_label'] ?? ( $section['link_label'] ?? '' ) ),
+			'button_label'        => self::normalize_dynamic_text_value( $section['button_label'] ?? ( $section['link_label'] ?? '' ) ),
 			'link_url'            => (string) ( $section['button_url'] ?? ( $section['link_url'] ?? '' ) ),
-			'link_label'          => (string) ( $section['button_label'] ?? ( $section['link_label'] ?? '' ) ),
+			'link_label'          => self::normalize_dynamic_text_value( $section['button_label'] ?? ( $section['link_label'] ?? '' ) ),
 			'css_class'           => sanitize_html_class( $section['css_class'] ?? '' ),
 			'image_fit'           => $image_fit,
 			'image_position'      => $image_position,
 		);
+	}
+
+
+	/** Normalize scalar or per-language text values. */
+	private static function normalize_dynamic_text_value( $value ) {
+		if ( is_array( $value ) ) {
+			$out = array();
+			foreach ( TAKA_Platform_I18n::instance()->get_all_languages() as $lang ) {
+				$out[ $lang ] = sanitize_textarea_field( $value[ $lang ] ?? '' );
+			}
+			return $out;
+		}
+		return (string) $value;
+	}
+
+	/** Resolve per-language section fields for the current frontend language. */
+	private static function resolve_dynamic_section_translations( $section, $lang ) {
+		foreach ( array( 'kicker', 'title', 'subtitle', 'text', 'body', 'button_label', 'link_label' ) as $field ) {
+			$section[ $field ] = taka_platform_get_translated_value( $section[ $field ] ?? '', $lang, 'en' );
+		}
+		return $section;
 	}
 
 	/** Venues that have enough public information for the practical-info section. */
@@ -841,7 +871,7 @@ class TAKA_Platform_Data {
 	}
 
 	/** Export current WordPress data into config-compatible array. */
-	public static function export_config_from_wp() { return array( 'organizers' => self::export_organizers(), 'venues' => self::export_venues(), 'events' => self::load_events_from_wp(), 'content_sections' => array_values( self::get_content_sections() ) ); }
+	public static function export_config_from_wp() { return array( 'organizers' => self::export_organizers(), 'venues' => self::export_venues(), 'events' => self::load_events_from_wp(), 'content_sections' => array_values( self::get_content_sections( false ) ) ); }
 	private static function export_organizers() { $items = self::load_organizers_from_wp(); $out = array(); foreach ( $items as $key => $item ) { if ( (string) $key !== (string) ( $item['id'] ?? '' ) ) { continue; } $out[ $item['config_id'] ?: $item['id'] ] = $item; } return $out; }
 	private static function export_venues() { $items = self::load_venues_from_wp(); $out = array(); foreach ( $items as $key => $item ) { if ( (string) $key !== (string) ( $item['id'] ?? '' ) ) { continue; } $out[ $item['config_id'] ?: $item['id'] ] = $item; } return $out; }
 

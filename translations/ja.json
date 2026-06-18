@@ -237,5 +237,15 @@
     "secondary_image": "セカンダリ画像",
     "image_fit": "画像フィット",
     "image_position": "画像フォーカス / 位置"
+  },
+  "translations": {
+    "translations": "Translations",
+    "canonical_key_count": "Canonical key count",
+    "missing_keys": "Missing keys",
+    "extra_keys": "Extra keys",
+    "complete": "Complete",
+    "generate_missing_translations": "Generate missing translations",
+    "export_audit": "Export audit JSON",
+    "fallback_used": "Fallback used"
   }
 }

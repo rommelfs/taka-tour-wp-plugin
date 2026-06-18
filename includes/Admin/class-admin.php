@@ -33,6 +33,8 @@ class TAKA_Platform_Admin {
 		add_action( 'admin_post_taka_platform_save_sections', array( __CLASS__, 'handle_save_sections' ) );
 		add_action( 'admin_post_taka_platform_save_dashboard_settings', array( __CLASS__, 'handle_save_dashboard_settings' ) );
 		add_action( 'admin_post_taka_platform_save_booking_information', array( __CLASS__, 'handle_save_booking_information' ) );
+		add_action( 'admin_post_taka_platform_sync_translations', array( __CLASS__, 'handle_sync_translations' ) );
+		add_action( 'admin_post_taka_platform_export_translation_audit', array( __CLASS__, 'handle_export_translation_audit' ) );
 	}
 
 
@@ -147,6 +149,7 @@ class TAKA_Platform_Admin {
 		add_submenu_page( 'taka-platform', __( 'Content Sections', 'taka-platform' ), __( 'Content Sections', 'taka-platform' ), 'manage_options', 'taka-platform-content-sections', array( __CLASS__, 'render_content_sections' ) );
 		add_submenu_page( 'taka-platform', __( 'Import / Export', 'taka-platform' ), __( 'Import / Export', 'taka-platform' ), 'manage_options', 'taka-tour-import-export', array( __CLASS__, 'render_import_export' ) );
 		add_submenu_page( 'taka-platform', __( 'Settings', 'taka-platform' ), __( 'Settings', 'taka-platform' ), 'manage_options', 'taka-tour-settings', array( __CLASS__, 'render_settings' ) );
+		add_submenu_page( 'taka-platform', __( 'Translations', 'taka-platform' ), __( 'Translations', 'taka-platform' ), 'manage_options', 'taka-platform-translations', array( __CLASS__, 'render_translations' ) );
 	}
 
 
@@ -465,6 +468,100 @@ class TAKA_Platform_Admin {
 		<?php
 	}
 
+	/** Render translation audit and workflow tools. */
+	public static function render_translations() {
+		if ( ! current_user_can( 'manage_options' ) ) { return; }
+		$audit = TAKA_Platform_I18n::instance()->audit();
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html__( 'TAKA Platform Translations', 'taka-platform' ); ?></h1>
+			<p><?php echo esc_html__( 'English is the canonical source. Missing static keys fall back to English and can be synced into language files.', 'taka-platform' ); ?></p>
+			<p><strong><?php echo esc_html__( 'Canonical key count', 'taka-platform' ); ?>:</strong> <?php echo esc_html( (string) ( $audit['base_count'] ?? 0 ) ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;margin-right:8px;">
+				<input type="hidden" name="action" value="taka_platform_sync_translations">
+				<?php wp_nonce_field( 'taka_platform_sync_translations', self::NONCE ); ?>
+				<?php submit_button( __( 'Regenerate / sync missing keys', 'taka-platform' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline-block;">
+				<input type="hidden" name="action" value="taka_platform_export_translation_audit">
+				<?php wp_nonce_field( 'taka_platform_export_translation_audit', self::NONCE ); ?>
+				<?php submit_button( __( 'Export audit JSON', 'taka-platform' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<table class="widefat striped" style="margin-top:16px;"><thead><tr><th><?php echo esc_html__( 'Language', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Keys', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Missing keys', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Extra keys', 'taka-platform' ); ?></th></tr></thead><tbody>
+			<?php foreach ( $audit['languages'] as $lang => $row ) : ?>
+				<tr><td><strong><?php echo esc_html( strtoupper( $lang ) ); ?></strong></td><td><?php echo esc_html( (string) $row['count'] ); ?></td><td><?php echo empty( $row['missing'] ) ? esc_html__( 'Complete', 'taka-platform' ) : '<code>' . esc_html( implode( ', ', $row['missing'] ) ) . '</code>'; ?></td><td><?php echo empty( $row['extra'] ) ? '—' : '<code>' . esc_html( implode( ', ', $row['extra'] ) ) . '</code>'; ?></td></tr>
+			<?php endforeach; ?>
+			</tbody></table>
+			<h2><?php echo esc_html__( 'Dynamic content translation workflow', 'taka-platform' ); ?></h2>
+			<p><?php echo esc_html__( 'Dynamic fields can store per-language arrays. The current manual translation provider fills missing values from the default language; external AI providers can hook into taka_platform_translate_text later.', 'taka-platform' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/** Export translation audit JSON. */
+	public static function handle_export_translation_audit() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( 'taka_platform_export_translation_audit', self::NONCE );
+		$audit = TAKA_Platform_I18n::instance()->audit();
+		header( 'Content-Type: application/json; charset=utf-8' );
+		header( 'Content-Disposition: attachment; filename="taka-platform-translation-audit.json"' );
+		echo wp_json_encode( $audit, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE );
+		exit;
+	}
+
+	/** Sync static translation JSON keys and dynamic option fallbacks. */
+	public static function handle_sync_translations() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( 'taka_platform_sync_translations', self::NONCE );
+		self::sync_static_translation_files();
+		self::fill_dynamic_translation_fallbacks();
+		wp_safe_redirect( add_query_arg( 'translations_synced', '1', admin_url( 'admin.php?page=taka-platform-translations' ) ) );
+		exit;
+	}
+
+	/** Add missing keys to language JSON files using English values as fallback. */
+	private static function sync_static_translation_files() {
+		$dir = TAKA_PLATFORM_PLUGIN_DIR . 'translations/';
+		$base_file = $dir . 'en.json';
+		$base = file_exists( $base_file ) ? json_decode( file_get_contents( $base_file ), true ) : array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		foreach ( TAKA_Platform_I18n::instance()->get_all_languages() as $lang ) {
+			$file = $dir . $lang . '.json';
+			$data = file_exists( $file ) ? json_decode( file_get_contents( $file ), true ) : array(); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$data = self::array_replace_missing_recursive( is_array( $data ) ? $data : array(), $base );
+			file_put_contents( $file, wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) . "\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
+		}
+	}
+
+	private static function array_replace_missing_recursive( $data, $fallback ) {
+		foreach ( (array) $fallback as $key => $value ) {
+			if ( is_array( $value ) ) { $data[ $key ] = self::array_replace_missing_recursive( is_array( $data[ $key ] ?? null ) ? $data[ $key ] : array(), $value ); }
+			elseif ( ! array_key_exists( $key, $data ) || '' === (string) $data[ $key ] ) { $data[ $key ] = $value; }
+		}
+		return $data;
+	}
+
+	/** Fill missing dynamic translation arrays from English/default values. */
+	private static function fill_dynamic_translation_fallbacks() {
+		$service = new TAKA_Platform_Manual_Translation_Service();
+		$langs = TAKA_Platform_I18n::instance()->get_all_languages();
+		$sections = get_option( TAKA_Platform_Data::SECTIONS_OPTION, array() );
+		if ( is_array( $sections ) ) {
+			foreach ( $sections as &$section ) {
+				foreach ( array( 'kicker', 'title', 'subtitle', 'body', 'text', 'button_label' ) as $field ) {
+					if ( isset( $section[ $field ] ) ) { $section[ $field ] = $service->translate_fields( array( $field => $section[ $field ] ), 'en', $langs )[ $field ]; }
+				}
+			}
+			update_option( TAKA_Platform_Data::SECTIONS_OPTION, $sections, false );
+		}
+		$booking = get_option( TAKA_Platform_Data::BOOKING_OPTION, array() );
+		if ( is_array( $booking ) ) {
+			foreach ( array( 'title', 'intro', 'group_booking', 'multi_event_discount', 'booking_process', 'payment_methods', 'cancellation_policy', 'additional_notes' ) as $field ) {
+				if ( isset( $booking[ $field ] ) ) { $booking[ $field ] = $service->translate_fields( array( $field => $booking[ $field ] ), 'en', $langs )[ $field ]; }
+			}
+			update_option( TAKA_Platform_Data::BOOKING_OPTION, $booking, false );
+		}
+	}
+
 	/** Render editable hero/layout settings. */
 	public static function render_settings() {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
@@ -513,15 +610,15 @@ class TAKA_Platform_Admin {
 				<?php wp_nonce_field( TAKA_Platform_Data::BOOKING_OPTION, self::NONCE ); ?>
 				<table class="form-table" role="presentation"><tbody>
 					<tr><th scope="row"><?php echo esc_html__( 'Section enabled', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="booking_info[enabled]" value="1" <?php checked( (string) ( $booking['enabled'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show Before you book section near tickets', 'taka-platform' ); ?></label></td></tr>
-					<?php self::settings_text_row( 'booking_info[title]', __( 'Title', 'taka-platform' ), $booking['title'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[intro]', __( 'Intro text', 'taka-platform' ), $booking['intro'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[group_booking]', __( 'Group booking text', 'taka-platform' ), $booking['group_booking'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[multi_event_discount]', __( 'Multi-event discount text', 'taka-platform' ), $booking['multi_event_discount'] ?? '' ); ?>
+					<?php self::settings_multilingual_text_row( 'booking_info[title]', __( 'Title', 'taka-platform' ), $booking['title'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[intro]', __( 'Intro text', 'taka-platform' ), $booking['intro'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[group_booking]', __( 'Group booking text', 'taka-platform' ), $booking['group_booking'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[multi_event_discount]', __( 'Multi-event discount text', 'taka-platform' ), $booking['multi_event_discount'] ?? '' ); ?>
 					<?php self::settings_text_row( 'booking_info[contact_email]', __( 'Contact email', 'taka-platform' ), $booking['contact_email'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[booking_process]', __( 'Booking process text', 'taka-platform' ), $booking['booking_process'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[payment_methods]', __( 'Payment methods', 'taka-platform' ), $booking['payment_methods'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[cancellation_policy]', __( 'Cancellation policy text', 'taka-platform' ), $booking['cancellation_policy'] ?? '' ); ?>
-					<?php self::settings_textarea_row( 'booking_info[additional_notes]', __( 'Additional notes', 'taka-platform' ), $booking['additional_notes'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[booking_process]', __( 'Booking process text', 'taka-platform' ), $booking['booking_process'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[payment_methods]', __( 'Payment methods', 'taka-platform' ), $booking['payment_methods'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[cancellation_policy]', __( 'Cancellation policy text', 'taka-platform' ), $booking['cancellation_policy'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'booking_info[additional_notes]', __( 'Additional notes', 'taka-platform' ), $booking['additional_notes'] ?? '' ); ?>
 				</tbody></table>
 				<?php submit_button( __( 'Save booking information', 'taka-platform' ) ); ?>
 			</form>
@@ -532,7 +629,7 @@ class TAKA_Platform_Admin {
 	/** Render editable frontend content sections. */
 	public static function render_content_sections() {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
-		$sections = TAKA_Platform_Data::get_content_sections();
+		$sections = TAKA_Platform_Data::get_content_sections( false );
 		$layouts = array(
 			'text_only' => __( 'Text only', 'taka-platform' ),
 			'image_left' => __( 'Image left', 'taka-platform' ),
@@ -577,10 +674,10 @@ class TAKA_Platform_Admin {
 				<?php self::settings_text_row( 'sections[' . $key . '][key]', __( 'Internal key / slug', 'taka-platform' ), $section['key'] ?? $key ); ?>
 				<tr><th scope="row"><?php echo esc_html__( 'Enabled', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( (string) ( $section['visible'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show section', 'taka-platform' ); ?></label><?php if ( ! $is_new ) : ?><br><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][delete]" value="1"> <?php echo esc_html__( 'Delete section', 'taka-platform' ); ?></label><?php endif; ?></td></tr>
 				<?php self::settings_text_row( 'sections[' . $key . '][sort_order]', __( 'Sort order', 'taka-platform' ), $section['sort_order'] ?? 0 ); ?>
-				<?php self::settings_text_row( 'sections[' . $key . '][kicker]', __( 'Kicker', 'taka-platform' ), $section['kicker'] ?? '' ); ?>
-				<?php self::settings_text_row( 'sections[' . $key . '][title]', __( 'Title', 'taka-platform' ), $section['title'] ?? '' ); ?>
-				<?php self::settings_text_row( 'sections[' . $key . '][subtitle]', __( 'Subtitle', 'taka-platform' ), $section['subtitle'] ?? '' ); ?>
-				<?php self::settings_textarea_row( 'sections[' . $key . '][body]', __( 'Body', 'taka-platform' ), $section['body'] ?? ( $section['text'] ?? '' ) ); ?>
+				<?php self::settings_multilingual_text_row( 'sections[' . $key . '][kicker]', __( 'Kicker', 'taka-platform' ), $section['kicker'] ?? '' ); ?>
+				<?php self::settings_multilingual_text_row( 'sections[' . $key . '][title]', __( 'Title', 'taka-platform' ), $section['title'] ?? '' ); ?>
+				<?php self::settings_multilingual_text_row( 'sections[' . $key . '][subtitle]', __( 'Subtitle', 'taka-platform' ), $section['subtitle'] ?? '' ); ?>
+				<?php self::settings_multilingual_textarea_row( 'sections[' . $key . '][body]', __( 'Body', 'taka-platform' ), $section['body'] ?? ( $section['text'] ?? '' ) ); ?>
 				<?php self::settings_media_row( 'sections[' . $key . '][image_id]', 'sections[' . $key . '][image_url]', 'taka_section_' . $key . '_image', __( 'Main image', 'taka-platform' ), absint( $section['image_id'] ?? 0 ), (string) ( $section['image_url'] ?? '' ) ); ?>
 				<?php self::settings_media_row( 'sections[' . $key . '][secondary_image_id]', 'sections[' . $key . '][secondary_image_url]', 'taka_section_' . $key . '_secondary_image', __( 'Secondary image', 'taka-platform' ), absint( $section['secondary_image_id'] ?? 0 ), (string) ( $section['secondary_image_url'] ?? '' ) ); ?>
 				<?php self::settings_media_row( 'sections[' . $key . '][gallery_image_ids]', 'sections[' . $key . '][gallery_image_urls]', 'taka_section_' . $key . '_gallery', __( 'Gallery', 'taka-platform' ), $section['gallery_image_ids'] ?? array(), implode( "\n", (array) ( $section['gallery_image_urls'] ?? array() ) ), true ); ?>
@@ -588,7 +685,7 @@ class TAKA_Platform_Admin {
 				<?php self::settings_select_row( 'sections[' . $key . '][background_style]', __( 'Background style', 'taka-platform' ), $section['background_style'] ?? 'plain', $backgrounds ); ?>
 				<?php self::settings_select_row( 'sections[' . $key . '][image_fit]', __( 'Image fit', 'taka-platform' ), $section['image_fit'] ?? 'contain', $fits ); ?>
 				<?php self::settings_select_row( 'sections[' . $key . '][image_position]', __( 'Image focus / position', 'taka-platform' ), $section['image_position'] ?? 'center center', $positions ); ?>
-				<?php self::settings_text_row( 'sections[' . $key . '][button_label]', __( 'Button label', 'taka-platform' ), $section['button_label'] ?? ( $section['link_label'] ?? '' ) ); ?>
+				<?php self::settings_multilingual_text_row( 'sections[' . $key . '][button_label]', __( 'Button label', 'taka-platform' ), $section['button_label'] ?? ( $section['link_label'] ?? '' ) ); ?>
 				<?php self::settings_text_row( 'sections[' . $key . '][button_url]', __( 'Button URL', 'taka-platform' ), $section['button_url'] ?? ( $section['link_url'] ?? '' ) ); ?>
 				<?php self::settings_text_row( 'sections[' . $key . '][css_class]', __( 'CSS modifier/class', 'taka-platform' ), $section['css_class'] ?? '' ); ?>
 			</tbody></table>
@@ -658,11 +755,11 @@ class TAKA_Platform_Admin {
 		return array(
 			'visible'             => ! empty( $item['visible'] ) ? '1' : '0',
 			'sort_order'          => (int) ( $item['sort_order'] ?? 0 ),
-			'kicker'              => sanitize_text_field( $item['kicker'] ?? '' ),
-			'title'               => sanitize_text_field( $item['title'] ?? '' ),
-			'subtitle'            => sanitize_text_field( $item['subtitle'] ?? '' ),
-			'body'                => sanitize_textarea_field( $item['body'] ?? ( $item['text'] ?? '' ) ),
-			'text'                => sanitize_textarea_field( $item['body'] ?? ( $item['text'] ?? '' ) ),
+			'kicker'              => self::sanitize_dynamic_text( $item['kicker'] ?? '', false ),
+			'title'               => self::sanitize_dynamic_text( $item['title'] ?? '', false ),
+			'subtitle'            => self::sanitize_dynamic_text( $item['subtitle'] ?? '', false ),
+			'body'                => self::sanitize_dynamic_text( $item['body'] ?? ( $item['text'] ?? '' ), true ),
+			'text'                => self::sanitize_dynamic_text( $item['body'] ?? ( $item['text'] ?? '' ), true ),
 			'image_id'            => absint( $item['image_id'] ?? 0 ),
 			'image_url'           => esc_url_raw( $item['image_url'] ?? '' ),
 			'secondary_image_id'  => absint( $item['secondary_image_id'] ?? 0 ),
@@ -674,7 +771,7 @@ class TAKA_Platform_Admin {
 			'image_fit'           => $image_fit,
 			'image_position'      => $image_position,
 			'button_url'          => esc_url_raw( $item['button_url'] ?? ( $item['link_url'] ?? '' ) ),
-			'button_label'        => sanitize_text_field( $item['button_label'] ?? ( $item['link_label'] ?? '' ) ),
+			'button_label'        => self::sanitize_dynamic_text( $item['button_label'] ?? ( $item['link_label'] ?? '' ), false ),
 			'css_class'           => sanitize_html_class( $item['css_class'] ?? '' ),
 		);
 	}
@@ -1051,15 +1148,15 @@ class TAKA_Platform_Admin {
 		return array(
 			'override' => ! empty( $posted['override'] ) ? '1' : '0',
 			'enabled' => ! empty( $posted['enabled'] ) ? '1' : '0',
-			'title' => sanitize_text_field( $posted['title'] ?? '' ),
-			'intro' => sanitize_textarea_field( $posted['intro'] ?? '' ),
-			'group_booking' => sanitize_textarea_field( $posted['group_booking'] ?? '' ),
-			'multi_event_discount' => sanitize_textarea_field( $posted['multi_event_discount'] ?? '' ),
+			'title' => self::sanitize_dynamic_text( $posted['title'] ?? '', false ),
+			'intro' => self::sanitize_dynamic_text( $posted['intro'] ?? '', true ),
+			'group_booking' => self::sanitize_dynamic_text( $posted['group_booking'] ?? '', true ),
+			'multi_event_discount' => self::sanitize_dynamic_text( $posted['multi_event_discount'] ?? '', true ),
 			'contact_email' => sanitize_email( $posted['contact_email'] ?? '' ),
-			'booking_process' => sanitize_textarea_field( $posted['booking_process'] ?? '' ),
-			'payment_methods' => sanitize_textarea_field( $posted['payment_methods'] ?? '' ),
-			'cancellation_policy' => sanitize_textarea_field( $posted['cancellation_policy'] ?? '' ),
-			'additional_notes' => sanitize_textarea_field( $posted['additional_notes'] ?? '' ),
+			'booking_process' => self::sanitize_dynamic_text( $posted['booking_process'] ?? '', true ),
+			'payment_methods' => self::sanitize_dynamic_text( $posted['payment_methods'] ?? '', true ),
+			'cancellation_policy' => self::sanitize_dynamic_text( $posted['cancellation_policy'] ?? '', true ),
+			'additional_notes' => self::sanitize_dynamic_text( $posted['additional_notes'] ?? '', true ),
 		);
 	}
 
@@ -1071,6 +1168,19 @@ class TAKA_Platform_Admin {
 	private static function url( $post_id, $field, $label ) { self::field( $label, '<input class="widefat" type="url" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( self::meta( $post_id, $field ) ) . '">' ); }
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
+
+	private static function sanitize_dynamic_text( $value, $textarea = false ) {
+		$callback = $textarea ? 'sanitize_textarea_field' : 'sanitize_text_field';
+		if ( is_array( $value ) ) {
+			$out = array();
+			foreach ( TAKA_Platform_I18n::instance()->get_all_languages() as $lang ) { $out[ $lang ] = $callback( $value[ $lang ] ?? '' ); }
+			return $out;
+		}
+		return $callback( $value );
+	}
+	private static function settings_multilingual_text_row( $name, $label, $value ) { self::settings_multilingual_row( $name, $label, $value, false ); }
+	private static function settings_multilingual_textarea_row( $name, $label, $value ) { self::settings_multilingual_row( $name, $label, $value, true ); }
+	private static function settings_multilingual_row( $name, $label, $value, $textarea = false ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td>'; foreach ( TAKA_Platform_I18n::instance()->get_all_languages() as $lang ) { $field_name = $name . '[' . $lang . ']'; $field_value = is_array( $value ) ? ( $value[ $lang ] ?? '' ) : ( 'en' === $lang ? $value : '' ); echo '<p><label><strong>' . esc_html( strtoupper( $lang ) ) . '</strong><br>'; if ( $textarea ) { echo '<textarea class="large-text" rows="3" name="' . esc_attr( $field_name ) . '">' . esc_textarea( (string) $field_value ) . '</textarea>'; } else { echo '<input class="regular-text" type="text" name="' . esc_attr( $field_name ) . '" value="' . esc_attr( (string) $field_value ) . '">'; } echo '</label></p>'; } echo '</td></tr>'; }
 	private static function settings_text_row( $name, $label, $value ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td><input class="regular-text" type="text" name="' . esc_attr( $name ) . '" value="' . esc_attr( (string) $value ) . '"></td></tr>'; }
 	private static function settings_textarea_row( $name, $label, $value ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td><textarea class="large-text" rows="4" name="' . esc_attr( $name ) . '">' . esc_textarea( (string) $value ) . '</textarea></td></tr>'; }
 	private static function settings_select_row( $name, $label, $value, $options ) { echo '<tr><th scope="row"><label>' . esc_html( $label ) . '</label></th><td><select name="' . esc_attr( $name ) . '">'; foreach ( $options as $key => $option_label ) { echo '<option value="' . esc_attr( $key ) . '" ' . selected( (string) $value, (string) $key, false ) . '>' . esc_html( $option_label ) . '</option>'; } echo '</select></td></tr>'; }

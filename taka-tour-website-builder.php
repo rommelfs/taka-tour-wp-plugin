@@ -2,14 +2,14 @@
 /**
  * Plugin Name: TAKA Platform
  * Description: Ticketing, Attendance, Knowledge & Administration for reusable event and seminar tours.
- * Version: 1.3.8
+ * Version: 1.3.9
  * Author: TAKA Platform
  * Text Domain: taka-platform
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TAKA_PLATFORM_VERSION', '1.3.8' );
+define( 'TAKA_PLATFORM_VERSION', '1.3.9' );
 define( 'TAKA_PLATFORM_PLUGIN_FILE', __FILE__ );
 define( 'TAKA_PLATFORM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TAKA_PLATFORM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -25,6 +25,8 @@ define( 'TAKA_TOUR_PLUGIN_URL', TAKA_PLATFORM_PLUGIN_URL );
 
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Support/helpers.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/class-i18n.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/interface-translation-service.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/class-manual-translation-service.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/interface-ticket-provider.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-pretix-provider.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-ticket-provider-registry.php';

@@ -67,3 +67,28 @@ function taka_tour_translate( $key, $fallback, $lang = null ) {
 function taka_tour_current_language() {
 	return TAKA_Platform_I18n::instance()->get_current_language();
 }
+
+/**
+ * Resolve scalar or per-language dynamic content values.
+ *
+ * @param mixed  $value             Scalar string or array keyed by language.
+ * @param string $language          Desired language.
+ * @param string $fallback_language Fallback language.
+ * @return string
+ */
+function taka_platform_get_translated_value( $value, $language, $fallback_language = 'en' ) {
+	if ( is_array( $value ) ) {
+		foreach ( array( $language, $fallback_language, 'de', 'en' ) as $lang ) {
+			if ( isset( $value[ $lang ] ) && '' !== trim( (string) $value[ $lang ] ) ) {
+				return (string) $value[ $lang ];
+			}
+		}
+		foreach ( $value as $candidate ) {
+			if ( ! is_array( $candidate ) && '' !== trim( (string) $candidate ) ) {
+				return (string) $candidate;
+			}
+		}
+		return '';
+	}
+	return (string) $value;
+}

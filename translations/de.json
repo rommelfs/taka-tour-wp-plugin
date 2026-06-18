@@ -237,5 +237,15 @@
     "secondary_image": "Zweites Bild",
     "image_fit": "Bildanpassung",
     "image_position": "Bildfokus / Position"
+  },
+  "translations": {
+    "translations": "Translations",
+    "canonical_key_count": "Canonical key count",
+    "missing_keys": "Missing keys",
+    "extra_keys": "Extra keys",
+    "complete": "Complete",
+    "generate_missing_translations": "Generate missing translations",
+    "export_audit": "Export audit JSON",
+    "fallback_used": "Fallback used"
   }
 }

@@ -237,5 +237,15 @@
     "secondary_image": "Tweede afbeelding",
     "image_fit": "Afbeeldingspassing",
     "image_position": "Beeldfocus / positie"
+  },
+  "translations": {
+    "translations": "Translations",
+    "canonical_key_count": "Canonical key count",
+    "missing_keys": "Missing keys",
+    "extra_keys": "Extra keys",
+    "complete": "Complete",
+    "generate_missing_translations": "Generate missing translations",
+    "export_audit": "Export audit JSON",
+    "fallback_used": "Fallback used"
   }
 }

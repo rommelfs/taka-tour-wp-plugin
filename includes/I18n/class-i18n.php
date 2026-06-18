@@ -46,9 +46,10 @@ class TAKA_Platform_I18n {
 			return $value;
 		}
 
-		$value = $this->get_value( 'de', $path );
-		if ( is_string( $value ) && '' !== $value ) {
-			return $value;
+		foreach ( array( 'en', 'de' ) as $fallback_lang ) {
+			if ( $fallback_lang === $lang ) { continue; }
+			$value = $this->get_value( $fallback_lang, $path );
+			if ( is_string( $value ) && '' !== $value ) { return $value; }
 		}
 
 		return $fallback;
@@ -83,6 +84,41 @@ class TAKA_Platform_I18n {
 			array( 'type' => 'link', 'code' => 'fi', 'icon' => '🇫🇮', 'label' => 'Suomi – Finnisch' ),
 			array( 'type' => 'link', 'code' => 'ja', 'icon' => '🇯🇵', 'label' => '日本 – Japanese' ),
 		);
+	}
+
+
+	/** Return decoded language data for audits/tools. */
+	public function get_language_data( $lang ) {
+		return $this->load_language( $lang );
+	}
+
+	/** Flatten nested arrays into dot-notation translation keys. */
+	public function flatten_keys( $data, $prefix = '' ) {
+		$keys = array();
+		foreach ( (array) $data as $key => $value ) {
+			$path = '' === $prefix ? (string) $key : $prefix . '.' . $key;
+			if ( is_array( $value ) ) {
+				$keys += $this->flatten_keys( $value, $path );
+			} else {
+				$keys[ $path ] = $value;
+			}
+		}
+		return $keys;
+	}
+
+	/** Build a translation completeness audit against the canonical English file. */
+	public function audit() {
+		$base = $this->flatten_keys( $this->load_language( 'en' ) );
+		$report = array();
+		foreach ( $this->get_all_languages() as $lang ) {
+			$flat = $this->flatten_keys( $this->load_language( $lang ) );
+			$report[ $lang ] = array(
+				'count' => count( $flat ),
+				'missing' => array_values( array_diff( array_keys( $base ), array_keys( $flat ) ) ),
+				'extra' => array_values( array_diff( array_keys( $flat ), array_keys( $base ) ) ),
+			);
+		}
+		return array( 'base_count' => count( $base ), 'languages' => $report );
 	}
 
 	private function get_value( $lang, $path ) {
