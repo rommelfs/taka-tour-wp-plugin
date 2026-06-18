@@ -16,7 +16,10 @@ $event_key = sanitize_html_class( (string) ( $seminar['slug'] ?? $seminar['id'] 
 		<?php echo taka_tour_render_template( 'partials/pretix-widget.php', array( 'event' => $event_url, 'label' => $label ?? ( $seminar['title'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<a class="taka-ticket-direct-link" href="<?php echo esc_url( $event_url ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.ticketshop_direct', 'Ticketshop direkt öffnen' ) ); ?></a>
 	<?php else : ?>
-		<p class="taka-ticket-status"><?php echo esc_html( $seminar['ticket_status_label'] ?? taka_tour_translate( 'event.ticketshop_soon', 'Ticketshop folgt' ) ); ?></p>
+		<div class="taka-ticket-status taka-ticket-status--boxed">
+			<span><?php echo esc_html( taka_tour_translate( 'event.ticket_status', 'Ticket status' ) ); ?></span>
+			<strong><?php echo esc_html( $seminar['ticket_status_label'] ?? taka_tour_translate( 'event.ticketshop_soon', 'Ticketshop folgt' ) ); ?></strong>
+		</div>
 	<?php endif; ?>
 	<?php if ( $show_actions && ! empty( $drawers ) ) : ?>
 		<div class="taka-ticket-info-actions" aria-label="<?php echo esc_attr__( 'Ticket information', 'taka-platform' ); ?>">

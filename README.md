@@ -136,6 +136,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.4.1
+
+- Polished tabbed ticket layout, replaced redundant seminar overview by the ticket selector and improved event summary panel spacing.
+
 ### v1.4.0
 
 - Refactored ticket section into a tabbed booking layout with editable heading, event summary panel, ticket widget and visible Before You Book information.

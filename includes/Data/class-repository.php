@@ -400,6 +400,7 @@ class TAKA_Platform_Data {
 			'kicker' => taka_tour_translate( 'tickets.kicker', 'Tickets', $lang ),
 			'heading' => taka_tour_translate( 'tickets.heading', 'Book your seminar', $lang ),
 			'intro' => taka_tour_translate( 'tickets.intro', '', $lang ),
+			'show_seminar_overview' => '0',
 		);
 	}
 
@@ -413,6 +414,7 @@ class TAKA_Platform_Data {
 				$settings[ $field ] = taka_platform_get_translated_value( $settings[ $field ] ?? '', $lang, 'en' );
 			}
 		}
+		$settings['show_seminar_overview'] = ! empty( $settings['show_seminar_overview'] ) ? '1' : '0';
 		return $settings;
 	}
 

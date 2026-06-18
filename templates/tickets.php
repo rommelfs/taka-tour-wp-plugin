@@ -28,10 +28,17 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 			$time_display     = implode( '–', array_filter( array( $seminar['time_start'] ?? '', $seminar['time_end'] ?? '' ) ) );
 			$drawers          = is_array( $seminar['info_drawers'] ?? null ) ? $seminar['info_drawers'] : array();
 			$event_key        = sanitize_html_class( (string) $panel_key );
-			$venue            = is_array( $seminar['venue_full'] ?? null ) ? $seminar['venue_full'] : array();
 			$organizer        = is_array( $seminar['organizer_full'] ?? null ) ? $seminar['organizer_full'] : array();
 			$address          = $seminar['address'] ?? '';
 			$maps_url         = '' !== trim( (string) $address ) ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( $address ) : '';
+			$meta_items       = array(
+				array( 'label' => taka_tour_translate( 'event.date', 'Date' ), 'value' => $seminar['date'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.time', 'Time' ), 'value' => $time_display ),
+				array( 'label' => taka_tour_translate( 'event.doors_open', 'Doors open' ), 'value' => $seminar['doors_open'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'seminar.format_label', 'Format' ), 'value' => $seminar['format'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.audience', 'Audience' ), 'value' => $seminar['audience'] ?? '' ),
+				array( 'label' => taka_tour_translate( 'event.level', 'Level' ), 'value' => $seminar['level'] ?? '' ),
+			);
 			?>
 			<div class="taka-tab-panel <?php echo 0 === $index ? 'is-active' : ''; ?>" data-panel="<?php echo esc_attr( $panel_key ); ?>" role="tabpanel"<?php echo 0 === $index ? '' : ' hidden'; ?>>
 				<div class="taka-ticket-booking-panel">
@@ -41,23 +48,31 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 								<h3><?php echo esc_html( $seminar['title'] ?? '' ); ?></h3>
 								<?php if ( ! empty( $seminar['subtitle'] ) ) : ?><p class="taka-ticket-event-panel__subtitle"><?php echo esc_html( $seminar['subtitle'] ); ?></p><?php endif; ?>
 							</div>
+						</div>
+						<div class="taka-ticket-event-panel__body <?php echo empty( $seminar['ticket_overview_image'] ) ? 'taka-ticket-event-panel__body--no-image' : ''; ?>">
 							<?php if ( ! empty( $seminar['ticket_overview_image'] ) ) : ?>
 								<figure class="taka-ticket-event-panel__image"><img src="<?php echo esc_url( $seminar['ticket_overview_image'] ); ?>" alt="<?php echo esc_attr( $seminar['ticket_overview_image_alt'] ?? taka_tour_translate( 'event.event_photo', 'Event photo' ) ); ?>" loading="lazy"></figure>
 							<?php endif; ?>
+							<dl class="taka-ticket-meta-list">
+								<?php foreach ( $meta_items as $meta_item ) : ?>
+									<?php if ( '' !== trim( (string) ( $meta_item['value'] ?? '' ) ) ) : ?>
+										<div class="taka-ticket-meta-row"><dt><?php echo esc_html( $meta_item['label'] ); ?></dt><dd><?php echo esc_html( $meta_item['value'] ); ?></dd></div>
+									<?php endif; ?>
+								<?php endforeach; ?>
+								<?php if ( ! empty( $seminar['venue_name'] ) ) : ?>
+									<div class="taka-ticket-meta-row"><dt><?php echo esc_html( taka_tour_translate( 'event.venue', 'Venue' ) ); ?></dt><dd><?php echo esc_html( $seminar['venue_name'] ); ?><?php if ( ! empty( $seminar['city'] ) || ! empty( $seminar['country'] ) ) : ?><span><?php echo esc_html( trim( ( $seminar['city'] ?? '' ) . ', ' . ( $seminar['country'] ?? '' ), ', ' ) ); ?></span><?php endif; ?></dd></div>
+								<?php endif; ?>
+								<?php if ( ! empty( $organizer['name'] ) ) : ?>
+									<div class="taka-ticket-meta-row taka-ticket-meta-row--organizer"><dt><?php echo esc_html( taka_tour_translate( 'event.organizer', 'Organizer' ) ); ?></dt><dd><?php if ( ! empty( $organizer['logo'] ) ) : ?><img src="<?php echo esc_url( $organizer['logo'] ); ?>" alt="<?php echo esc_attr( $organizer['name'] ); ?>" loading="lazy"><?php endif; ?><span><?php echo esc_html( $organizer['name'] ); ?></span></dd></div>
+								<?php endif; ?>
+							</dl>
 						</div>
-						<div class="taka-ticket-pills">
-							<?php foreach ( array_filter( array( $seminar['date'] ?? '', $time_display, ! empty( $seminar['doors_open'] ) ? taka_tour_translate( 'event.doors_open', 'Doors open' ) . ': ' . $seminar['doors_open'] : '', $seminar['format'] ?? '', $seminar['audience'] ?? '', $seminar['level'] ?? '' ) ) as $pill ) : ?>
-								<span><?php echo esc_html( $pill ); ?></span>
-							<?php endforeach; ?>
-						</div>
-						<div class="taka-ticket-summary-grid">
-							<?php if ( ! empty( $seminar['venue_name'] ) || '' !== $address ) : ?>
-								<section><h4><?php echo esc_html( taka_tour_translate( 'event.venue', 'Venue' ) ); ?></h4><p><?php echo esc_html( $seminar['venue_name'] ?? '' ); ?><?php if ( ! empty( $seminar['city'] ) || ! empty( $seminar['country'] ) ) : ?><br><?php echo esc_html( trim( ( $seminar['city'] ?? '' ) . ', ' . ( $seminar['country'] ?? '' ), ', ' ) ); ?><?php endif; ?><?php if ( '' !== $address ) : ?><br><span><?php echo esc_html( $address ); ?></span><?php endif; ?></p><?php if ( '' !== $maps_url ) : ?><a href="<?php echo esc_url( $maps_url ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.google_maps', 'Open in Google Maps' ) ); ?></a><?php endif; ?></section>
-							<?php endif; ?>
-							<?php if ( ! empty( $organizer['name'] ) ) : ?>
-								<section class="taka-ticket-organizer-mini"><h4><?php echo esc_html( taka_tour_translate( 'event.organizer', 'Organizer' ) ); ?></h4><?php if ( ! empty( $organizer['logo'] ) ) : ?><img src="<?php echo esc_url( $organizer['logo'] ); ?>" alt="<?php echo esc_attr( $organizer['name'] ); ?>" loading="lazy"><?php endif; ?><p><?php echo esc_html( $organizer['name'] ); ?></p><?php if ( ! empty( $organizer['website'] ) ) : ?><a href="<?php echo esc_url( $organizer['website'] ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.website', 'Website' ) ); ?></a><?php endif; ?></section>
-							<?php endif; ?>
-						</div>
+						<?php if ( '' !== $address || ! empty( $organizer['website'] ) ) : ?>
+							<div class="taka-ticket-quick-links">
+								<?php if ( '' !== $maps_url ) : ?><a href="<?php echo esc_url( $maps_url ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.google_maps', 'Open in Google Maps' ) ); ?></a><?php endif; ?>
+								<?php if ( ! empty( $organizer['website'] ) ) : ?><a href="<?php echo esc_url( $organizer['website'] ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.website', 'Website' ) ); ?></a><?php endif; ?>
+							</div>
+						<?php endif; ?>
 						<?php if ( ! empty( $drawers ) ) : ?>
 							<div class="taka-ticket-info-actions" aria-label="<?php echo esc_attr__( 'Ticket information', 'taka-platform' ); ?>">
 								<?php foreach ( $drawers as $drawer_key => $drawer ) : ?>

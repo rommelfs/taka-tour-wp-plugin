@@ -614,6 +614,7 @@ class TAKA_Platform_Admin {
 					<?php self::settings_multilingual_text_row( 'tickets[kicker]', __( 'Ticket section kicker', 'taka-platform' ), $tickets['kicker'] ?? '' ); ?>
 					<?php self::settings_multilingual_text_row( 'tickets[heading]', __( 'Ticket section heading', 'taka-platform' ), $tickets['heading'] ?? '' ); ?>
 					<?php self::settings_multilingual_textarea_row( 'tickets[intro]', __( 'Ticket section intro text', 'taka-platform' ), $tickets['intro'] ?? '' ); ?>
+					<tr><th scope="row"><?php echo esc_html__( 'Seminar overview section', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="tickets[show_seminar_overview]" value="1" <?php checked( (string) ( $tickets['show_seminar_overview'] ?? '0' ), '1' ); ?>> <?php echo esc_html__( 'Show the legacy Seminars in Europe overview on the homepage', 'taka-platform' ); ?></label><p class="description"><?php echo esc_html__( 'Disabled by default because the tabbed ticket section is now the primary event selector.', 'taka-platform' ); ?></p></td></tr>
 				</tbody></table>
 				<?php submit_button( __( 'Save ticket section', 'taka-platform' ) ); ?>
 			</form>
@@ -799,6 +800,7 @@ class TAKA_Platform_Admin {
 			'kicker' => self::sanitize_dynamic_text( $posted['kicker'] ?? '', false ),
 			'heading' => self::sanitize_dynamic_text( $posted['heading'] ?? '', false ),
 			'intro' => self::sanitize_dynamic_text( $posted['intro'] ?? '', true ),
+			'show_seminar_overview' => ! empty( $posted['show_seminar_overview'] ) ? '1' : '0',
 		);
 		update_option( TAKA_Platform_Data::TICKETS_OPTION, $clean, false );
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
