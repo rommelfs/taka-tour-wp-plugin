@@ -33,6 +33,7 @@ class TAKA_Platform_Admin {
 		add_action( 'admin_post_taka_platform_save_sections', array( __CLASS__, 'handle_save_sections' ) );
 		add_action( 'admin_post_taka_platform_save_dashboard_settings', array( __CLASS__, 'handle_save_dashboard_settings' ) );
 		add_action( 'admin_post_taka_platform_save_booking_information', array( __CLASS__, 'handle_save_booking_information' ) );
+		add_action( 'admin_post_taka_platform_save_ticket_section', array( __CLASS__, 'handle_save_ticket_section' ) );
 		add_action( 'admin_post_taka_platform_sync_translations', array( __CLASS__, 'handle_sync_translations' ) );
 		add_action( 'admin_post_taka_platform_export_translation_audit', array( __CLASS__, 'handle_export_translation_audit' ) );
 	}
@@ -567,6 +568,7 @@ class TAKA_Platform_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) { return; }
 		$hero = TAKA_Platform_Data::get_hero_settings();
 		$booking = TAKA_Platform_Data::get_booking_information_settings();
+		$tickets = TAKA_Platform_Data::get_ticket_section_settings( null, false );
 		$positions = array( 'left' => __( 'Left', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'right' => __( 'Right', 'taka-platform' ) );
 		$verticals = array( 'top' => __( 'Top', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'bottom' => __( 'Bottom', 'taka-platform' ) );
 		?>
@@ -603,6 +605,17 @@ class TAKA_Platform_Admin {
 					<?php self::settings_select_row( 'hero[vertical_alignment]', __( 'Hero vertical alignment', 'taka-platform' ), $hero['vertical_alignment'] ?? 'center', $verticals ); ?>
 				</tbody></table>
 				<?php submit_button( __( 'Save hero settings', 'taka-platform' ) ); ?>
+			</form>
+			<h2><?php echo esc_html__( 'Ticket section', 'taka-platform' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="taka_platform_save_ticket_section">
+				<?php wp_nonce_field( TAKA_Platform_Data::TICKETS_OPTION, self::NONCE ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<?php self::settings_multilingual_text_row( 'tickets[kicker]', __( 'Ticket section kicker', 'taka-platform' ), $tickets['kicker'] ?? '' ); ?>
+					<?php self::settings_multilingual_text_row( 'tickets[heading]', __( 'Ticket section heading', 'taka-platform' ), $tickets['heading'] ?? '' ); ?>
+					<?php self::settings_multilingual_textarea_row( 'tickets[intro]', __( 'Ticket section intro text', 'taka-platform' ), $tickets['intro'] ?? '' ); ?>
+				</tbody></table>
+				<?php submit_button( __( 'Save ticket section', 'taka-platform' ) ); ?>
 			</form>
 			<h2><?php echo esc_html__( 'Booking Information', 'taka-platform' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -776,6 +789,21 @@ class TAKA_Platform_Admin {
 		);
 	}
 
+
+	/** Save ticket section heading/settings. */
+	public static function handle_save_ticket_section() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( TAKA_Platform_Data::TICKETS_OPTION, self::NONCE );
+		$posted = isset( $_POST['tickets'] ) && is_array( $_POST['tickets'] ) ? wp_unslash( $_POST['tickets'] ) : array();
+		$clean = array(
+			'kicker' => self::sanitize_dynamic_text( $posted['kicker'] ?? '', false ),
+			'heading' => self::sanitize_dynamic_text( $posted['heading'] ?? '', false ),
+			'intro' => self::sanitize_dynamic_text( $posted['intro'] ?? '', true ),
+		);
+		update_option( TAKA_Platform_Data::TICKETS_OPTION, $clean, false );
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
+		exit;
+	}
 
 	/** Save global booking-information settings. */
 	public static function handle_save_booking_information() {
@@ -970,6 +998,7 @@ class TAKA_Platform_Admin {
 		self::textarea( $post->ID, 'short_description', __( 'Short description', 'taka-platform' ) );
 		self::textarea( $post->ID, 'long_description', __( 'Long description', 'taka-platform' ) );
 		self::textarea( $post->ID, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) );
+		self::text( $post->ID, 'ticket_tab_label', __( 'Ticket tab label', 'taka-platform' ) );
 		self::render_event_booking_information_fields( $post->ID );
 		self::textarea( $post->ID, 'accessibility', __( 'Accessibility notes', 'taka-platform' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
@@ -996,7 +1025,7 @@ class TAKA_Platform_Admin {
 			}
 			update_post_meta( $post_id, '_taka_organizer_id', $posted );
 		}
-		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'date_start', 'date_end', 'time_start', 'time_end', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
+		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'city', 'date_start', 'date_end', 'time_start', 'time_end', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'ticket_tab_label', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
 	}
 
 	/** Save repeatable co-organizer entries for an organizer. */

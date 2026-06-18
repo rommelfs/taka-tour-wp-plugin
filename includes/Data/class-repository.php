@@ -13,6 +13,7 @@ class TAKA_Platform_Data {
 	const HERO_OPTION = 'taka_platform_hero_settings';
 	const SECTIONS_OPTION = 'taka_platform_content_sections';
 	const BOOKING_OPTION = 'taka_platform_booking_information';
+	const TICKETS_OPTION = 'taka_platform_ticket_section_settings';
 
 	/** Load seed/fallback tour configuration. */
 	public static function load_config() {
@@ -215,6 +216,7 @@ class TAKA_Platform_Data {
 				'description' => (string) get_post_meta( $post->ID, '_taka_short_description', true ) ?: $post->post_content,
 				'long_description' => (string) get_post_meta( $post->ID, '_taka_long_description', true ),
 				'ticket_card_text' => (string) get_post_meta( $post->ID, '_taka_ticket_card_text', true ),
+					'ticket_tab_label' => (string) get_post_meta( $post->ID, '_taka_ticket_tab_label', true ),
 				'booking_information' => self::event_booking_information_from_meta( $post->ID ),
 				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
 				'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ),
@@ -389,6 +391,29 @@ class TAKA_Platform_Data {
 			'cancellation_policy' => (string) get_post_meta( $post_id, '_taka_booking_info_cancellation_policy', true ),
 			'additional_notes' => (string) get_post_meta( $post_id, '_taka_booking_info_additional_notes', true ),
 		), false );
+	}
+
+	/** Default ticket section heading/settings. */
+	public static function default_ticket_section_settings( $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		return array(
+			'kicker' => taka_tour_translate( 'tickets.kicker', 'Tickets', $lang ),
+			'heading' => taka_tour_translate( 'tickets.heading', 'Book your seminar', $lang ),
+			'intro' => taka_tour_translate( 'tickets.intro', '', $lang ),
+		);
+	}
+
+	/** Get editable ticket section heading/settings. */
+	public static function get_ticket_section_settings( $lang = null, $resolve_translations = true ) {
+		$lang = $lang ?: taka_tour_current_language();
+		$stored = function_exists( 'get_option' ) ? get_option( self::TICKETS_OPTION, array() ) : array();
+		$settings = array_merge( self::default_ticket_section_settings( $lang ), is_array( $stored ) ? $stored : array() );
+		if ( $resolve_translations ) {
+			foreach ( array( 'kicker', 'heading', 'intro' ) as $field ) {
+				$settings[ $field ] = taka_platform_get_translated_value( $settings[ $field ] ?? '', $lang, 'en' );
+			}
+		}
+		return $settings;
 	}
 
 	/** Default editable hero settings with translation/config fallbacks. */
@@ -603,6 +628,7 @@ class TAKA_Platform_Data {
 			$event['address'] = is_array( $venue ) ? self::format_address( $venue['address'] ?? array() ) : '';
 			$event['parking_display'] = $event['parking'] ?: ( is_array( $venue ) ? ( $venue['parking'] ?? '' ) : '' );
 			$event['ticket_status_label'] = self::ticket_status_label( $event, $lang );
+			$event['ticket_tab_label'] = taka_platform_get_translated_value( $event['ticket_tab_label'] ?? '', $lang, 'en' ) ?: ( $event['title'] ?? ( $event['city'] ?? '' ) );
 			$event['organizer_full'] = is_array( $organizer ) ? $organizer : null;
 			$event['practical_information'] = self::build_practical_information( $event, $organizer, $venue, $lang );
 			$event['info_drawers'] = self::build_info_drawers( $event, $organizer, $venue, $lang );

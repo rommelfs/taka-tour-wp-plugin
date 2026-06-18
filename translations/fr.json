@@ -247,5 +247,11 @@
     "generate_missing_translations": "Generate missing translations",
     "export_audit": "Export audit JSON",
     "fallback_used": "Fallback used"
+  },
+  "tickets": {
+    "kicker": "Billets",
+    "heading": "Réserver votre séminaire",
+    "intro": "",
+    "select_event": "Choisir un événement"
   }
 }

@@ -10,10 +10,14 @@
 		var tabs = tab.closest('[data-taka-tabs]');
 		var name = tab.getAttribute('data-tab');
 		tabs.querySelectorAll('[data-tab]').forEach(function (button) {
-			button.classList.toggle('is-active', button === tab);
+			var isActive = button === tab;
+			button.classList.toggle('is-active', isActive);
+			button.setAttribute('aria-selected', String(isActive));
 		});
 		tabs.querySelectorAll('[data-panel]').forEach(function (panel) {
-			panel.classList.toggle('is-active', panel.getAttribute('data-panel') === name);
+			var isActive = panel.getAttribute('data-panel') === name;
+			panel.classList.toggle('is-active', isActive);
+			panel.toggleAttribute('hidden', !isActive);
 		});
 	});
 }());
