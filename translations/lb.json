@@ -187,7 +187,9 @@
     "schedule": "Programm",
     "seminar_plan": "Seminarplang",
     "seminar_description": "Seminarbeschreiwung",
-    "venue_website": "Websäit vum Veranstaltungsuert"
+    "venue_website": "Websäit vum Veranstaltungsuert",
+    "seminar_photo": "Seminarfoto",
+    "photo_coming_soon": "Foto kënnt geschwënn"
   },
   "country": {
     "france": "Frankräich"

@@ -187,7 +187,9 @@
     "schedule": "Ohjelma",
     "seminar_plan": "Seminaariohjelma",
     "seminar_description": "Seminaarin kuvaus",
-    "venue_website": "Tapahtumapaikan verkkosivusto"
+    "venue_website": "Tapahtumapaikan verkkosivusto",
+    "seminar_photo": "Seminaarikuva",
+    "photo_coming_soon": "Kuva tulossa"
   },
   "country": {
     "france": "Ranska"

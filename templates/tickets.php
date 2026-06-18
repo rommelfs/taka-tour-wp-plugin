@@ -50,10 +50,14 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 								<?php if ( ! empty( $seminar['subtitle'] ) ) : ?><p class="taka-ticket-event-panel__subtitle"><?php echo esc_html( $seminar['subtitle'] ); ?></p><?php endif; ?>
 							</div>
 						</div>
-						<div class="taka-ticket-event-panel__body <?php echo empty( $seminar['ticket_overview_image'] ) ? 'taka-ticket-event-panel__body--no-image' : ''; ?>">
-							<?php if ( ! empty( $seminar['ticket_overview_image'] ) ) : ?>
-								<figure class="taka-ticket-event-panel__image"><img src="<?php echo esc_url( $seminar['ticket_overview_image'] ); ?>" alt="<?php echo esc_attr( $seminar['ticket_overview_image_alt'] ?? taka_tour_translate( 'event.event_photo', 'Event photo' ) ); ?>" loading="lazy"></figure>
-							<?php endif; ?>
+						<div class="taka-ticket-event-panel__body">
+							<figure class="taka-ticket-event-panel__image <?php echo empty( $seminar['ticket_overview_image'] ) ? 'taka-ticket-event-panel__image--placeholder' : ''; ?>">
+								<?php if ( ! empty( $seminar['ticket_overview_image'] ) ) : ?>
+									<img src="<?php echo esc_url( $seminar['ticket_overview_image'] ); ?>" alt="<?php echo esc_attr( $seminar['ticket_overview_image_alt'] ?? taka_tour_translate( 'event.event_photo', 'Event photo' ) ); ?>" loading="lazy">
+								<?php else : ?>
+									<div class="taka-ticket-event-panel__image-placeholder" role="img" aria-label="<?php echo esc_attr( taka_tour_translate( 'event.seminar_photo', 'Seminar photo' ) ); ?>"><span><?php echo esc_html( taka_tour_translate( 'event.photo_coming_soon', 'Photo coming soon' ) ); ?></span></div>
+								<?php endif; ?>
+							</figure>
 							<dl class="taka-ticket-meta-list">
 								<?php foreach ( $meta_items as $meta_item ) : ?>
 									<?php if ( '' !== trim( (string) ( $meta_item['value'] ?? '' ) ) ) : ?>
@@ -61,10 +65,10 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 									<?php endif; ?>
 								<?php endforeach; ?>
 								<?php if ( ! empty( $seminar['venue_name'] ) ) : ?>
-									<div class="taka-ticket-meta-row"><dt><?php echo esc_html( taka_tour_translate( 'event.venue', 'Venue' ) ); ?></dt><dd><?php if ( '' !== $venue_drawer ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $venue_drawer ); ?>"><?php echo esc_html( $seminar['venue_name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><?php echo esc_html( $seminar['venue_name'] ); ?><?php endif; ?><?php if ( ! empty( $seminar['city'] ) || ! empty( $seminar['country'] ) ) : ?><span><?php echo esc_html( trim( ( $seminar['city'] ?? '' ) . ', ' . ( $seminar['country'] ?? '' ), ', ' ) ); ?></span><?php endif; ?></dd></div>
+									<div class="taka-ticket-meta-row taka-ticket-meta-row--wide taka-ticket-meta-row--venue"><dt><?php echo esc_html( taka_tour_translate( 'event.venue', 'Venue' ) ); ?></dt><dd><?php if ( '' !== $venue_drawer ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $venue_drawer ); ?>"><?php echo esc_html( $seminar['venue_name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><?php echo esc_html( $seminar['venue_name'] ); ?><?php endif; ?><?php if ( ! empty( $seminar['city'] ) || ! empty( $seminar['country'] ) ) : ?><span><?php echo esc_html( trim( ( $seminar['city'] ?? '' ) . ', ' . ( $seminar['country'] ?? '' ), ', ' ) ); ?></span><?php endif; ?></dd></div>
 								<?php endif; ?>
 								<?php if ( ! empty( $organizer['name'] ) ) : ?>
-									<div class="taka-ticket-meta-row taka-ticket-meta-row--organizer"><dt><?php echo esc_html( taka_tour_translate( 'event.organizer', 'Organizer' ) ); ?></dt><dd><?php if ( ! empty( $organizer['logo'] ) ) : ?><img src="<?php echo esc_url( $organizer['logo'] ); ?>" alt="<?php echo esc_attr( $organizer['name'] ); ?>" loading="lazy"><?php endif; ?><?php if ( '' !== $organizer_drawer ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $organizer_drawer ); ?>"><?php echo esc_html( $organizer['name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><span><?php echo esc_html( $organizer['name'] ); ?></span><?php endif; ?></dd></div>
+									<div class="taka-ticket-meta-row taka-ticket-meta-row--wide taka-ticket-meta-row--organizer"><dt><?php echo esc_html( taka_tour_translate( 'event.organizer', 'Organizer' ) ); ?></dt><dd><?php if ( ! empty( $organizer['logo'] ) ) : ?><img src="<?php echo esc_url( $organizer['logo'] ); ?>" alt="<?php echo esc_attr( $organizer['name'] ); ?>" loading="lazy"><?php endif; ?><?php if ( '' !== $organizer_drawer ) : ?><button type="button" class="taka-ticket-meta-link" data-taka-info-modal-open="<?php echo esc_attr( $organizer_drawer ); ?>"><?php echo esc_html( $organizer['name'] ); ?><span aria-hidden="true">ⓘ</span></button><?php else : ?><span><?php echo esc_html( $organizer['name'] ); ?></span><?php endif; ?></dd></div>
 								<?php endif; ?>
 							</dl>
 							<?php if ( ! empty( $seminar['program_groups'] ) ) : ?>

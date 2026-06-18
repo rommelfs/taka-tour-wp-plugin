@@ -998,3 +998,136 @@
 		grid-template-columns: 1fr;
 	}
 }
+
+/* v1.4.5 ticket panel detail polish */
+.taka-ticket-event-panel__body {
+	grid-template-columns: minmax(240px, 320px) minmax(320px, 1fr);
+}
+
+.taka-ticket-event-panel__image,
+.taka-ticket-event-panel__image-placeholder {
+	aspect-ratio: 4 / 3;
+	min-height: 210px;
+}
+
+.taka-ticket-event-panel__image img,
+.taka-ticket-event-panel__image-placeholder {
+	height: 100%;
+	width: 100%;
+}
+
+.taka-ticket-event-panel__image-placeholder {
+	align-items: center;
+	background:
+		linear-gradient(135deg, rgba(255,255,255,.62), rgba(247,243,236,.92)),
+		repeating-linear-gradient(-45deg, rgba(188,0,45,.035) 0 10px, rgba(17,17,17,.025) 10px 20px);
+	border: 1px dashed rgba(188,0,45,.22);
+	border-radius: .9rem;
+	box-shadow: inset 0 0 0 1px rgba(255,255,255,.45), 0 14px 36px rgba(17,17,17,.06);
+	color: rgba(17,17,17,.58);
+	display: flex;
+	font-size: .82rem;
+	font-weight: 850;
+	justify-content: center;
+	letter-spacing: .08em;
+	line-height: 1.2;
+	padding: 1rem;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.taka-ticket-meta-list {
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.taka-ticket-meta-row {
+	min-width: 0;
+}
+
+.taka-ticket-meta-row--wide {
+	grid-column: span 2;
+}
+
+.taka-ticket-meta-row dd {
+	overflow-wrap: normal;
+	word-break: normal;
+}
+
+.taka-ticket-meta-link,
+.taka-ticket-meta-link:hover,
+.taka-ticket-meta-link:focus-visible {
+	background: transparent;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	padding: 0;
+}
+
+.taka-ticket-meta-link {
+	color: inherit;
+	display: inline-flex;
+	gap: .32rem;
+	text-decoration: underline;
+	text-decoration-color: rgba(188,0,45,.45);
+	text-decoration-style: dotted;
+	text-decoration-thickness: .08em;
+	text-underline-offset: .18em;
+}
+
+.taka-ticket-meta-link:hover {
+	color: #BC002D;
+	text-decoration-color: #BC002D;
+}
+
+.taka-ticket-meta-link:focus-visible {
+	color: #BC002D;
+	outline: 2px solid rgba(188,0,45,.32);
+	outline-offset: 3px;
+}
+
+.taka-pretix-widget,
+.taka-pretix-widget pretix-widget {
+	color: #111;
+	font: initial;
+	line-height: normal;
+}
+
+.taka-pretix-widget pretix-widget,
+.taka-pretix-widget pretix-widget * {
+	color: revert;
+	font-family: revert;
+	letter-spacing: normal;
+	text-transform: none;
+}
+
+.taka-pretix-widget pretix-widget button,
+.taka-pretix-widget pretix-widget input,
+.taka-pretix-widget pretix-widget label,
+.taka-pretix-widget pretix-widget select,
+.taka-pretix-widget pretix-widget textarea {
+	color: revert;
+	font: revert;
+	line-height: revert;
+}
+
+@media (max-width: 1120px) {
+	.taka-ticket-event-panel__body {
+		grid-template-columns: minmax(220px, 280px) minmax(280px, 1fr);
+	}
+}
+
+@media (max-width: 920px) {
+	.taka-ticket-event-panel__body,
+	.taka-ticket-meta-list {
+		grid-template-columns: 1fr;
+	}
+
+	.taka-ticket-meta-row--wide {
+		grid-column: auto;
+	}
+
+	.taka-ticket-event-panel__image,
+	.taka-ticket-event-panel__image-placeholder {
+		min-height: 0;
+	}
+}

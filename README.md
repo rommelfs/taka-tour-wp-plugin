@@ -136,6 +136,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.4.5
+
+- Polished ticket panel image placeholders, metadata grid sizing, clickable info styling and Pretix widget readability.
+
 ### v1.4.4
 
 - Polished ticket panel layout, fixed grouped program timetable display, removed redundant venue details and restored translated booking information rendering.

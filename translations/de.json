@@ -187,7 +187,9 @@
     "schedule": "Programm",
     "seminar_plan": "Seminarplan",
     "seminar_description": "Seminarbeschreibung",
-    "venue_website": "Website des Veranstaltungsortes"
+    "venue_website": "Website des Veranstaltungsortes",
+    "seminar_photo": "Seminarfoto",
+    "photo_coming_soon": "Foto folgt"
   },
   "country": {
     "france": "Frankreich"

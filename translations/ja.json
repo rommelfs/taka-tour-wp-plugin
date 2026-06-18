@@ -187,7 +187,9 @@
     "schedule": "スケジュール",
     "seminar_plan": "セミナー予定",
     "seminar_description": "セミナー説明",
-    "venue_website": "会場ウェブサイト"
+    "venue_website": "会場ウェブサイト",
+    "seminar_photo": "セミナー写真",
+    "photo_coming_soon": "写真は近日公開"
   },
   "country": {
     "france": "フランス"
