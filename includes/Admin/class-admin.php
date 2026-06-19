@@ -106,6 +106,7 @@ class TAKA_Platform_Admin {
 		);
 
 		if ( TAKA_PLATFORM_CPT_EVENT === $post_type ) {
+			$args['supports'] = array( 'title' );
 			$args['map_meta_cap'] = true;
 			$args['capabilities'] = array(
 				'edit_post'              => 'edit_taka_event',
@@ -1205,7 +1206,7 @@ class TAKA_Platform_Admin {
 	public static function render_event_meta_box( $post ) {
 		self::nonce();
 		self::render_object_source_language_field( $post->ID );
-		foreach ( array( 'subtitle' => 'Subtitle', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'route_map_x' => 'Route map X (0–100)', 'route_map_y' => 'Route map Y (0–100)', 'route_map_label' => 'Route map label', 'route_order' => 'Route order', 'city' => 'City', 'doors_open' => 'Doors open', 'timezone' => 'Timezone', 'format' => 'Format', 'audience' => 'Audience', 'level' => 'Level', 'ticket_provider' => 'Ticket provider', 'ticket_status' => 'Ticket status', 'photo_credit' => 'Photo credit', 'languages' => 'Languages, comma-separated' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		foreach ( array( 'subtitle' => 'Subtitle', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'route_map_x' => 'Route map X (0–100)', 'route_map_y' => 'Route map Y (0–100)', 'route_map_label' => 'Route map label', 'route_order' => 'Route order', 'city' => 'City', 'doors_open' => 'Doors open', 'timezone' => 'Timezone', 'format' => 'Format', 'audience' => 'Audience', 'level' => 'Level', 'ticket_provider' => 'Ticket provider', 'ticket_status' => 'Ticket status', 'languages' => 'Languages, comma-separated' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::render_event_program_fields( $post->ID );
 		self::organizer_relation( $post->ID, 'organizer_id', __( 'Primary organizer', 'taka-platform' ) );
 		self::render_event_organizer_relationship_fields( $post->ID );
@@ -1216,17 +1217,15 @@ class TAKA_Platform_Admin {
 		self::url( $post->ID, 'image_url', __( 'Fallback action photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-platform' ), false, __( 'Select group photo', 'taka-platform' ) );
 		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-platform' ) );
-		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
-		self::textarea( $post->ID, 'short_description', __( 'Seminar description', 'taka-platform' ) );
-		self::textarea( $post->ID, 'long_description', __( 'Long description', 'taka-platform' ) );
-		self::textarea( $post->ID, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) );
+		self::textarea_with_description( $post->ID, 'short_description', __( 'Seminar description', 'taka-platform' ), __( 'Canonical text shown on the public ticket page under “Seminar description”.', 'taka-platform' ) );
 		self::text( $post->ID, 'ticket_tab_label', __( 'Ticket tab label', 'taka-platform' ) );
-		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ) );
+		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ), array( 'long_description', 'ticket_card_text' ) );
 		self::render_event_booking_information_fields( $post->ID );
 		self::textarea( $post->ID, 'accessibility', __( 'Accessibility notes', 'taka-platform' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
 		self::textarea( $post->ID, 'notes', __( 'Notes', 'taka-platform' ) );
 		self::textarea( $post->ID, 'parking', __( 'Parking notes', 'taka-platform' ) );
+		self::render_event_advanced_unused_fields( $post->ID );
 	}
 
 	public static function save_organizer( $post_id ) {
@@ -1541,7 +1540,21 @@ class TAKA_Platform_Admin {
 	private static function number( $post_id, $field, $label ) { self::field( $label, '<input type="number" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( self::meta( $post_id, $field ) ) . '">' ); }
 	private static function url( $post_id, $field, $label ) { self::field( $label, '<input class="widefat" type="url" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( self::meta( $post_id, $field ) ) . '">' ); }
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
+	private static function textarea_with_description( $post_id, $field, $label, $description ) { self::field( $label, '<textarea class="widefat" rows="4" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea><p class="description">' . esc_html( $description ) . '</p>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
+
+	private static function render_event_advanced_unused_fields( $post_id ) {
+		?>
+		<details class="taka-event-advanced-fields">
+			<summary><strong><?php echo esc_html__( 'Advanced / currently unused', 'taka-platform' ); ?></strong></summary>
+			<p class="description"><?php echo esc_html__( 'These fields are saved for compatibility but are not currently shown in the public ticket detail layout.', 'taka-platform' ); ?></p>
+			<?php self::textarea( $post_id, 'long_description', __( 'Long description', 'taka-platform' ) ); ?>
+			<?php self::textarea( $post_id, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) ); ?>
+			<?php self::media_field( $post_id, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) ); ?>
+			<?php self::text( $post_id, 'photo_credit', __( 'Photo credit', 'taka-platform' ) ); ?>
+		</details>
+		<?php
+	}
 
 	private static function render_object_source_language_field( $post_id ) {
 		$current = (string) get_post_meta( $post_id, '_taka_source_language', true ) ?: 'de';
@@ -1553,9 +1566,12 @@ class TAKA_Platform_Admin {
 		self::field( __( 'Source language', 'taka-platform' ), $html );
 	}
 
-	private static function render_object_text_translation_fields( $post_id, $object_type, $source_values = array() ) {
+	private static function render_object_text_translation_fields( $post_id, $object_type, $source_values = array(), $advanced_fields = array() ) {
 		$fields = TAKA_Platform_Data::translatable_text_fields( $object_type );
 		if ( empty( $fields ) ) { return; }
+		$advanced_keys = array_fill_keys( array_map( 'sanitize_key', (array) $advanced_fields ), true );
+		$primary_fields = array_diff_key( $fields, $advanced_keys );
+		$advanced_fields = array_intersect_key( $fields, $advanced_keys );
 		$translations = TAKA_Platform_Data::normalize_object_text_translations( get_post_meta( $post_id, '_taka_text_translations', true ), $fields );
 		?>
 		<div class="taka-content-section-translations" data-taka-content-section-translations data-default-lang="<?php echo esc_attr( (string) get_post_meta( $post_id, '_taka_source_language', true ) ?: 'de' ); ?>">
@@ -1567,22 +1583,33 @@ class TAKA_Platform_Admin {
 					<input class="taka-content-section-tabs__radio" type="radio" name="<?php echo esc_attr( $tab_group ); ?>" id="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>" <?php checked( $lang, TAKA_Platform_Data::platform_fallback_language() ); ?>>
 					<label class="taka-content-section-tabs__tab" for="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>"><?php echo esc_html( $label ); ?></label>
 					<div class="taka-content-section-tabs__panel">
-						<?php foreach ( $fields as $field => $field_label ) : ?>
-							<?php
-							$value = $translations[ $field ][ $lang ] ?? '';
-							$placeholder = $source_values[ $field ] ?? self::meta( $post_id, 'description' === $field ? 'short_description' : $field );
-							?>
-							<p class="taka-content-section-tabs__field">
-								<label><strong><?php echo esc_html( $field_label ); ?></strong><br>
-									<textarea class="large-text" rows="3" name="taka_platform_text_translations[<?php echo esc_attr( $field ); ?>][<?php echo esc_attr( $lang ); ?>]" placeholder="<?php echo esc_attr( (string) $placeholder ); ?>"><?php echo esc_textarea( (string) $value ); ?></textarea>
-								</label>
-							</p>
-						<?php endforeach; ?>
+						<?php self::render_object_translation_textareas( $post_id, $lang, $primary_fields, $translations, $source_values ); ?>
+						<?php if ( ! empty( $advanced_fields ) ) : ?>
+							<details class="taka-event-advanced-fields">
+								<summary><strong><?php echo esc_html__( 'Advanced / currently unused translations', 'taka-platform' ); ?></strong></summary>
+								<p class="description"><?php echo esc_html__( 'These translated fields are kept for compatibility but are not currently shown in the public ticket detail layout.', 'taka-platform' ); ?></p>
+								<?php self::render_object_translation_textareas( $post_id, $lang, $advanced_fields, $translations, $source_values ); ?>
+							</details>
+						<?php endif; ?>
 					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
 		<?php
+	}
+
+	private static function render_object_translation_textareas( $post_id, $lang, $fields, $translations, $source_values ) {
+		foreach ( $fields as $field => $field_label ) :
+			$value = $translations[ $field ][ $lang ] ?? '';
+			$placeholder = $source_values[ $field ] ?? self::meta( $post_id, 'description' === $field ? 'short_description' : $field );
+			?>
+			<p class="taka-content-section-tabs__field">
+				<label><strong><?php echo esc_html( $field_label ); ?></strong><br>
+					<textarea class="large-text" rows="3" name="taka_platform_text_translations[<?php echo esc_attr( $field ); ?>][<?php echo esc_attr( $lang ); ?>]" placeholder="<?php echo esc_attr( (string) $placeholder ); ?>"><?php echo esc_textarea( (string) $value ); ?></textarea>
+				</label>
+			</p>
+			<?php
+		endforeach;
 	}
 
 	private static function save_object_text_translations( $post_id, $object_type ) {
