@@ -15,12 +15,15 @@ usort(
 		if ( null !== $a_route || null !== $b_route ) {
 			return ( $a_route ?? 99999 ) <=> ( $b_route ?? 99999 );
 		}
-		$a_sort = (int) ( $a['sort_order'] ?? 0 );
-		$b_sort = (int) ( $b['sort_order'] ?? 0 );
-		if ( $a_sort !== $b_sort ) { return $a_sort <=> $b_sort; }
 		$a_date = (string) ( $a['date_start'] ?? ( $a['program_items'][0]['date'] ?? '' ) );
 		$b_date = (string) ( $b['date_start'] ?? ( $b['program_items'][0]['date'] ?? '' ) );
 		if ( $a_date !== $b_date ) { return strcmp( $a_date, $b_date ); }
+		$a_time = (string) ( $a['time_start'] ?? ( $a['program_items'][0]['time_start'] ?? '' ) );
+		$b_time = (string) ( $b['time_start'] ?? ( $b['program_items'][0]['time_start'] ?? '' ) );
+		if ( $a_time !== $b_time ) { return strcmp( $a_time, $b_time ); }
+		$a_sort = (int) ( $a['sort_order'] ?? 0 );
+		$b_sort = (int) ( $b['sort_order'] ?? 0 );
+		if ( $a_sort !== $b_sort ) { return $a_sort <=> $b_sort; }
 		return strcmp( (string) ( $a['title'] ?? '' ), (string) ( $b['title'] ?? '' ) );
 	}
 );

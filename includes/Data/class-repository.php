@@ -228,13 +228,28 @@ class TAKA_Platform_Data {
 
 	/** Sort callback. */
 	private static function compare_events( $a, $b ) {
-		foreach ( array( 'sort_order' => 'int', 'date_start' => 'string', 'time_start' => 'string', 'title' => 'string' ) as $key => $type ) {
-			$left = $a[ $key ] ?? ( 'int' === $type ? 0 : '' );
-			$right = $b[ $key ] ?? ( 'int' === $type ? 0 : '' );
-			$compare = 'int' === $type ? ( (int) $left <=> (int) $right ) : strcmp( (string) $left, (string) $right );
-			if ( 0 !== $compare ) { return $compare; }
-		}
-		return 0;
+		$date_compare = strcmp( self::event_sort_date( $a ), self::event_sort_date( $b ) );
+		if ( 0 !== $date_compare ) { return $date_compare; }
+		$time_compare = strcmp( self::event_sort_time( $a ), self::event_sort_time( $b ) );
+		if ( 0 !== $time_compare ) { return $time_compare; }
+		$sort_compare = (int) ( $a['sort_order'] ?? 0 ) <=> (int) ( $b['sort_order'] ?? 0 );
+		if ( 0 !== $sort_compare ) { return $sort_compare; }
+		return strcmp( (string) ( $a['title'] ?? '' ), (string) ( $b['title'] ?? '' ) );
+	}
+
+	private static function event_sort_date( $event ) {
+		$date = (string) ( $event['date_start'] ?? '' );
+		if ( '' !== $date ) { return $date; }
+		$items = self::normalize_program_items( $event['program_items'] ?? array(), $event );
+		$date = (string) ( $items[0]['date'] ?? '' );
+		return '' !== $date ? $date : '9999-12-31';
+	}
+
+	private static function event_sort_time( $event ) {
+		$time = (string) ( $event['time_start'] ?? '' );
+		if ( '' !== $time ) { return $time; }
+		$items = self::normalize_program_items( $event['program_items'] ?? array(), $event );
+		return (string) ( $items[0]['time_start'] ?? '' );
 	}
 
 	/** Get public events by organizer. */
