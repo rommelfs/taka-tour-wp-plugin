@@ -1064,7 +1064,9 @@ class TAKA_Platform_Data {
 			$venue = is_array( $venue ) ? self::resolve_object_text_fields( $venue, 'venue', $lang ) : $venue;
 			$event['languages'] = ! empty( $event['languages'] ) ? $event['languages'] : self::languages_for_country( $event['country'] ?? '' );
 			$event['subtitle'] = taka_tour_translate( 'seminars.' . $slug . '.subtitle', $event['subtitle'] ?? '', $lang );
-			$event['description'] = taka_tour_translate( 'seminars.' . $slug . '.description', $event['description'] ?? '', $lang );
+			if ( ! self::is_wordpress_event_record( $event ) ) {
+				$event['description'] = taka_tour_translate( 'seminars.' . $slug . '.description', $event['description'] ?? '', $lang );
+			}
 			$event['format'] = taka_tour_translate( 'seminars.' . $slug . '.type', $event['format'] ?? '', $lang );
 			$event['audience'] = taka_tour_translate( 'seminars.' . $slug . '.audience', $event['audience'] ?? '', $lang );
 			$event['level'] = taka_tour_translate( 'seminars.' . $slug . '.level', $event['level'] ?? '', $lang );
@@ -1107,6 +1109,11 @@ class TAKA_Platform_Data {
 	}
 
 	public static function seminars_for_language( $lang = null ) { return self::events_for_language( $lang ); }
+
+	/** Whether this normalized event came from the Event CPT instead of bundled config. */
+	private static function is_wordpress_event_record( $event ) {
+		return is_numeric( (string) ( $event['id'] ?? '' ) );
+	}
 
 	/** Convert a two-letter country code into its Unicode regional indicator flag. */
 	public static function flag_for_country_code( $country_code ) {
