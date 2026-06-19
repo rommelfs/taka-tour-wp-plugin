@@ -6,23 +6,6 @@
 defined( 'ABSPATH' ) || exit;
 
 $events = is_array( $events ?? null ) ? array_values( $events ) : array();
-$route_map_numeric_date = static function ( $event ) {
-	$start = trim( (string) ( $event['date_start'] ?? ( $event['program_items'][0]['date'] ?? '' ) ) );
-	$end = trim( (string) ( $event['date_end'] ?? '' ) );
-	if ( '' === $end && ! empty( $event['program_items'] ) && is_array( $event['program_items'] ) ) {
-		$last_item = end( $event['program_items'] );
-		$end = is_array( $last_item ) ? trim( (string) ( $last_item['date'] ?? '' ) ) : '';
-		reset( $event['program_items'] );
-	}
-	$start_ts = '' !== $start ? strtotime( $start ) : false;
-	$end_ts = '' !== $end ? strtotime( $end ) : false;
-	if ( false === $start_ts ) { return ''; }
-	if ( false === $end_ts || $start === $end ) { return gmdate( 'd.m.y', $start_ts ); }
-	if ( gmdate( 'mY', $start_ts ) === gmdate( 'mY', $end_ts ) ) {
-		return gmdate( 'd', $start_ts ) . '–' . gmdate( 'd.m.y', $end_ts );
-	}
-	return gmdate( 'd.m.y', $start_ts ) . '–' . gmdate( 'd.m.y', $end_ts );
-};
 
 usort(
 	$events,
@@ -61,47 +44,54 @@ foreach ( $events as $index => $event ) {
 
 if ( empty( $events ) ) { return; }
 
+$label_gap = 8.5;
+$last_label_y = 7;
+foreach ( $stops as $position => &$stop ) {
+	$preferred_y = max( 8, min( 92, (float) $stop['y'] ) );
+	$label_y = max( $preferred_y, $last_label_y + $label_gap );
+	$remaining = count( $stops ) - $position - 1;
+	$max_y = 92 - ( $remaining * $label_gap );
+	$label_y = min( $label_y, $max_y );
+	$last_label_y = $label_y;
+	$stop['label_y'] = max( 8, min( 92, $label_y ) );
+	$stop['label_offset'] = $stop['label_y'] - (float) $stop['y'];
+	if ( $stop['x'] > 64 ) {
+		$stop['label_side'] = 'left';
+	} elseif ( $stop['x'] < 36 ) {
+		$stop['label_side'] = 'right';
+	} else {
+		$stop['label_side'] = 0 === $position % 2 ? 'right' : 'left';
+	}
+}
+unset( $stop );
+
 $line_points = count( $stops ) > 1 ? implode( ' ', array_map( static fn( $stop ) => round( $stop['x'], 2 ) . ',' . round( $stop['y'], 2 ), $stops ) ) : '';
 ?>
 <div class="taka-hero-route-map" aria-label="<?php echo esc_attr( taka_tour_translate( 'hero.event_locations', 'Event locations' ) ); ?>">
 	<?php if ( ! empty( $stops ) ) : ?>
 		<div class="taka-hero-route-map__canvas" aria-label="<?php echo esc_attr( taka_tour_translate( 'hero.map_view', 'Map view' ) ); ?>">
-			<div class="taka-hero-route-map__visual">
-				<svg class="taka-hero-route-map__svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false" role="presentation">
-					<path class="taka-hero-route-map__silhouette" d="M64 9 C75 12 82 23 79 34 C88 42 85 56 74 59 C70 70 58 75 48 70 C39 78 25 73 24 61 C13 55 14 39 25 34 C28 23 40 19 48 24 C51 14 57 9 64 9 Z" />
-					<path class="taka-hero-route-map__silhouette taka-hero-route-map__silhouette--south" d="M50 67 C60 66 69 72 70 82 C63 88 49 88 42 80 C39 74 43 69 50 67 Z" />
-					<?php if ( '' !== $line_points ) : ?>
-						<polyline class="taka-hero-route-map__line" points="<?php echo esc_attr( $line_points ); ?>" />
-					<?php endif; ?>
-				</svg>
-				<?php foreach ( $stops as $stop ) : ?>
-					<?php
-					$event = $stop['event'];
-					$tab_key = (string) ( $event['slug'] ?? $event['id'] ?? '' );
-					$country = trim( (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ) );
-					$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
-					?>
-					<a class="taka-hero-route-map__stop" href="#tickets" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['y'] ); ?>%;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
-						<span class="taka-hero-route-map__pin" aria-hidden="true"></span>
-					</a>
-				<?php endforeach; ?>
-			</div>
-			<nav class="taka-hero-route-map__stops" aria-label="<?php echo esc_attr( taka_tour_translate( 'hero.stations_label', 'Tour stations' ) ); ?>">
-				<p class="taka-hero-route-map__stops-title"><?php echo esc_html( taka_tour_translate( 'hero.stations_label', 'Tour stations' ) ); ?></p>
-				<div class="taka-hero-route-map__stop-list">
-					<?php foreach ( $stops as $stop ) : ?>
-						<?php
-						$event = $stop['event'];
-						$tab_key = (string) ( $event['slug'] ?? $event['id'] ?? '' );
-						$country = trim( (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ) );
-						$flag = trim( (string) ( $event['hero_flag'] ?? '' ) );
-						$date = $route_map_numeric_date( $event );
-						$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
-						?>
-						<a class="taka-hero-route-map__stop-link" href="#tickets" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php if ( '' !== $flag ) : ?><span class="taka-hero-location-flag" aria-hidden="true"><?php echo esc_html( $flag ); ?></span><?php endif; ?><span class="taka-hero-route-map__stop-name"><?php echo esc_html( $stop['label'] ); ?></span><?php if ( '' !== $date ) : ?><time class="taka-hero-route-map__stop-date" datetime="<?php echo esc_attr( (string) ( $event['date_start'] ?? '' ) ); ?>"><?php echo esc_html( $date ); ?></time><?php endif; ?></a>
-					<?php endforeach; ?>
-				</div>
-			</nav>
+			<svg class="taka-hero-route-map__svg" viewBox="0 0 100 100" aria-hidden="true" focusable="false" role="presentation">
+				<path class="taka-hero-route-map__silhouette" d="M64 9 C75 12 82 23 79 34 C88 42 85 56 74 59 C70 70 58 75 48 70 C39 78 25 73 24 61 C13 55 14 39 25 34 C28 23 40 19 48 24 C51 14 57 9 64 9 Z" />
+				<path class="taka-hero-route-map__silhouette taka-hero-route-map__silhouette--south" d="M50 67 C60 66 69 72 70 82 C63 88 49 88 42 80 C39 74 43 69 50 67 Z" />
+				<?php if ( '' !== $line_points ) : ?>
+					<polyline class="taka-hero-route-map__line" points="<?php echo esc_attr( $line_points ); ?>" />
+				<?php endif; ?>
+			</svg>
+			<?php foreach ( $stops as $stop ) : ?>
+				<?php
+				$event = $stop['event'];
+				$tab_key = (string) ( $event['slug'] ?? $event['id'] ?? '' );
+				$country = trim( (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ) );
+				$flag = trim( (string) ( $event['hero_flag'] ?? '' ) );
+				$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
+				$stop_class = 'taka-hero-route-map__stop taka-hero-route-map__stop--' . $stop['label_side'];
+				$label_offset = round( (float) $stop['label_offset'] * 0.2, 2 ) . 'rem';
+				?>
+				<a class="<?php echo esc_attr( $stop_class ); ?>" href="#tickets" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['y'] ); ?>%;--taka-route-label-offset:<?php echo esc_attr( $label_offset ); ?>;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
+					<span class="taka-hero-route-map__pin" aria-hidden="true"></span>
+					<span class="taka-hero-route-map__label"><?php if ( '' !== $flag ) : ?><span class="taka-hero-location-flag" aria-hidden="true"><?php echo esc_html( $flag ); ?></span><?php endif; ?><span class="taka-hero-route-map__label-text"><?php echo esc_html( $stop['label'] ); ?></span></span>
+				</a>
+			<?php endforeach; ?>
 		</div>
 	<?php endif; ?>
 </div>
