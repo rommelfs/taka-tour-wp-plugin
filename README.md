@@ -150,6 +150,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v1.4.10
+
+- Fixed Hero Europe map rendering by defaulting the location display mode to map with list and validating stored display modes.
+
 ### v1.4.9
 
 - Added a configurable stylized Europe map for Hero event location navigation with accessible fallback list.

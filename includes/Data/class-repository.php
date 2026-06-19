@@ -530,7 +530,7 @@ class TAKA_Platform_Data {
 			'text_box_max_width'     => '620px',
 			'text_position'          => 'left',
 			'vertical_alignment'     => 'center',
-			'location_display_mode'  => 'flags',
+			'location_display_mode'  => 'map_with_list',
 		);
 	}
 
@@ -548,6 +548,9 @@ class TAKA_Platform_Data {
 		$merged['description'] = self::translated_setting_value( $merged['description'] ?? '', 'hero.intro', '', $lang );
 		$merged['primary_button_label'] = self::translated_setting_value( $merged['primary_button_label'] ?? '', 'hero.primary_button', 'View seminars', $lang );
 		$merged['primary_button_target'] = '#tickets';
+		if ( ! in_array( $merged['location_display_mode'] ?? 'map_with_list', array( 'list', 'flags', 'map', 'map_with_list' ), true ) ) {
+			$merged['location_display_mode'] = 'map_with_list';
+		}
 		$merged['image'] = self::resolve_attachment_url( absint( $merged['image_id'] ?? 0 ), 'large', (string) ( $merged['image_url'] ?? '' ) );
 		return $merged;
 	}

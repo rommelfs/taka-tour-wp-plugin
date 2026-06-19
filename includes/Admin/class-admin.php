@@ -611,7 +611,7 @@ class TAKA_Platform_Admin {
 					<?php self::settings_text_row( 'hero[text_box_max_width]', __( 'Text box max width', 'taka-platform' ), $hero['text_box_max_width'] ?? '620px' ); ?>
 					<?php self::settings_select_row( 'hero[text_position]', __( 'Hero text position', 'taka-platform' ), $hero['text_position'] ?? 'left', $positions ); ?>
 					<?php self::settings_select_row( 'hero[vertical_alignment]', __( 'Hero vertical alignment', 'taka-platform' ), $hero['vertical_alignment'] ?? 'center', $verticals ); ?>
-					<?php self::settings_select_row( 'hero[location_display_mode]', __( 'Hero location display mode', 'taka-platform' ), $hero['location_display_mode'] ?? 'flags', $location_modes ); ?>
+					<?php self::settings_select_row( 'hero[location_display_mode]', __( 'Hero location display mode', 'taka-platform' ), $hero['location_display_mode'] ?? 'map_with_list', $location_modes ); ?>
 				</tbody></table>
 				<?php submit_button( __( 'Save hero settings', 'taka-platform' ) ); ?>
 			</form>
@@ -737,7 +737,7 @@ class TAKA_Platform_Admin {
 			'text_box_max_width'     => sanitize_text_field( $posted['text_box_max_width'] ?? '620px' ),
 			'text_position'          => in_array( $posted['text_position'] ?? 'left', array( 'left', 'center', 'right' ), true ) ? sanitize_key( $posted['text_position'] ) : 'left',
 			'vertical_alignment'     => in_array( $posted['vertical_alignment'] ?? 'center', array( 'top', 'center', 'bottom' ), true ) ? sanitize_key( $posted['vertical_alignment'] ) : 'center',
-			'location_display_mode'  => in_array( $posted['location_display_mode'] ?? 'flags', array( 'list', 'flags', 'map', 'map_with_list' ), true ) ? sanitize_key( $posted['location_display_mode'] ) : 'flags',
+			'location_display_mode'  => in_array( $posted['location_display_mode'] ?? 'map_with_list', array( 'list', 'flags', 'map', 'map_with_list' ), true ) ? sanitize_key( $posted['location_display_mode'] ) : 'map_with_list',
 		);
 		update_option( TAKA_Platform_Data::HERO_OPTION, $clean, false );
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
