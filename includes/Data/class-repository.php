@@ -486,7 +486,7 @@ class TAKA_Platform_Data {
 	}
 
 	/** Prepare booking information for one event with organizer fallback. */
-	private static function booking_information_for_event( $event, $organizer, $lang ) {
+	private static function booking_information_for_event( $event, $organizer, $lang, $organizer_relationships = array() ) {
 		$booking = self::get_booking_information_settings( $lang );
 		$override = self::normalize_booking_information( $event['booking_information'] ?? array(), false );
 		if ( ! empty( $override['override'] ) ) {
@@ -512,12 +512,7 @@ class TAKA_Platform_Data {
 			$booking['title'] = taka_tour_translate( 'booking.before_you_book', 'Before you book', $lang );
 		}
 
-		if ( empty( $booking['contact_email'] ) && is_array( $organizer ) && ! empty( $organizer['emails'][0] ) ) {
-			$booking['contact_email'] = (string) $organizer['emails'][0];
-		}
-		if ( empty( $booking['contact_email'] ) ) {
-			$booking['contact_email'] = 'contact@kleiner-wald.de';
-		}
+		$booking['contact_email'] = self::booking_contact_email_for_event( $organizer, $organizer_relationships );
 
 		$sections = array(
 			array( 'key' => 'intro', 'title' => '', 'text' => $booking['intro'] ?? '' ),
@@ -530,6 +525,59 @@ class TAKA_Platform_Data {
 		);
 		$booking['sections'] = array_values( array_filter( $sections, static function ( $section ) { return '' !== trim( (string) ( $section['text'] ?? '' ) ); } ) );
 		return $booking;
+	}
+
+	/** Resolve the best booking contact email for an event. */
+	private static function booking_contact_email_for_event( $primary_organizer, $organizer_relationships = array() ) {
+		$email = self::first_organizer_email( $primary_organizer );
+		if ( '' !== $email ) {
+			return $email;
+		}
+
+		$organizers = array();
+		if ( is_array( $primary_organizer ) ) {
+			$organizers[] = $primary_organizer;
+		}
+		foreach ( (array) $organizer_relationships as $relationship ) {
+			$organizer = is_array( $relationship ) ? ( $relationship['organizer'] ?? null ) : null;
+			if ( is_array( $organizer ) ) {
+				$organizers[] = $organizer;
+				$email = self::first_organizer_email( $organizer );
+				if ( '' !== $email ) {
+					return $email;
+				}
+			}
+		}
+
+		foreach ( $organizers as $organizer ) {
+			foreach ( self::normalize_co_organizers( $organizer['co_organizers'] ?? array() ) as $co_organizer ) {
+				if ( empty( $co_organizer['active'] ) ) {
+					continue;
+				}
+				$email = sanitize_email( $co_organizer['email'] ?? '' );
+				if ( '' !== $email ) {
+					return $email;
+				}
+			}
+		}
+
+		return 'kontakt@kleiner-wald.de';
+	}
+
+	/** Return the first valid direct email on an organizer profile. */
+	private static function first_organizer_email( $organizer ) {
+		if ( ! is_array( $organizer ) ) {
+			return '';
+		}
+
+		foreach ( (array) ( $organizer['emails'] ?? array() ) as $email ) {
+			$email = sanitize_email( $email );
+			if ( '' !== $email ) {
+				return $email;
+			}
+		}
+
+		return '';
 	}
 
 	/** Normalize booking information arrays. */
@@ -1051,7 +1099,7 @@ class TAKA_Platform_Data {
 			$event['organizer_full'] = is_array( $organizer ) ? $organizer : null;
 			$event['practical_information'] = self::build_practical_information( $event, $organizer, $venue, $lang );
 			$event['info_drawers'] = self::build_info_drawers( $event, $organizer, $venue, $lang );
-			$event['booking_information'] = self::booking_information_for_event( $event, $organizer, $lang );
+			$event['booking_information'] = self::booking_information_for_event( $event, $organizer, $lang, $ticket_organizers );
 			$event['ticket_overview_image'] = self::ticket_overview_image( $event );
 			$event['ticket_overview_image_alt'] = self::ticket_overview_image_alt( $event, $organizer, $lang );
 			return $event;
