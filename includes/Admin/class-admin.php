@@ -1166,6 +1166,7 @@ class TAKA_Platform_Admin {
 	/** Organizer meta. */
 	public static function render_organizer_meta_box( $post ) {
 		self::nonce();
+		self::render_object_source_language_field( $post->ID );
 		self::text( $post->ID, 'legal_name', __( 'Legal name', 'taka-platform' ) );
 		self::url( $post->ID, 'website', __( 'Website', 'taka-platform' ) );
 		self::text( $post->ID, 'country', __( 'Country', 'taka-platform' ) );
@@ -1179,12 +1180,14 @@ class TAKA_Platform_Admin {
 		self::text( $post->ID, 'facebook', __( 'Facebook', 'taka-platform' ) );
 		self::text( $post->ID, 'youtube', __( 'YouTube', 'taka-platform' ) );
 		self::checkbox( $post->ID, 'active', __( 'Active', 'taka-platform' ) );
+		self::render_object_text_translation_fields( $post->ID, 'organizer', array( 'description' => $post->post_content ) );
 		self::render_co_organizers( $post->ID );
 	}
 
 	/** Venue meta. */
 	public static function render_venue_meta_box( $post ) {
 		self::nonce();
+		self::render_object_source_language_field( $post->ID );
 		foreach ( array( 'street' => 'Street', 'postal_code' => 'Postal code', 'city' => 'City', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'route_map_x' => 'Route map X (0–100)', 'route_map_y' => 'Route map Y (0–100)', 'route_map_label' => 'Route map label', 'timezone' => 'Timezone', 'lat' => 'Geo lat', 'lng' => 'Geo lng' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::url( $post->ID, 'website', __( 'Website', 'taka-platform' ) );
 		self::media_field( $post->ID, 'image_id', __( 'Venue photo', 'taka-platform' ), false, __( 'Select venue photo', 'taka-platform' ) );
@@ -1195,11 +1198,13 @@ class TAKA_Platform_Admin {
 		self::textarea( $post->ID, 'parking', __( 'Parking notes', 'taka-platform' ) );
 		self::textarea( $post->ID, 'accessibility', __( 'Accessibility', 'taka-platform' ) );
 		self::textarea( $post->ID, 'notes', __( 'Special notes', 'taka-platform' ) );
+		self::render_object_text_translation_fields( $post->ID, 'venue' );
 	}
 
 	/** Event meta. */
 	public static function render_event_meta_box( $post ) {
 		self::nonce();
+		self::render_object_source_language_field( $post->ID );
 		foreach ( array( 'subtitle' => 'Subtitle', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'route_map_x' => 'Route map X (0–100)', 'route_map_y' => 'Route map Y (0–100)', 'route_map_label' => 'Route map label', 'route_order' => 'Route order', 'city' => 'City', 'doors_open' => 'Doors open', 'timezone' => 'Timezone', 'format' => 'Format', 'audience' => 'Audience', 'level' => 'Level', 'ticket_provider' => 'Ticket provider', 'ticket_status' => 'Ticket status', 'photo_credit' => 'Photo credit', 'languages' => 'Languages, comma-separated' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::render_event_program_fields( $post->ID );
 		self::organizer_relation( $post->ID, 'organizer_id', __( 'Primary organizer', 'taka-platform' ) );
@@ -1212,10 +1217,11 @@ class TAKA_Platform_Admin {
 		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-platform' ), false, __( 'Select group photo', 'taka-platform' ) );
 		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
-		self::textarea( $post->ID, 'short_description', __( 'Short description', 'taka-platform' ) );
+		self::textarea( $post->ID, 'short_description', __( 'Seminar description', 'taka-platform' ) );
 		self::textarea( $post->ID, 'long_description', __( 'Long description', 'taka-platform' ) );
 		self::textarea( $post->ID, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) );
 		self::text( $post->ID, 'ticket_tab_label', __( 'Ticket tab label', 'taka-platform' ) );
+		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ) );
 		self::render_event_booking_information_fields( $post->ID );
 		self::textarea( $post->ID, 'accessibility', __( 'Accessibility notes', 'taka-platform' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
@@ -1225,9 +1231,10 @@ class TAKA_Platform_Admin {
 
 	public static function save_organizer( $post_id ) {
 		self::save( $post_id, array( 'legal_name', 'website', 'country', 'country_code', 'flag', 'logo_id', 'logo_url', 'emails', 'contact_persons', 'instagram', 'facebook', 'youtube', 'active' ) );
+		self::save_object_text_translations( $post_id, 'organizer' );
 		self::save_co_organizers( $post_id );
 	}
-	public static function save_venue( $post_id ) { self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); }
+	public static function save_venue( $post_id ) { self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); self::save_object_text_translations( $post_id, 'venue' ); }
 	public static function save_event( $post_id ) {
 		$posted_relationships = self::sanitize_event_organizer_relationships( $_POST['taka_platform_event_organizers'] ?? array() );
 		if ( ! empty( $posted_relationships ) ) {
@@ -1247,6 +1254,7 @@ class TAKA_Platform_Admin {
 			update_post_meta( $post_id, '_taka_organizer_id', $posted );
 		}
 		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'route_order', 'city', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'ticket_tab_label', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
+		self::save_object_text_translations( $post_id, 'event' );
 		self::save_event_organizer_relationships( $post_id, $posted_relationships );
 		self::save_event_program_items( $post_id );
 	}
@@ -1534,6 +1542,57 @@ class TAKA_Platform_Admin {
 	private static function url( $post_id, $field, $label ) { self::field( $label, '<input class="widefat" type="url" name="_taka_' . esc_attr( $field ) . '" value="' . esc_attr( self::meta( $post_id, $field ) ) . '">' ); }
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
+
+	private static function render_object_source_language_field( $post_id ) {
+		$current = (string) get_post_meta( $post_id, '_taka_source_language', true ) ?: 'de';
+		$html = '<select name="_taka_source_language">';
+		foreach ( TAKA_Platform_Translation_Packages::language_labels() as $lang => $label ) {
+			$html .= '<option value="' . esc_attr( $lang ) . '" ' . selected( $current, $lang, false ) . '>' . esc_html( $label ) . '</option>';
+		}
+		$html .= '</select>';
+		self::field( __( 'Source language', 'taka-platform' ), $html );
+	}
+
+	private static function render_object_text_translation_fields( $post_id, $object_type, $source_values = array() ) {
+		$fields = TAKA_Platform_Data::translatable_text_fields( $object_type );
+		if ( empty( $fields ) ) { return; }
+		$translations = TAKA_Platform_Data::normalize_object_text_translations( get_post_meta( $post_id, '_taka_text_translations', true ), $fields );
+		?>
+		<div class="taka-content-section-translations" data-taka-content-section-translations data-default-lang="<?php echo esc_attr( (string) get_post_meta( $post_id, '_taka_source_language', true ) ?: 'de' ); ?>">
+			<h3><?php echo esc_html__( 'Text translations', 'taka-platform' ); ?></h3>
+			<p class="description"><?php echo esc_html__( 'Source text remains in the main WordPress fields above. Fill only missing translated values here.', 'taka-platform' ); ?></p>
+			<div class="taka-content-section-tabs">
+				<?php $tab_group = 'taka_object_text_' . $object_type . '_' . $post_id; ?>
+				<?php foreach ( self::content_section_language_labels() as $lang => $label ) : ?>
+					<input class="taka-content-section-tabs__radio" type="radio" name="<?php echo esc_attr( $tab_group ); ?>" id="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>" <?php checked( $lang, TAKA_Platform_Data::platform_fallback_language() ); ?>>
+					<label class="taka-content-section-tabs__tab" for="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>"><?php echo esc_html( $label ); ?></label>
+					<div class="taka-content-section-tabs__panel">
+						<?php foreach ( $fields as $field => $field_label ) : ?>
+							<?php
+							$value = $translations[ $field ][ $lang ] ?? '';
+							$placeholder = $source_values[ $field ] ?? self::meta( $post_id, 'description' === $field ? 'short_description' : $field );
+							?>
+							<p class="taka-content-section-tabs__field">
+								<label><strong><?php echo esc_html( $field_label ); ?></strong><br>
+									<textarea class="large-text" rows="3" name="taka_platform_text_translations[<?php echo esc_attr( $field ); ?>][<?php echo esc_attr( $lang ); ?>]" placeholder="<?php echo esc_attr( (string) $placeholder ); ?>"><?php echo esc_textarea( (string) $value ); ?></textarea>
+								</label>
+							</p>
+						<?php endforeach; ?>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
+		<?php
+	}
+
+	private static function save_object_text_translations( $post_id, $object_type ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) { return; }
+		if ( ! isset( $_POST[ self::NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) || ! current_user_can( 'edit_post', $post_id ) ) { return; }
+		$fields = TAKA_Platform_Data::translatable_text_fields( $object_type );
+		update_post_meta( $post_id, '_taka_source_language', TAKA_Platform_Translation_Packages::sanitize_language( wp_unslash( $_POST['_taka_source_language'] ?? 'de' ) ) );
+		$posted = isset( $_POST['taka_platform_text_translations'] ) && is_array( $_POST['taka_platform_text_translations'] ) ? wp_unslash( $_POST['taka_platform_text_translations'] ) : array();
+		update_post_meta( $post_id, '_taka_text_translations', TAKA_Platform_Data::normalize_object_text_translations( $posted, $fields ) );
+	}
 
 	private static function sanitize_dynamic_text( $value, $textarea = false ) {
 		$callback = $textarea ? 'sanitize_textarea_field' : 'sanitize_text_field';

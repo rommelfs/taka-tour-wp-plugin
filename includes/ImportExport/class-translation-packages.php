@@ -247,7 +247,7 @@ class TAKA_Platform_Translation_Packages {
 					$summary['skipped_existing']++;
 					continue;
 				}
-				$changes[ $current['object_type'] ][ $current['object_id'] ][ $current['field'] ][ $lang ] = sanitize_textarea_field( $translation );
+				$changes[ $current['object_type'] ][ $current['object_id'] ][ $current['field'] ][ $lang ] = function_exists( 'wp_kses_post' ) ? wp_kses_post( $translation ) : sanitize_textarea_field( $translation );
 				$summary['imported']++;
 			}
 		}
@@ -285,6 +285,9 @@ class TAKA_Platform_Translation_Packages {
 		$booking = TAKA_Platform_Data::get_booking_information_settings( null, false );
 		$tickets = TAKA_Platform_Data::get_ticket_section_settings( null, false );
 		$hero = TAKA_Platform_Data::get_hero_settings( false );
+		$events = self::post_text_objects( TAKA_Platform_Data::get_events(), 'event' );
+		$organizers = self::post_text_objects( TAKA_Platform_Data::get_organizers(), 'organizer' );
+		$venues = self::post_text_objects( TAKA_Platform_Data::get_venues(), 'venue' );
 		return array(
 			array(
 				'type' => 'content_section',
@@ -310,7 +313,42 @@ class TAKA_Platform_Translation_Packages {
 				'fields' => array( 'kicker' => 'Kicker', 'title' => 'Title', 'subtitle' => 'Subtitle', 'primary_button_label' => 'Primary button label', 'secondary_button_label' => 'Secondary button label' ),
 				'objects' => array( 'global' => array( 'label' => 'Homepage hero', 'source_language' => self::sanitize_language( $hero['source_language'] ?? 'de' ), 'values' => array( 'kicker' => $hero['kicker'] ?? '', 'title' => $hero['title'] ?? '', 'subtitle' => $hero['description'] ?? '', 'primary_button_label' => $hero['primary_button_label'] ?? '', 'secondary_button_label' => $hero['secondary_button_label'] ?? '' ) ) ),
 			),
+			array(
+				'type' => 'event',
+				'context_prefix' => 'Event',
+				'fields' => TAKA_Platform_Data::translatable_text_fields( 'event' ),
+				'objects' => $events,
+			),
+			array(
+				'type' => 'organizer',
+				'context_prefix' => 'Organizer',
+				'fields' => TAKA_Platform_Data::translatable_text_fields( 'organizer' ),
+				'objects' => $organizers,
+			),
+			array(
+				'type' => 'venue',
+				'context_prefix' => 'Venue',
+				'fields' => TAKA_Platform_Data::translatable_text_fields( 'venue' ),
+				'objects' => $venues,
+			),
 		);
+	}
+
+	private static function post_text_objects( $objects, $object_type ) {
+		$out = array();
+		$fields = TAKA_Platform_Data::translatable_text_fields( $object_type );
+		foreach ( $objects as $object ) {
+			if ( ! is_array( $object ) ) { continue; }
+			$object_id = (string) ( $object['config_id'] ?? '' );
+			if ( '' === $object_id ) { $object_id = (string) ( $object['id'] ?? '' ); }
+			if ( '' === $object_id ) { continue; }
+			$out[ $object_id ] = array(
+				'label' => (string) ( $object['title'] ?? ( $object['name'] ?? ( $object['city'] ?? $object_id ) ) ),
+				'source_language' => TAKA_Platform_Data::object_source_language( $object ),
+				'values' => TAKA_Platform_Data::object_text_values( $object, $fields ),
+			);
+		}
+		return $out;
 	}
 
 	private static function current_item_index() {
@@ -367,6 +405,35 @@ class TAKA_Platform_Translation_Packages {
 			}
 			update_option( $option, $data, false );
 		}
+		foreach ( array( 'event' => TAKA_PLATFORM_CPT_EVENT, 'organizer' => TAKA_PLATFORM_CPT_ORGANIZER, 'venue' => TAKA_PLATFORM_CPT_VENUE ) as $type => $post_type ) {
+			if ( ! empty( $changes[ $type ] ) ) {
+				self::apply_post_text_changes( $post_type, $changes[ $type ] );
+			}
+		}
+	}
+
+	private static function apply_post_text_changes( $post_type, $objects ) {
+		foreach ( $objects as $object_id => $fields ) {
+			$post_id = self::find_post_id( $post_type, $object_id );
+			if ( ! $post_id ) { continue; }
+			$stored = get_post_meta( $post_id, '_taka_text_translations', true );
+			$stored = is_array( $stored ) ? $stored : array();
+			foreach ( $fields as $field => $translations ) {
+				foreach ( $translations as $lang => $text ) {
+					$stored[ $field ][ $lang ] = $text;
+				}
+			}
+			update_post_meta( $post_id, '_taka_text_translations', $stored );
+		}
+	}
+
+	private static function find_post_id( $post_type, $object_id ) {
+		if ( is_numeric( $object_id ) && get_post( (int) $object_id ) ) {
+			$post = get_post( (int) $object_id );
+			if ( $post && $post_type === $post->post_type ) { return (int) $post->ID; }
+		}
+		$posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_key' => '_taka_config_id', 'meta_value' => (string) $object_id ) );
+		return ! empty( $posts ) ? (int) $posts[0] : 0;
 	}
 
 	private static function internal_field_name( $type, $field ) {

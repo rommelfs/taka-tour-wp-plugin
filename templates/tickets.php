@@ -103,7 +103,7 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 								</div>
 							<?php endif; ?>
 						</div>
-						<?php if ( ! empty( $seminar['description'] ) ) : ?><section class="taka-ticket-event-description"><h4><?php echo esc_html( taka_tour_translate( 'event.seminar_description', 'Seminar description' ) ); ?></h4><p class="taka-ticket-event-panel__description"><?php echo esc_html( $seminar['description'] ); ?></p></section><?php endif; ?>
+						<?php if ( '' !== trim( (string) ( $seminar['description'] ?? '' ) ) ) : ?><section class="taka-ticket-event-description"><h4><?php echo esc_html( taka_tour_translate( 'event.seminar_description', 'Seminar description' ) ); ?></h4><div class="taka-ticket-event-panel__description"><?php echo wp_kses_post( wpautop( $seminar['description'] ) ); ?></div></section><?php endif; ?>
 						<?php if ( ! empty( $drawers ) ) : ?>
 							<div class="taka-ticket-info-actions" aria-label="<?php echo esc_attr__( 'Ticket information', 'taka-platform' ); ?>">
 								<?php foreach ( $drawers as $drawer_key => $drawer ) : ?>

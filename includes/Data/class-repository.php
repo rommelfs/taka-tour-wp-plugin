@@ -16,6 +16,80 @@ class TAKA_Platform_Data {
 	const TICKETS_OPTION = 'taka_platform_ticket_section_settings';
 
 
+	/** User-facing text fields that support object-level translations. */
+	public static function translatable_text_fields( $object_type ) {
+		$fields = array(
+			'event' => array(
+				'description' => 'Seminar description',
+				'subtitle' => 'Subtitle',
+				'long_description' => 'Long description',
+				'ticket_card_text' => 'Ticket card text',
+				'ticket_tab_label' => 'Ticket tab label',
+				'accessibility' => 'Accessibility notes',
+				'notes' => 'Notes',
+				'parking' => 'Parking notes',
+			),
+			'organizer' => array(
+				'description' => 'Description',
+			),
+			'venue' => array(
+				'parking' => 'Parking notes',
+				'accessibility' => 'Accessibility',
+				'notes' => 'Special notes',
+			),
+		);
+		return $fields[ $object_type ] ?? array();
+	}
+
+	/** Normalize the source language stored on one translatable object. */
+	public static function object_source_language( $object ) {
+		$lang = sanitize_key( (string) ( is_array( $object ) ? ( $object['source_language'] ?? '' ) : '' ) );
+		return in_array( $lang, self::content_section_languages(), true ) ? $lang : self::platform_fallback_language();
+	}
+
+	/** Normalize field/language translation arrays for object-level text fields. */
+	public static function normalize_object_text_translations( $translations, $fields = array() ) {
+		$translations = is_array( $translations ) ? $translations : array();
+		$fields = ! empty( $fields ) ? array_keys( $fields ) : array_keys( self::translatable_text_fields( 'event' ) );
+		$clean = array();
+		foreach ( $fields as $field ) {
+			foreach ( self::content_section_languages() as $lang ) {
+				$clean[ $field ][ $lang ] = self::sanitize_translatable_text( $translations[ $field ][ $lang ] ?? '' );
+			}
+		}
+		return $clean;
+	}
+
+	private static function sanitize_translatable_text( $value ) {
+		return function_exists( 'wp_kses_post' ) ? wp_kses_post( $value ) : sanitize_textarea_field( $value );
+	}
+
+	/** Build language-keyed values for translation packages from scalar source text plus stored translations. */
+	public static function object_text_values( $object, $fields ) {
+		$source_language = self::object_source_language( $object );
+		$translations = self::normalize_object_text_translations( $object['text_translations'] ?? array(), $fields );
+		$values = array();
+		foreach ( array_keys( $fields ) as $field ) {
+			$values[ $field ] = $translations[ $field ] ?? array();
+			if ( '' !== trim( (string) ( $object[ $field ] ?? '' ) ) ) {
+				$values[ $field ][ $source_language ] = (string) $object[ $field ];
+			}
+		}
+		return $values;
+	}
+
+	/** Resolve configured object-level text fields for the active frontend language. */
+	private static function resolve_object_text_fields( $object, $object_type, $lang ) {
+		$fields = self::translatable_text_fields( $object_type );
+		if ( empty( $fields ) ) { return $object; }
+		$values = self::object_text_values( $object, $fields );
+		$source_language = self::object_source_language( $object );
+		foreach ( array_keys( $fields ) as $field ) {
+			$object[ $field ] = self::resolve_dynamic_text( $values[ $field ] ?? '', $lang, $source_language );
+		}
+		return $object;
+	}
+
 
 	/** Event-level organizer relationship type labels. */
 	public static function organizer_relationship_type_labels( $lang = null ) {
@@ -189,6 +263,8 @@ class TAKA_Platform_Data {
 				'id' => $id,
 				'config_id' => $config_id,
 				'name' => get_the_title( $post ),
+				'source_language' => (string) get_post_meta( $post->ID, '_taka_source_language', true ),
+				'text_translations' => self::normalize_object_text_translations( get_post_meta( $post->ID, '_taka_text_translations', true ), self::translatable_text_fields( 'organizer' ) ),
 				'legal_name' => (string) get_post_meta( $post->ID, '_taka_legal_name', true ),
 				'website' => (string) get_post_meta( $post->ID, '_taka_website', true ),
 				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
@@ -224,6 +300,8 @@ class TAKA_Platform_Data {
 				'id' => $id,
 				'config_id' => $config_id,
 				'name' => get_the_title( $post ),
+				'source_language' => (string) get_post_meta( $post->ID, '_taka_source_language', true ),
+				'text_translations' => self::normalize_object_text_translations( get_post_meta( $post->ID, '_taka_text_translations', true ), self::translatable_text_fields( 'venue' ) ),
 				'address' => array( 'street' => (string) get_post_meta( $post->ID, '_taka_street', true ), 'postal_code' => (string) get_post_meta( $post->ID, '_taka_postal_code', true ), 'city' => (string) get_post_meta( $post->ID, '_taka_city', true ), 'country' => (string) get_post_meta( $post->ID, '_taka_country', true ), 'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ) ),
 				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ),
 				'route_map_x' => self::nullable_meta( $post->ID, 'route_map_x' ),
@@ -267,6 +345,8 @@ class TAKA_Platform_Data {
 				'id' => (string) $post->ID,
 				'config_id' => (string) get_post_meta( $post->ID, '_taka_config_id', true ),
 				'slug' => $post->post_name,
+				'source_language' => (string) get_post_meta( $post->ID, '_taka_source_language', true ),
+				'text_translations' => self::normalize_object_text_translations( get_post_meta( $post->ID, '_taka_text_translations', true ), self::translatable_text_fields( 'event' ) ),
 				'title' => get_the_title( $post ),
 				'subtitle' => (string) get_post_meta( $post->ID, '_taka_subtitle', true ),
 				'description' => (string) get_post_meta( $post->ID, '_taka_short_description', true ) ?: $post->post_content,
@@ -327,20 +407,20 @@ class TAKA_Platform_Data {
 	/** Normalize config organizers. */
 	private static function normalize_config_organizers( $organizers ) {
 		$items = array();
-		foreach ( $organizers as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['logo_url'] = $item['logo'] ?? ''; $item['logo_id'] = 0; $item['country'] = $item['country'] ?? ''; $item['country_code'] = $item['country_code'] ?? ''; $item['flag'] = $item['flag'] ?? ''; $item['social_links'] = $item['social'] ?? array(); $item['description'] = $item['description'] ?? ''; $item['co_organizers'] = self::normalize_co_organizers( $item['co_organizers'] ?? array() ); $item['active'] = $item['active'] ?? true; $items[ (string) $id ] = $item; }
+		foreach ( $organizers as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['source_language'] = $item['source_language'] ?? self::platform_fallback_language(); $item['text_translations'] = self::normalize_object_text_translations( $item['text_translations'] ?? array(), self::translatable_text_fields( 'organizer' ) ); $item['logo_url'] = $item['logo'] ?? ''; $item['logo_id'] = 0; $item['country'] = $item['country'] ?? ''; $item['country_code'] = $item['country_code'] ?? ''; $item['flag'] = $item['flag'] ?? ''; $item['social_links'] = $item['social'] ?? array(); $item['description'] = $item['description'] ?? ''; $item['co_organizers'] = self::normalize_co_organizers( $item['co_organizers'] ?? array() ); $item['active'] = $item['active'] ?? true; $items[ (string) $id ] = $item; }
 		return $items;
 	}
 
 	/** Normalize config venues. */
 	private static function normalize_config_venues( $venues ) {
 		$items = array();
-		foreach ( $venues as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['flag'] = $item['flag'] ?? ''; $item['route_map_x'] = $item['route_map_x'] ?? ( $item['map_x'] ?? null ); $item['route_map_y'] = $item['route_map_y'] ?? ( $item['map_y'] ?? null ); $item['route_map_label'] = $item['route_map_label'] ?? ( $item['map_label'] ?? '' ); $item['image_id'] = $item['image_id'] ?? 0; $item['image_url'] = $item['image_url'] ?? ( $item['image'] ?? '' ); $item['parking_image_id'] = $item['parking_image_id'] ?? 0; $item['parking_image_url'] = $item['parking_image_url'] ?? ''; $item['gallery_image_ids'] = $item['gallery_image_ids'] ?? array(); $items[ (string) $id ] = $item; }
+		foreach ( $venues as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['source_language'] = $item['source_language'] ?? self::platform_fallback_language(); $item['text_translations'] = self::normalize_object_text_translations( $item['text_translations'] ?? array(), self::translatable_text_fields( 'venue' ) ); $item['flag'] = $item['flag'] ?? ''; $item['route_map_x'] = $item['route_map_x'] ?? ( $item['map_x'] ?? null ); $item['route_map_y'] = $item['route_map_y'] ?? ( $item['map_y'] ?? null ); $item['route_map_label'] = $item['route_map_label'] ?? ( $item['map_label'] ?? '' ); $item['image_id'] = $item['image_id'] ?? 0; $item['image_url'] = $item['image_url'] ?? ( $item['image'] ?? '' ); $item['parking_image_id'] = $item['parking_image_id'] ?? 0; $item['parking_image_url'] = $item['parking_image_url'] ?? ''; $item['gallery_image_ids'] = $item['gallery_image_ids'] ?? array(); $items[ (string) $id ] = $item; }
 		return $items;
 	}
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null ); $event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null ); $event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' ); $event['route_order'] = $event['route_order'] ?? null; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); $event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' ); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['source_language'] = $event['source_language'] ?? self::platform_fallback_language(); $event['text_translations'] = self::normalize_object_text_translations( $event['text_translations'] ?? array(), self::translatable_text_fields( 'event' ) ); $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null ); $event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null ); $event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' ); $event['route_order'] = $event['route_order'] ?? null; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); $event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' ); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -819,7 +899,9 @@ class TAKA_Platform_Data {
 
 	/** Venues that have enough public information for the practical-info section. */
 	public static function venues_for_practical_info() {
-		return array_values( array_filter( self::get_venues(), static function ( $venue ) {
+		$lang = taka_tour_current_language();
+		$venues = array_map( static function ( $venue ) use ( $lang ) { return self::resolve_object_text_fields( $venue, 'venue', $lang ); }, self::get_venues() );
+		return array_values( array_filter( $venues, static function ( $venue ) {
 			$address = $venue['address'] ?? array();
 			$values  = array( $venue['name'] ?? '', $venue['website'] ?? '', $venue['parking'] ?? '', $venue['accessibility'] ?? '', $venue['notes'] ?? '', $address['street'] ?? '', $address['city'] ?? '' );
 			return '' !== trim( implode( '', array_map( 'strval', $values ) ) );
@@ -909,11 +991,14 @@ class TAKA_Platform_Data {
 		$venues = self::get_venues();
 		return array_map( static function ( $event ) use ( $lang, $organizers, $venues ) {
 			$slug = $event['slug'] ?? '';
+			$event = self::resolve_object_text_fields( $event, 'event', $lang );
 			$organizer_relationships = self::enrich_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '', $organizers, $lang );
 			$ticket_organizers = self::ticket_organizer_relationships( $organizer_relationships, $lang );
 			$primary_relationship = $organizer_relationships[0] ?? null;
 			$organizer = is_array( $primary_relationship ) ? ( $primary_relationship['organizer'] ?? null ) : ( $organizers[ (string) ( $event['organizer'] ?? '' ) ] ?? null );
+			$organizer = is_array( $organizer ) ? self::resolve_object_text_fields( $organizer, 'organizer', $lang ) : $organizer;
 			$venue = $venues[ (string) ( $event['venue'] ?? '' ) ] ?? null;
+			$venue = is_array( $venue ) ? self::resolve_object_text_fields( $venue, 'venue', $lang ) : $venue;
 			$event['languages'] = ! empty( $event['languages'] ) ? $event['languages'] : self::languages_for_country( $event['country'] ?? '' );
 			$event['subtitle'] = taka_tour_translate( 'seminars.' . $slug . '.subtitle', $event['subtitle'] ?? '', $lang );
 			$event['description'] = taka_tour_translate( 'seminars.' . $slug . '.description', $event['description'] ?? '', $lang );
@@ -1049,6 +1134,7 @@ class TAKA_Platform_Data {
 			if ( empty( $item['visible'] ) ) { continue; }
 			$organizer = $organizers[ (string) $item['organizer_id'] ] ?? null;
 			if ( ! is_array( $organizer ) ) { continue; }
+			$organizer = self::resolve_object_text_fields( $organizer, 'organizer', $lang );
 			$item['label'] = '' !== (string) $item['custom_label'] ? (string) $item['custom_label'] : ( $labels[ $item['relationship_type'] ] ?? $labels['organizer'] );
 			$item['organizer'] = $organizer;
 			$item['drawer_key'] = 'organizer_' . sanitize_key( (string) $item['organizer_id'] ) . '_' . sanitize_key( $item['relationship_type'] );
