@@ -910,6 +910,7 @@ class TAKA_Platform_Data {
 		return array_map( static function ( $event ) use ( $lang, $organizers, $venues ) {
 			$slug = $event['slug'] ?? '';
 			$organizer_relationships = self::enrich_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '', $organizers, $lang );
+			$ticket_organizers = self::ticket_organizer_relationships( $organizer_relationships, $lang );
 			$primary_relationship = $organizer_relationships[0] ?? null;
 			$organizer = is_array( $primary_relationship ) ? ( $primary_relationship['organizer'] ?? null ) : ( $organizers[ (string) ( $event['organizer'] ?? '' ) ] ?? null );
 			$venue = $venues[ (string) ( $event['venue'] ?? '' ) ] ?? null;
@@ -933,6 +934,7 @@ class TAKA_Platform_Data {
 			$event['program_groups'] = self::program_groups( $event['program_items'], $lang );
 			$event['program_summary'] = self::program_summary_text( $event['program_items'], $lang );
 			$event['organizer_relationships'] = $organizer_relationships;
+			$event['ticket_organizers'] = $ticket_organizers;
 			$event['organizer_data'] = is_array( $organizer ) ? $organizer : null;
 			$event['organizer_name'] = is_array( $organizer ) ? ( $organizer['name'] ?? '' ) : '';
 			$event['hosts'] = 'Details folgen' === $event['organizer_name'] ? taka_tour_translate( 'event.details_follow', 'Details folgen', $lang ) : $event['organizer_name'];
@@ -1055,6 +1057,70 @@ class TAKA_Platform_Data {
 		return $out;
 	}
 
+	/** Organizer rows shown in the ticket panel: event organizers plus profile co-organizers. */
+	private static function ticket_organizer_relationships( $organizer_relationships, $lang ) {
+		$labels = self::organizer_relationship_type_labels( $lang );
+		$out = array();
+		$seen = array();
+		foreach ( (array) $organizer_relationships as $relationship ) {
+			if ( ! is_array( $relationship ) ) { continue; }
+			$organizer = $relationship['organizer'] ?? null;
+			if ( ! is_array( $organizer ) || empty( $organizer['name'] ) ) { continue; }
+			$key = self::organizer_display_key( $organizer );
+			if ( isset( $seen[ $key ] ) ) { continue; }
+			$seen[ $key ] = true;
+			$out[] = $relationship;
+			foreach ( self::co_organizers_as_relationships( $organizer['co_organizers'] ?? array(), $relationship, $labels ) as $co_relationship ) {
+				$co_key = self::organizer_display_key( $co_relationship['organizer'] ?? array() );
+				if ( isset( $seen[ $co_key ] ) ) { continue; }
+				$seen[ $co_key ] = true;
+				$out[] = $co_relationship;
+			}
+		}
+		return $out;
+	}
+
+	/** Convert active profile co-organizers into ticket-display relationship rows. */
+	private static function co_organizers_as_relationships( $co_organizers, $parent_relationship, $labels ) {
+		$out = array();
+		$parent_id = sanitize_key( (string) ( $parent_relationship['organizer_id'] ?? 'organizer' ) );
+		foreach ( self::normalize_co_organizers( $co_organizers ) as $index => $co_organizer ) {
+			if ( empty( $co_organizer['active'] ) ) { continue; }
+			$email = trim( (string) ( $co_organizer['email'] ?? '' ) );
+			$organizer = array(
+				'id' => $parent_id . '_co_' . $index,
+				'name' => $co_organizer['name'] ?? '',
+				'legal_name' => $co_organizer['legal_name'] ?? '',
+				'website' => $co_organizer['website'] ?? '',
+				'logo_id' => $co_organizer['logo_id'] ?? 0,
+				'logo_url' => $co_organizer['logo_url'] ?? '',
+				'logo' => $co_organizer['logo_url'] ?? '',
+				'emails' => '' !== $email ? array( $email ) : array(),
+				'contact_persons' => array(),
+				'description' => $co_organizer['description'] ?? '',
+				'social_links' => $co_organizer['social_links'] ?? array(),
+				'co_organizers' => array(),
+			);
+			$out[] = array(
+				'organizer_id' => $organizer['id'],
+				'relationship_type' => 'co_organizer',
+				'custom_label' => '',
+				'visible' => 1,
+				'sort_order' => (int) ( $co_organizer['sort_order'] ?? ( 100 + $index ) ),
+				'label' => $labels['co_organizer'] ?? ( $labels['organizer'] ?? 'Co-organizer' ),
+				'organizer' => $organizer,
+				'drawer_key' => 'organizer_' . $parent_id . '_co_' . sanitize_key( (string) $index ),
+			);
+		}
+		return $out;
+	}
+
+	/** Stable duplicate key for organizer display rows. */
+	private static function organizer_display_key( $organizer ) {
+		$parts = array( $organizer['id'] ?? '', $organizer['name'] ?? '', $organizer['website'] ?? '', self::list_to_string( $organizer['emails'] ?? array() ) );
+		return md5( strtolower( trim( implode( '|', array_map( 'strval', $parts ) ) ) ) );
+	}
+
 	private static function ticket_overview_image_alt( $event, $organizer, $lang ) {
 		$title = trim( (string) ( $event['title'] ?? '' ) );
 		if ( '' !== $title ) {
@@ -1145,7 +1211,7 @@ class TAKA_Platform_Data {
 			);
 		}
 
-		foreach ( $event['organizer_relationships'] ?? array() as $relationship ) {
+		foreach ( $event['ticket_organizers'] ?? ( $event['organizer_relationships'] ?? array() ) as $relationship ) {
 			$rel_organizer = $relationship['organizer'] ?? null;
 			if ( ! is_array( $rel_organizer ) ) { continue; }
 			$key = $relationship['drawer_key'] ?? ( 'organizer_' . sanitize_key( (string) ( $relationship['organizer_id'] ?? '' ) ) );
