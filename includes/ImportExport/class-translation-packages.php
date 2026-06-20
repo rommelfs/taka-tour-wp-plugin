@@ -290,6 +290,12 @@ class TAKA_Platform_Translation_Packages {
 		$venues = self::post_text_objects( TAKA_Platform_Data::get_venues(), 'venue' );
 		return array(
 			array(
+				'type' => 'option_list',
+				'context_prefix' => 'Option List',
+				'fields' => array( 'label' => 'Label' ),
+				'objects' => TAKA_Platform_Data::option_list_translation_objects(),
+			),
+			array(
 				'type' => 'content_section',
 				'context_prefix' => 'Homepage / Content Section',
 				'fields' => array( 'kicker' => 'Kicker', 'title' => 'Title', 'subtitle' => 'Subtitle', 'body' => 'Body', 'button_label' => 'Button label' ),
@@ -409,6 +415,9 @@ class TAKA_Platform_Translation_Packages {
 			if ( ! empty( $changes[ $type ] ) ) {
 				self::apply_post_text_changes( $post_type, $changes[ $type ] );
 			}
+		}
+		if ( ! empty( $changes['option_list'] ) ) {
+			TAKA_Platform_Data::update_option_list_translations( $changes['option_list'] );
 		}
 	}
 

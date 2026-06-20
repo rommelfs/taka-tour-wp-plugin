@@ -71,6 +71,10 @@ Events support tour/event concepts such as title, subtitle, description, organiz
 
 Organizers support legal names, websites, logos, contact data, social links and repeatable co-organizers with their own logo, website, email, description and active/sort controls. Events can also use global or event-specific booking information for groups, multi-event discounts, payment and cancellation notes. Homepage content sections can be exported as portable config data and used as fallback/demo editorial content. Venues support addresses, websites, parking/accessibility notes, geo data and venue/parking images.
 
+## Option lists
+
+Recurring event fields such as audience and format use configurable option lists from **TAKA Platform -> Settings**. Events store stable option keys where possible, while unknown legacy text values remain valid and continue to render as fallback text. Option labels have a source language, translations, sort order and enabled state, and are included in TAKA Translation Packages.
+
 ## Hero route map
 
 The Hero location overview supports configurable display modes: list, flags, route map and route map with list. The route map is a lightweight SVG/HTML tour infographic with clickable event stops, optional `route_map_x` / `route_map_y` event or venue coordinates, automatic route layout fallback, flags and an accessible fallback list for keyboard, screen-reader and mobile users. Legacy `map` and `map_with_list` display modes are normalized to the route map modes for backward compatibility.

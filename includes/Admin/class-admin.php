@@ -34,6 +34,7 @@ class TAKA_Platform_Admin {
 		add_action( 'admin_post_taka_platform_save_dashboard_settings', array( __CLASS__, 'handle_save_dashboard_settings' ) );
 		add_action( 'admin_post_taka_platform_save_booking_information', array( __CLASS__, 'handle_save_booking_information' ) );
 		add_action( 'admin_post_taka_platform_save_ticket_section', array( __CLASS__, 'handle_save_ticket_section' ) );
+		add_action( 'admin_post_taka_platform_save_option_lists', array( __CLASS__, 'handle_save_option_lists' ) );
 		add_action( 'admin_post_taka_platform_sync_translations', array( __CLASS__, 'handle_sync_translations' ) );
 		add_action( 'admin_post_taka_platform_export_translation_audit', array( __CLASS__, 'handle_export_translation_audit' ) );
 		add_action( 'admin_post_taka_platform_export_translation_package', array( __CLASS__, 'handle_export_translation_package' ) );
@@ -691,6 +692,7 @@ class TAKA_Platform_Admin {
 		$hero = TAKA_Platform_Data::get_hero_settings();
 		$booking = TAKA_Platform_Data::get_booking_information_settings();
 		$tickets = TAKA_Platform_Data::get_ticket_section_settings( null, false );
+		$option_lists = TAKA_Platform_Data::get_option_lists( true );
 		$positions = array( 'left' => __( 'Left', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'right' => __( 'Right', 'taka-platform' ) );
 		$verticals = array( 'top' => __( 'Top', 'taka-platform' ), 'center' => __( 'Center', 'taka-platform' ), 'bottom' => __( 'Bottom', 'taka-platform' ) );
 		$location_modes = array( 'list' => __( 'List', 'taka-platform' ), 'flags' => __( 'Flags', 'taka-platform' ), 'route_map' => __( 'Map view', 'taka-platform' ), 'route_map_with_list' => __( 'Map with list', 'taka-platform' ) );
@@ -744,6 +746,13 @@ class TAKA_Platform_Admin {
 					<tr><th scope="row"><?php echo esc_html__( 'Seminar overview section', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="tickets[show_seminar_overview]" value="1" <?php checked( (string) ( $tickets['show_seminar_overview'] ?? '0' ), '1' ); ?>> <?php echo esc_html__( 'Show the legacy Seminars in Europe overview on the homepage', 'taka-platform' ); ?></label><p class="description"><?php echo esc_html__( 'Disabled by default because the tabbed ticket section is now the primary event selector.', 'taka-platform' ); ?></p></td></tr>
 				</tbody></table>
 				<?php submit_button( __( 'Save ticket section', 'taka-platform' ) ); ?>
+			</form>
+			<h2><?php echo esc_html__( 'Option lists', 'taka-platform' ); ?></h2>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="taka_platform_save_option_lists">
+				<?php wp_nonce_field( TAKA_Platform_Data::OPTION_LISTS_OPTION, self::NONCE ); ?>
+				<?php self::render_option_lists_settings( $option_lists ); ?>
+				<?php submit_button( __( 'Save option lists', 'taka-platform' ) ); ?>
 			</form>
 			<h2><?php echo esc_html__( 'Booking Information', 'taka-platform' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -1004,6 +1013,16 @@ class TAKA_Platform_Admin {
 		exit;
 	}
 
+	/** Save configurable option lists. */
+	public static function handle_save_option_lists() {
+		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
+		check_admin_referer( TAKA_Platform_Data::OPTION_LISTS_OPTION, self::NONCE );
+		$posted = isset( $_POST['option_lists'] ) && is_array( $_POST['option_lists'] ) ? wp_unslash( $_POST['option_lists'] ) : array();
+		update_option( TAKA_Platform_Data::OPTION_LISTS_OPTION, TAKA_Platform_Data::normalize_option_lists( $posted, true ), false );
+		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );
+		exit;
+	}
+
 	/** Save global booking-information settings. */
 	public static function handle_save_booking_information() {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
@@ -1206,7 +1225,10 @@ class TAKA_Platform_Admin {
 	public static function render_event_meta_box( $post ) {
 		self::nonce();
 		self::render_object_source_language_field( $post->ID );
-		foreach ( array( 'subtitle' => 'Subtitle', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'route_map_x' => 'Route map X (0–100)', 'route_map_y' => 'Route map Y (0–100)', 'route_map_label' => 'Route map label', 'route_order' => 'Route order', 'city' => 'City', 'doors_open' => 'Doors open', 'timezone' => 'Timezone', 'format' => 'Format', 'audience' => 'Audience', 'level' => 'Level', 'ticket_provider' => 'Ticket provider', 'ticket_status' => 'Ticket status', 'languages' => 'Languages, comma-separated' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		foreach ( array( 'subtitle' => 'Subtitle', 'country' => 'Country', 'country_code' => 'Country code', 'flag' => 'Flag', 'route_map_x' => 'Route map X (0–100)', 'route_map_y' => 'Route map Y (0–100)', 'route_map_label' => 'Route map label', 'route_order' => 'Route order', 'city' => 'City', 'doors_open' => 'Doors open', 'timezone' => 'Timezone' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		self::event_option_select( $post->ID, 'format', __( 'Format', 'taka-platform' ) );
+		self::event_option_select( $post->ID, 'audience', __( 'Audience', 'taka-platform' ) );
+		foreach ( array( 'level' => 'Level', 'ticket_provider' => 'Ticket provider', 'ticket_status' => 'Ticket status', 'languages' => 'Languages, comma-separated' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::render_event_program_fields( $post->ID );
 		self::organizer_relation( $post->ID, 'organizer_id', __( 'Primary organizer', 'taka-platform' ) );
 		self::render_event_organizer_relationship_fields( $post->ID );
@@ -1542,6 +1564,76 @@ class TAKA_Platform_Admin {
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
 	private static function textarea_with_description( $post_id, $field, $label, $description ) { self::field( $label, '<textarea class="widefat" rows="4" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea><p class="description">' . esc_html( $description ) . '</p>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
+
+	private static function event_option_select( $post_id, $field, $label ) {
+		$raw = (string) self::meta( $post_id, $field );
+		$matched_key = TAKA_Platform_Data::option_key_for_value( $field, $raw );
+		$current = '' !== $matched_key ? $matched_key : $raw;
+		$choices = array( '' => __( '— Select —', 'taka-platform' ) ) + TAKA_Platform_Data::option_list_choices( $field, TAKA_Platform_Data::platform_fallback_language() );
+		if ( '' !== $raw && '' === $matched_key && ! isset( $choices[ $raw ] ) ) {
+			$choices[ $raw ] = sprintf( __( 'Custom / legacy: %s', 'taka-platform' ), $raw );
+		}
+		$html = '<select class="widefat" name="_taka_' . esc_attr( $field ) . '">';
+		foreach ( $choices as $value => $choice_label ) {
+			$html .= '<option value="' . esc_attr( $value ) . '" ' . selected( $current, (string) $value, false ) . '>' . esc_html( $choice_label ) . '</option>';
+		}
+		$html .= '</select>';
+		if ( '' !== $raw && '' === $matched_key ) {
+			$html .= '<p class="description">' . esc_html__( 'This event uses a custom legacy value. It will continue to display unless you choose a configured option.', 'taka-platform' ) . '</p>';
+		}
+		self::field( $label, $html );
+	}
+
+	private static function render_option_lists_settings( $option_lists ) {
+		$languages = TAKA_Platform_Translation_Packages::language_labels();
+		foreach ( TAKA_Platform_Data::event_option_list_fields() as $list_key => $list_label ) :
+			$list = $option_lists[ $list_key ] ?? array( 'label' => $list_label, 'options' => array() );
+			$options = $list['options'] ?? array();
+			$options[] = array( 'key' => '', 'label' => '', 'source_language' => 'de', 'translations' => array(), 'sort_order' => 100, 'enabled' => '1' );
+			?>
+			<div class="postbox" style="padding:1rem;max-width:1080px;">
+				<h3><?php echo esc_html( $list['label'] ?? $list_label ); ?></h3>
+				<input type="hidden" name="option_lists[<?php echo esc_attr( $list_key ); ?>][label]" value="<?php echo esc_attr( $list['label'] ?? $list_label ); ?>">
+				<table class="widefat striped">
+					<thead>
+						<tr>
+							<th><?php echo esc_html__( 'Key', 'taka-platform' ); ?></th>
+							<th><?php echo esc_html__( 'Source label', 'taka-platform' ); ?></th>
+							<th><?php echo esc_html__( 'Source language', 'taka-platform' ); ?></th>
+							<th><?php echo esc_html__( 'Translations', 'taka-platform' ); ?></th>
+							<th><?php echo esc_html__( 'Sort order', 'taka-platform' ); ?></th>
+							<th><?php echo esc_html__( 'Enabled', 'taka-platform' ); ?></th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $options as $index => $option ) : ?>
+							<?php $prefix = 'option_lists[' . $list_key . '][options][' . $index . ']'; ?>
+							<tr>
+								<td><input type="text" name="<?php echo esc_attr( $prefix ); ?>[key]" value="<?php echo esc_attr( $option['key'] ?? '' ); ?>" placeholder="<?php echo esc_attr__( 'new_option_key', 'taka-platform' ); ?>"></td>
+								<td><input type="text" name="<?php echo esc_attr( $prefix ); ?>[label]" value="<?php echo esc_attr( $option['label'] ?? '' ); ?>"></td>
+								<td>
+									<select name="<?php echo esc_attr( $prefix ); ?>[source_language]">
+										<?php foreach ( $languages as $lang => $label ) : ?>
+											<option value="<?php echo esc_attr( $lang ); ?>" <?php selected( $option['source_language'] ?? 'de', $lang ); ?>><?php echo esc_html( $label ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</td>
+								<td>
+									<?php foreach ( $languages as $lang => $label ) : ?>
+										<label style="display:block;margin-bottom:4px;"><span style="display:inline-block;min-width:2.5rem;"><?php echo esc_html( strtoupper( $lang ) ); ?></span><input type="text" name="<?php echo esc_attr( $prefix ); ?>[translations][<?php echo esc_attr( $lang ); ?>]" value="<?php echo esc_attr( $option['translations'][ $lang ] ?? '' ); ?>"></label>
+									<?php endforeach; ?>
+								</td>
+								<td><input type="number" name="<?php echo esc_attr( $prefix ); ?>[sort_order]" value="<?php echo esc_attr( (string) ( $option['sort_order'] ?? 0 ) ); ?>"></td>
+								<td><label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>[enabled]" value="1" <?php checked( '1', (string) ( $option['enabled'] ?? '1' ) ); ?>> <?php echo esc_html__( 'Enabled', 'taka-platform' ); ?></label></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+				<p class="description"><?php echo esc_html__( 'Leave the final blank row empty, or fill it to add a new option.', 'taka-platform' ); ?></p>
+			</div>
+			<?php
+		endforeach;
+	}
 
 	private static function render_event_advanced_unused_fields( $post_id ) {
 		?>

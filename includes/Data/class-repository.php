@@ -14,6 +14,196 @@ class TAKA_Platform_Data {
 	const SECTIONS_OPTION = 'taka_platform_content_sections';
 	const BOOKING_OPTION = 'taka_platform_booking_information';
 	const TICKETS_OPTION = 'taka_platform_ticket_section_settings';
+	const OPTION_LISTS_OPTION = 'taka_platform_option_lists';
+
+	/** Event fields backed by configurable option lists. */
+	public static function event_option_list_fields() {
+		return array(
+			'audience' => 'Audience',
+			'format' => 'Format',
+		);
+	}
+
+	/** Default configurable option lists. */
+	public static function default_option_lists() {
+		return array(
+			'audience' => array(
+				'label' => 'Audience',
+				'options' => array(
+					array( 'key' => 'adults', 'label' => 'Erwachsene', 'source_language' => 'de', 'sort_order' => 10, 'enabled' => '1' ),
+					array( 'key' => 'children', 'label' => 'Kinder', 'source_language' => 'de', 'sort_order' => 20, 'enabled' => '1' ),
+					array( 'key' => 'children_and_youth', 'label' => 'Kinder und Jugendliche', 'source_language' => 'de', 'sort_order' => 30, 'enabled' => '1' ),
+					array( 'key' => 'youth', 'label' => 'Jugendliche', 'source_language' => 'de', 'sort_order' => 40, 'enabled' => '1' ),
+					array( 'key' => 'adults_and_youth', 'label' => 'Erwachsene und Jugendliche', 'source_language' => 'de', 'sort_order' => 50, 'enabled' => '1' ),
+					array( 'key' => 'all', 'label' => 'Alle', 'source_language' => 'de', 'sort_order' => 60, 'enabled' => '1' ),
+				),
+			),
+			'format' => array(
+				'label' => 'Format',
+				'options' => array(
+					array( 'key' => 'evening_seminar', 'label' => 'Abendseminar', 'source_language' => 'de', 'sort_order' => 10, 'enabled' => '1' ),
+					array( 'key' => 'half_day_seminar', 'label' => 'Halbtagseminar', 'source_language' => 'de', 'sort_order' => 20, 'enabled' => '1' ),
+					array( 'key' => 'day_seminar', 'label' => 'Tagesseminar', 'source_language' => 'de', 'sort_order' => 30, 'enabled' => '1' ),
+					array( 'key' => 'two_day_seminar', 'label' => '2-Tage-Seminar', 'source_language' => 'de', 'sort_order' => 40, 'enabled' => '1' ),
+					array( 'key' => 'weekend_seminar', 'label' => 'Wochenendseminar', 'source_language' => 'de', 'sort_order' => 50, 'enabled' => '1' ),
+					array( 'key' => 'tour_event', 'label' => 'Tour-Event', 'source_language' => 'de', 'sort_order' => 60, 'enabled' => '1' ),
+					array( 'key' => 'seminar', 'label' => 'Seminar', 'source_language' => 'de', 'sort_order' => 70, 'enabled' => '1' ),
+				),
+			),
+		);
+	}
+
+	/** Load normalized configurable option lists. */
+	public static function get_option_lists( $include_disabled = true ) {
+		$stored = function_exists( 'get_option' ) ? get_option( self::OPTION_LISTS_OPTION, array() ) : array();
+		return self::normalize_option_lists( is_array( $stored ) && ! empty( $stored ) ? $stored : self::default_option_lists(), $include_disabled );
+	}
+
+	/** Normalize option-list settings from defaults or admin input. */
+	public static function normalize_option_lists( $lists, $include_disabled = true ) {
+		$defaults = self::default_option_lists();
+		$lists = is_array( $lists ) ? $lists : array();
+		$normalized = array();
+		foreach ( self::event_option_list_fields() as $list_key => $fallback_label ) {
+			$list = is_array( $lists[ $list_key ] ?? null ) ? $lists[ $list_key ] : ( $defaults[ $list_key ] ?? array() );
+			$options = array();
+			foreach ( (array) ( $list['options'] ?? array() ) as $option ) {
+				if ( ! is_array( $option ) ) { continue; }
+				$key = sanitize_key( $option['key'] ?? '' );
+				$label = sanitize_text_field( $option['label'] ?? '' );
+				if ( '' === $key || '' === $label ) { continue; }
+				$source_language = in_array( $option['source_language'] ?? '', self::content_section_languages(), true ) ? sanitize_key( $option['source_language'] ) : self::platform_fallback_language();
+				$translations = array();
+				foreach ( self::content_section_languages() as $lang ) {
+					$translations[ $lang ] = sanitize_text_field( $option['translations'][ $lang ] ?? '' );
+				}
+				$enabled = array_key_exists( 'enabled', $option ) ? ( ! empty( $option['enabled'] ) ? '1' : '0' ) : '1';
+				if ( ! $include_disabled && '1' !== $enabled ) { continue; }
+				$options[ $key ] = array(
+					'key' => $key,
+					'label' => $label,
+					'source_language' => $source_language,
+					'translations' => $translations,
+					'sort_order' => (int) ( $option['sort_order'] ?? 0 ),
+					'enabled' => $enabled,
+				);
+			}
+			usort( $options, static function ( $a, $b ) { return ( (int) ( $a['sort_order'] ?? 0 ) <=> (int) ( $b['sort_order'] ?? 0 ) ) ?: strcmp( (string) ( $a['label'] ?? '' ), (string) ( $b['label'] ?? '' ) ); } );
+			$normalized[ $list_key ] = array(
+				'label' => sanitize_text_field( $list['label'] ?? $fallback_label ),
+				'options' => array_values( $options ),
+			);
+		}
+		return $normalized;
+	}
+
+	/** Resolve the display label for an option-list value, preserving unknown legacy text. */
+	public static function resolve_option_list_label( $list_key, $value, $lang = null, $legacy_fallback = '' ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) { return ''; }
+		$lang = $lang ?: taka_tour_current_language();
+		foreach ( self::get_option_lists( false )[ $list_key ]['options'] ?? array() as $option ) {
+			if ( self::option_matches_value( $option, $value ) ) {
+				if ( self::option_should_use_legacy_fallback( $option, $value, $lang, $legacy_fallback ) ) {
+					return (string) $legacy_fallback;
+				}
+				return self::option_label_for_language( $option, $lang );
+			}
+		}
+		return '' !== trim( (string) $legacy_fallback ) ? (string) $legacy_fallback : $value;
+	}
+
+	/** Return the stable key for a configured option value or legacy label. */
+	public static function option_key_for_value( $list_key, $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) { return ''; }
+		foreach ( self::get_option_lists( true )[ $list_key ]['options'] ?? array() as $option ) {
+			if ( self::option_matches_value( $option, $value ) ) {
+				return (string) ( $option['key'] ?? '' );
+			}
+		}
+		return '';
+	}
+
+	/** Build admin choices for an event option-list field. */
+	public static function option_list_choices( $list_key, $lang = null ) {
+		$lang = $lang ?: self::platform_fallback_language();
+		$choices = array();
+		foreach ( self::get_option_lists( false )[ $list_key ]['options'] ?? array() as $option ) {
+			$choices[ (string) ( $option['key'] ?? '' ) ] = self::option_label_for_language( $option, $lang );
+		}
+		return array_filter( $choices, static function ( $label, $key ) { return '' !== (string) $key && '' !== trim( (string) $label ); }, ARRAY_FILTER_USE_BOTH );
+	}
+
+	/** Option list objects for translation packages. */
+	public static function option_list_translation_objects() {
+		$objects = array();
+		foreach ( self::get_option_lists( true ) as $list_key => $list ) {
+			foreach ( $list['options'] ?? array() as $option ) {
+				$object_id = $list_key . '.' . ( $option['key'] ?? '' );
+				$values = $option['translations'] ?? array();
+				$values[ $option['source_language'] ?? self::platform_fallback_language() ] = $option['label'] ?? '';
+				$objects[ $object_id ] = array(
+					'label' => ( $list['label'] ?? $list_key ) . ' / ' . ( $option['label'] ?? $option['key'] ?? '' ),
+					'source_language' => $option['source_language'] ?? self::platform_fallback_language(),
+					'values' => array( 'label' => $values ),
+				);
+			}
+		}
+		return $objects;
+	}
+
+	/** Update option-list translations from imported translation packages. */
+	public static function update_option_list_translations( $changes ) {
+		$lists = self::get_option_lists( true );
+		foreach ( (array) $changes as $object_id => $fields ) {
+			$parts = explode( '.', (string) $object_id, 2 );
+			if ( 2 !== count( $parts ) ) { continue; }
+			list( $list_key, $option_key ) = $parts;
+			if ( empty( $lists[ $list_key ]['options'] ) ) { continue; }
+			foreach ( $lists[ $list_key ]['options'] as $index => $option ) {
+				if ( (string) ( $option['key'] ?? '' ) !== $option_key ) { continue; }
+				foreach ( (array) ( $fields['label'] ?? array() ) as $lang => $text ) {
+					if ( in_array( $lang, self::content_section_languages(), true ) ) {
+						$lists[ $list_key ]['options'][ $index ]['translations'][ $lang ] = sanitize_text_field( $text );
+					}
+				}
+			}
+		}
+		if ( function_exists( 'update_option' ) ) {
+			update_option( self::OPTION_LISTS_OPTION, $lists, false );
+		}
+	}
+
+	private static function option_matches_value( $option, $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) { return false; }
+		if ( $value === (string) ( $option['key'] ?? '' ) ) { return true; }
+		$candidates = array_merge( array( $option['label'] ?? '' ), array_values( (array) ( $option['translations'] ?? array() ) ) );
+		foreach ( $candidates as $candidate ) {
+			if ( 0 === strcasecmp( $value, trim( (string) $candidate ) ) ) { return true; }
+		}
+		return false;
+	}
+
+	private static function option_label_for_language( $option, $lang ) {
+		$source_language = $option['source_language'] ?? self::platform_fallback_language();
+		$values = (array) ( $option['translations'] ?? array() );
+		$values[ $source_language ] = $option['label'] ?? '';
+		return self::resolve_dynamic_text( $values, $lang, $source_language );
+	}
+
+	private static function option_should_use_legacy_fallback( $option, $value, $lang, $legacy_fallback ) {
+		$legacy_fallback = trim( (string) $legacy_fallback );
+		if ( '' === $legacy_fallback || 0 === strcasecmp( trim( (string) $value ), $legacy_fallback ) ) {
+			return false;
+		}
+		$source_language = $option['source_language'] ?? self::platform_fallback_language();
+		if ( $lang === $source_language ) {
+			return false;
+		}
+		return '' === trim( (string) ( $option['translations'][ $lang ] ?? '' ) );
+	}
 
 
 	/** User-facing text fields that support object-level translations. */
@@ -1067,8 +1257,10 @@ class TAKA_Platform_Data {
 			if ( ! self::is_wordpress_event_record( $event ) ) {
 				$event['description'] = taka_tour_translate( 'seminars.' . $slug . '.description', $event['description'] ?? '', $lang );
 			}
-			$event['format'] = taka_tour_translate( 'seminars.' . $slug . '.type', $event['format'] ?? '', $lang );
-			$event['audience'] = taka_tour_translate( 'seminars.' . $slug . '.audience', $event['audience'] ?? '', $lang );
+			$legacy_format = self::is_wordpress_event_record( $event ) ? ( $event['format'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.type', $event['format'] ?? '', $lang );
+			$legacy_audience = self::is_wordpress_event_record( $event ) ? ( $event['audience'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.audience', $event['audience'] ?? '', $lang );
+			$event['format'] = self::resolve_option_list_label( 'format', $event['format'] ?? '', $lang, $legacy_format );
+			$event['audience'] = self::resolve_option_list_label( 'audience', $event['audience'] ?? '', $lang, $legacy_audience );
 			$event['level'] = taka_tour_translate( 'seminars.' . $slug . '.level', $event['level'] ?? '', $lang );
 			$event['parking'] = taka_tour_translate( 'seminars.' . $slug . '.parking', $event['parking'] ?? '', $lang );
 			$event['type'] = $event['format'];
