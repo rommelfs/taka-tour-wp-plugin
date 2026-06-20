@@ -53,6 +53,7 @@ The WordPress admin menu is branded **TAKA Platform** and includes:
 - Events (`taka_event`)
 - Organizers (`taka_organizer`)
 - Venues (`taka_venue`)
+- Content Blocks (`taka_content_block`)
 - Media
 - Content Sections
 - Import / Export
@@ -60,6 +61,10 @@ The WordPress admin menu is branded **TAKA Platform** and includes:
 - Translations
 
 The dashboard explains the long form: **TAKA – Ticketing, Attendance, Knowledge & Administration**. Settings expose editable hero copy, hero image/layout controls, overlay strength, readable text-box options, ticket section headings and configurable booking information. Content Sections expose fully configurable homepage editorial blocks with add/delete controls, visibility, sort order, multilingual kicker/title/subtitle/body/button fields, layout/background styles, main/secondary images, galleries, image fit and image focus controls.
+
+## Content Blocks
+
+Reusable Content Blocks provide a single source of truth for editorial content that can appear in multiple places. Blocks have a source language, translated kicker/title/subtitle/body/button fields, optional media and an enabled flag. Homepage Content Sections and Event seminar descriptions can reference an existing block while preserving their local content as a fallback. TAKA Translation Packages export referenced blocks once with usage contexts, so shared copy is translated once instead of repeatedly. See [docs/content-blocks.md](docs/content-blocks.md).
 
 ## Organizer access control
 
@@ -157,6 +162,10 @@ The script checks PHP syntax for all `*.php` files with `php -l` and scans the r
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v2.1.0
+
+- Added reusable Content Blocks and Content References to reduce duplicated content and translations across events, sections and platform objects.
 
 ### v2.0.1
 

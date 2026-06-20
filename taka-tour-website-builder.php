@@ -2,20 +2,21 @@
 /**
  * Plugin Name: TAKA Platform
  * Description: Ticketing, Attendance, Knowledge & Administration for reusable event and seminar tours.
- * Version: 2.0.1
+ * Version: 2.1.0
  * Author: TAKA Platform
  * Text Domain: taka-platform
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TAKA_PLATFORM_VERSION', '2.0.1' );
+define( 'TAKA_PLATFORM_VERSION', '2.1.0' );
 define( 'TAKA_PLATFORM_PLUGIN_FILE', __FILE__ );
 define( 'TAKA_PLATFORM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TAKA_PLATFORM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'TAKA_PLATFORM_CPT_EVENT', 'taka_event' );
 define( 'TAKA_PLATFORM_CPT_ORGANIZER', 'taka_organizer' );
 define( 'TAKA_PLATFORM_CPT_VENUE', 'taka_venue' );
+define( 'TAKA_PLATFORM_CPT_CONTENT_BLOCK', 'taka_content_block' );
 
 // Backward-compatible constants for existing TAKA Tour installations and templates.
 define( 'TAKA_TOUR_VERSION', TAKA_PLATFORM_VERSION );

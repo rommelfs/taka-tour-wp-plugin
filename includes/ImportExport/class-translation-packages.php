@@ -205,6 +205,9 @@ class TAKA_Platform_Translation_Packages {
 					);
 					if ( $include_context ) {
 						$item['context'] = $definition['context_prefix'] . ' / ' . $object['label'] . ' / ' . $field_label;
+						if ( ! empty( $object['contexts'] ) && is_array( $object['contexts'] ) ) {
+							$item['contexts'] = array_values( array_unique( array_map( 'strval', $object['contexts'] ) ) );
+						}
 					}
 					$items[] = $item;
 				}
@@ -313,6 +316,7 @@ class TAKA_Platform_Translation_Packages {
 		$booking = TAKA_Platform_Data::get_booking_information_settings( null, false );
 		$tickets = TAKA_Platform_Data::get_ticket_section_settings( null, false );
 		$hero = TAKA_Platform_Data::get_hero_settings( false );
+		$content_blocks = self::content_block_objects();
 		$events = self::post_text_objects( TAKA_Platform_Data::get_events(), 'event' );
 		$organizers = self::post_text_objects( TAKA_Platform_Data::get_organizers(), 'organizer' );
 		$venues = self::post_text_objects( TAKA_Platform_Data::get_venues(), 'venue' );
@@ -328,6 +332,12 @@ class TAKA_Platform_Translation_Packages {
 				'context_prefix' => 'Homepage / Content Section',
 				'fields' => array( 'kicker' => 'Kicker', 'title' => 'Title', 'subtitle' => 'Subtitle', 'body' => 'Body', 'button_label' => 'Button label' ),
 				'objects' => $sections,
+			),
+			array(
+				'type' => 'content_block',
+				'context_prefix' => 'Content Block',
+				'fields' => TAKA_Platform_Data::content_block_text_fields(),
+				'objects' => $content_blocks,
 			),
 			array(
 				'type' => 'booking_information',
@@ -380,6 +390,28 @@ class TAKA_Platform_Translation_Packages {
 				'label' => (string) ( $object['title'] ?? ( $object['name'] ?? ( $object['city'] ?? $object_id ) ) ),
 				'source_language' => TAKA_Platform_Data::object_source_language( $object ),
 				'values' => TAKA_Platform_Data::object_text_values( $object, $fields ),
+			);
+		}
+		return $out;
+	}
+
+	private static function content_block_objects() {
+		$out = array();
+		$usage_contexts = TAKA_Platform_Data::content_block_usage_contexts();
+		foreach ( TAKA_Platform_Data::get_content_blocks( false ) as $key => $block ) {
+			if ( ! is_array( $block ) || (string) ( $block['id'] ?? '' ) !== (string) $key ) { continue; }
+			$object_id = (string) ( $block['slug'] ?? '' );
+			if ( '' === $object_id ) { $object_id = (string) ( $block['id'] ?? '' ); }
+			if ( '' === $object_id ) { continue; }
+			$contexts = array_merge(
+				$usage_contexts[ (string) ( $block['id'] ?? '' ) ] ?? array(),
+				$usage_contexts[ (string) ( $block['slug'] ?? '' ) ] ?? array()
+			);
+			$out[ $object_id ] = array(
+				'label' => (string) ( $block['internal_name'] ?? ( $block['title'] ?? $object_id ) ),
+				'source_language' => TAKA_Platform_Data::object_source_language( $block ),
+				'values' => TAKA_Platform_Data::object_text_values( $block, TAKA_Platform_Data::content_block_text_fields() ),
+				'contexts' => $contexts,
 			);
 		}
 		return $out;
@@ -439,7 +471,7 @@ class TAKA_Platform_Translation_Packages {
 			}
 			update_option( $option, $data, false );
 		}
-		foreach ( array( 'event' => TAKA_PLATFORM_CPT_EVENT, 'organizer' => TAKA_PLATFORM_CPT_ORGANIZER, 'venue' => TAKA_PLATFORM_CPT_VENUE ) as $type => $post_type ) {
+		foreach ( array( 'event' => TAKA_PLATFORM_CPT_EVENT, 'organizer' => TAKA_PLATFORM_CPT_ORGANIZER, 'venue' => TAKA_PLATFORM_CPT_VENUE, 'content_block' => TAKA_PLATFORM_CPT_CONTENT_BLOCK ) as $type => $post_type ) {
 			if ( ! empty( $changes[ $type ] ) ) {
 				self::apply_post_text_changes( $post_type, $changes[ $type ] );
 			}
@@ -470,6 +502,9 @@ class TAKA_Platform_Translation_Packages {
 			if ( $post && $post_type === $post->post_type ) { return (int) $post->ID; }
 		}
 		$posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_key' => '_taka_config_id', 'meta_value' => (string) $object_id ) );
+		if ( empty( $posts ) && defined( 'TAKA_PLATFORM_CPT_CONTENT_BLOCK' ) && TAKA_PLATFORM_CPT_CONTENT_BLOCK === $post_type ) {
+			$posts = get_posts( array( 'post_type' => $post_type, 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids', 'meta_key' => '_taka_block_slug', 'meta_value' => (string) $object_id ) );
+		}
 		return ! empty( $posts ) ? (int) $posts[0] : 0;
 	}
 

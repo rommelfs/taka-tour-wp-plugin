@@ -27,6 +27,7 @@ class TAKA_Platform_Admin {
 		add_action( 'save_post_taka_organizer', array( __CLASS__, 'save_organizer' ) );
 		add_action( 'save_post_taka_venue', array( __CLASS__, 'save_venue' ) );
 		add_action( 'save_post_taka_event', array( __CLASS__, 'save_event' ) );
+		add_action( 'save_post_taka_content_block', array( __CLASS__, 'save_content_block' ) );
 		add_action( 'admin_post_taka_tour_save_media', array( __CLASS__, 'handle_save_media' ) );
 		add_action( 'admin_post_taka_tour_import_config', array( __CLASS__, 'handle_import_config' ) );
 		add_action( 'admin_post_taka_platform_save_hero', array( __CLASS__, 'handle_save_hero' ) );
@@ -87,6 +88,7 @@ class TAKA_Platform_Admin {
 		self::register_post_type( TAKA_PLATFORM_CPT_EVENT, __( 'Events', 'taka-platform' ), __( 'Event hinzufügen', 'taka-platform' ), 'dashicons-calendar-alt' );
 		self::register_post_type( TAKA_PLATFORM_CPT_ORGANIZER, __( 'Organizers', 'taka-platform' ), __( 'Organizer hinzufügen', 'taka-platform' ), 'dashicons-groups' );
 		self::register_post_type( TAKA_PLATFORM_CPT_VENUE, __( 'Venues', 'taka-platform' ), __( 'Venue hinzufügen', 'taka-platform' ), 'dashicons-location-alt' );
+		self::register_post_type( TAKA_PLATFORM_CPT_CONTENT_BLOCK, __( 'Content Blocks', 'taka-platform' ), __( 'Content Block hinzufügen', 'taka-platform' ), 'dashicons-editor-table' );
 	}
 
 	/** Register one event-tour CPT. */
@@ -134,6 +136,24 @@ class TAKA_Platform_Admin {
 				'edit_others_posts'      => 'manage_options',
 				'publish_posts'          => 'manage_options',
 				'edit_published_posts'   => 'edit_taka_organizer_profile',
+				'read_private_posts'     => 'manage_options',
+				'delete_posts'           => 'manage_options',
+				'delete_others_posts'    => 'manage_options',
+				'create_posts'           => 'manage_options',
+			);
+		}
+
+		if ( TAKA_PLATFORM_CPT_CONTENT_BLOCK === $post_type ) {
+			$args['supports'] = array( 'title', 'editor' );
+			$args['map_meta_cap'] = true;
+			$args['capabilities'] = array(
+				'edit_post'              => 'manage_options',
+				'read_post'              => 'manage_options',
+				'delete_post'            => 'manage_options',
+				'edit_posts'             => 'manage_options',
+				'edit_others_posts'      => 'manage_options',
+				'publish_posts'          => 'manage_options',
+				'edit_published_posts'   => 'manage_options',
 				'read_private_posts'     => 'manage_options',
 				'delete_posts'           => 'manage_options',
 				'delete_others_posts'    => 'manage_options',
@@ -189,6 +209,7 @@ class TAKA_Platform_Admin {
 		add_meta_box( 'taka_organizer_details', __( 'Organizer details', 'taka-platform' ), array( __CLASS__, 'render_organizer_meta_box' ), TAKA_PLATFORM_CPT_ORGANIZER, 'normal', 'high' );
 		add_meta_box( 'taka_venue_details', __( 'Venue details', 'taka-platform' ), array( __CLASS__, 'render_venue_meta_box' ), TAKA_PLATFORM_CPT_VENUE, 'normal', 'high' );
 		add_meta_box( 'taka_event_details', __( 'Event details', 'taka-platform' ), array( __CLASS__, 'render_event_meta_box' ), TAKA_PLATFORM_CPT_EVENT, 'normal', 'high' );
+		add_meta_box( 'taka_content_block_details', __( 'Reusable content', 'taka-platform' ), array( __CLASS__, 'render_content_block_meta_box' ), TAKA_PLATFORM_CPT_CONTENT_BLOCK, 'normal', 'high' );
 	}
 
 	/** Render dashboard. */
@@ -832,6 +853,7 @@ class TAKA_Platform_Admin {
 				<?php self::settings_select_row( 'sections[' . $key . '][source_language]', __( 'Source language', 'taka-platform' ), $section['source_language'] ?? 'de', TAKA_Platform_Translation_Packages::language_labels() ); ?>
 				<?php self::settings_text_row( 'sections[' . $key . '][sort_order]', __( 'Sort order', 'taka-platform' ), $section['sort_order'] ?? 0 ); ?>
 				<tr class="taka-content-section-translations-row"><th scope="row"><?php echo esc_html__( 'Translations', 'taka-platform' ); ?></th><td><?php self::render_content_section_translation_tabs( $key, $translations ); ?></td></tr>
+				<tr><th scope="row"><?php echo esc_html__( 'Reusable content', 'taka-platform' ); ?></th><td><?php self::render_content_section_reference_fields( $key, $section['content_reference'] ?? array() ); ?></td></tr>
 				<?php self::settings_media_row( 'sections[' . $key . '][image_id]', 'sections[' . $key . '][image_url]', 'taka_section_' . $key . '_image', __( 'Main image', 'taka-platform' ), absint( $section['image_id'] ?? 0 ), (string) ( $section['image_url'] ?? '' ) ); ?>
 				<?php self::settings_media_row( 'sections[' . $key . '][secondary_image_id]', 'sections[' . $key . '][secondary_image_url]', 'taka_section_' . $key . '_secondary_image', __( 'Secondary image', 'taka-platform' ), absint( $section['secondary_image_id'] ?? 0 ), (string) ( $section['secondary_image_url'] ?? '' ) ); ?>
 				<?php self::settings_media_row( 'sections[' . $key . '][gallery_image_ids]', 'sections[' . $key . '][gallery_image_urls]', 'taka_section_' . $key . '_gallery', __( 'Gallery', 'taka-platform' ), $section['gallery_image_ids'] ?? array(), implode( "\n", (array) ( $section['gallery_image_urls'] ?? array() ) ), true ); ?>
@@ -967,6 +989,7 @@ class TAKA_Platform_Admin {
 			'body'                => $body,
 			'text'                => $body,
 			'translations'        => $translations,
+			'content_reference'   => TAKA_Platform_Data::normalize_content_reference( $item['content_reference'] ?? array(), 'homepage_section' ),
 			'image_id'            => absint( $item['image_id'] ?? 0 ),
 			'image_url'           => esc_url_raw( $item['image_url'] ?? '' ),
 			'secondary_image_id'  => absint( $item['secondary_image_id'] ?? 0 ),
@@ -1243,6 +1266,7 @@ class TAKA_Platform_Admin {
 		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-platform' ), false, __( 'Select group photo', 'taka-platform' ) );
 		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-platform' ) );
 		self::textarea_with_description( $post->ID, 'short_description', __( 'Seminar description', 'taka-platform' ), __( 'Canonical text shown on the public ticket page under “Seminar description”.', 'taka-platform' ) );
+		self::render_content_reference_fields( 'content_reference_event_description', get_post_meta( $post->ID, '_taka_content_reference_event_description', true ), 'event_description', __( 'Reusable seminar description block', 'taka-platform' ) );
 		self::text( $post->ID, 'ticket_tab_label', __( 'Ticket tab label', 'taka-platform' ) );
 		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ), array( 'long_description', 'ticket_card_text' ) );
 		self::render_event_booking_information_fields( $post->ID );
@@ -1253,12 +1277,52 @@ class TAKA_Platform_Admin {
 		self::render_event_advanced_unused_fields( $post->ID );
 	}
 
+	/** Reusable Content Block editor fields. */
+	public static function render_content_block_meta_box( $post ) {
+		self::nonce();
+		self::render_object_source_language_field( $post->ID );
+		self::text( $post->ID, 'block_slug', __( 'Slug', 'taka-platform' ) );
+		self::select_field( '_taka_block_type', __( 'Block type', 'taka-platform' ), (string) self::meta( $post->ID, 'block_type' ) ?: 'generic', TAKA_Platform_Data::content_block_types() );
+		self::text( $post->ID, 'category', __( 'Category', 'taka-platform' ) );
+		echo '<input type="hidden" name="_taka_enabled" value="0">';
+		self::checkbox( $post->ID, 'enabled', __( 'Enabled', 'taka-platform' ) );
+		self::text( $post->ID, 'kicker', __( 'Kicker', 'taka-platform' ) );
+		self::text( $post->ID, 'block_title', __( 'Content title', 'taka-platform' ) );
+		self::text( $post->ID, 'subtitle', __( 'Subtitle', 'taka-platform' ) );
+		self::text( $post->ID, 'button_label', __( 'Button label', 'taka-platform' ) );
+		self::url( $post->ID, 'button_url', __( 'Button URL', 'taka-platform' ) );
+		self::media_field( $post->ID, 'image_id', __( 'Image', 'taka-platform' ), false, __( 'Select image', 'taka-platform' ) );
+		self::url( $post->ID, 'image_url', __( 'Fallback image URL', 'taka-platform' ) );
+		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
+		self::textarea( $post->ID, 'gallery_image_urls', __( 'Fallback gallery image URLs', 'taka-platform' ) );
+		self::textarea( $post->ID, 'notes', __( 'Admin notes', 'taka-platform' ) );
+		self::render_object_text_translation_fields( $post->ID, 'content_block', array(
+			'kicker' => (string) self::meta( $post->ID, 'kicker' ),
+			'title' => (string) self::meta( $post->ID, 'block_title' ),
+			'subtitle' => (string) self::meta( $post->ID, 'subtitle' ),
+			'body' => $post->post_content,
+			'button_label' => (string) self::meta( $post->ID, 'button_label' ),
+			'button_url' => (string) self::meta( $post->ID, 'button_url' ),
+		) );
+		self::render_content_block_used_by( $post->ID );
+	}
+
 	public static function save_organizer( $post_id ) {
 		self::save( $post_id, array( 'legal_name', 'website', 'country', 'country_code', 'flag', 'logo_id', 'logo_url', 'emails', 'contact_persons', 'instagram', 'facebook', 'youtube', 'active' ) );
 		self::save_object_text_translations( $post_id, 'organizer' );
 		self::save_co_organizers( $post_id );
 	}
 	public static function save_venue( $post_id ) { self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); self::save_object_text_translations( $post_id, 'venue' ); }
+	public static function save_content_block( $post_id ) {
+		self::save( $post_id, array( 'block_slug', 'block_type', 'category', 'enabled', 'kicker', 'block_title', 'subtitle', 'button_label', 'button_url', 'image_id', 'image_url', 'gallery_image_ids', 'gallery_image_urls', 'notes' ) );
+		self::save_object_text_translations( $post_id, 'content_block' );
+		if ( isset( $_POST[ self::NONCE ], $_POST['_taka_block_slug'] ) && wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) && current_user_can( 'edit_post', $post_id ) ) {
+			$slug = sanitize_key( wp_unslash( $_POST['_taka_block_slug'] ) );
+			if ( '' !== $slug ) {
+				update_post_meta( $post_id, '_taka_config_id', $slug );
+			}
+		}
+	}
 	public static function save_event( $post_id ) {
 		$posted_relationships = self::sanitize_event_organizer_relationships( $_POST['taka_platform_event_organizers'] ?? array() );
 		if ( ! empty( $posted_relationships ) ) {
@@ -1278,6 +1342,7 @@ class TAKA_Platform_Admin {
 			update_post_meta( $post_id, '_taka_organizer_id', $posted );
 		}
 		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'route_order', 'city', 'doors_open', 'timezone', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'ticket_tab_label', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
+		self::save_content_reference_meta( $post_id, 'content_reference_event_description', 'event_description' );
 		self::save_object_text_translations( $post_id, 'event' );
 		self::save_event_organizer_relationships( $post_id, $posted_relationships );
 		self::save_event_program_items( $post_id );
@@ -1451,9 +1516,9 @@ class TAKA_Platform_Admin {
 			$value = wp_unslash( $_POST[ $key ] );
 			if ( in_array( $field, array( 'logo_id', 'image_id', 'group_image_id', 'parking_image_id', 'organizer_id', 'venue_id', 'sort_order', 'route_order' ), true ) ) { $value = absint( $value ); }
 			elseif ( in_array( $field, array( 'route_map_x', 'route_map_y' ), true ) ) { $value = is_numeric( $value ) ? (string) max( 0, min( 100, (float) $value ) ) : ''; }
-			elseif ( in_array( $field, array( 'website', 'ticket_shop_url', 'image_url', 'group_image_url', 'parking_image_url', 'logo_url' ), true ) ) { $value = esc_url_raw( $value ); }
+			elseif ( in_array( $field, array( 'website', 'ticket_shop_url', 'image_url', 'group_image_url', 'parking_image_url', 'logo_url', 'button_url' ), true ) ) { $value = esc_url_raw( $value ); }
 			elseif ( 'booking_info_contact_email' === $field ) { $value = sanitize_email( $value ); }
-			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'short_description', 'long_description', 'ticket_card_text', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'parking', 'accessibility', 'notes' ), true ) ) { $value = sanitize_textarea_field( $value ); }
+			elseif ( in_array( $field, array( 'emails', 'contact_persons', 'short_description', 'long_description', 'ticket_card_text', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'parking', 'accessibility', 'notes', 'gallery_image_urls' ), true ) ) { $value = sanitize_textarea_field( $value ); }
 			elseif ( in_array( $field, array( 'gallery_image_ids', 'venue_ids' ), true ) ) { $value = implode( ',', array_map( 'absint', preg_split( '/\s*,\s*/', (string) $value ) ) ); }
 			else { $value = sanitize_text_field( $value ); }
 			update_post_meta( $post_id, $key, $value );
@@ -1567,6 +1632,76 @@ class TAKA_Platform_Admin {
 	private static function textarea( $post_id, $field, $label ) { self::field( $label, '<textarea class="widefat" rows="3" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea>' ); }
 	private static function textarea_with_description( $post_id, $field, $label, $description ) { self::field( $label, '<textarea class="widefat" rows="4" name="_taka_' . esc_attr( $field ) . '">' . esc_textarea( self::meta( $post_id, $field ) ) . '</textarea><p class="description">' . esc_html( $description ) . '</p>' ); }
 	private static function checkbox( $post_id, $field, $label ) { self::field( $label, '<input type="checkbox" name="_taka_' . esc_attr( $field ) . '" value="1" ' . checked( (string) self::meta( $post_id, $field ), '1', false ) . '>' ); }
+	private static function select_field( $name, $label, $current, $choices ) { $html = '<select class="widefat" name="' . esc_attr( $name ) . '">'; foreach ( $choices as $value => $choice_label ) { $html .= '<option value="' . esc_attr( $value ) . '" ' . selected( (string) $current, (string) $value, false ) . '>' . esc_html( $choice_label ) . '</option>'; } $html .= '</select>'; self::field( $label, $html ); }
+
+	private static function content_block_choices() {
+		$choices = array( '' => __( '— No reusable block —', 'taka-platform' ) );
+		foreach ( TAKA_Platform_Data::get_content_blocks( false ) as $id => $block ) {
+			if ( (string) ( $block['id'] ?? '' ) !== (string) $id ) { continue; }
+			$label = trim( (string) ( $block['internal_name'] ?? '' ) );
+			$slug = trim( (string) ( $block['slug'] ?? '' ) );
+			$choices[ (string) $id ] = $label . ( '' !== $slug ? ' (' . $slug . ')' : '' );
+		}
+		return $choices;
+	}
+
+	private static function render_content_reference_fields( $field, $reference, $context, $label ) {
+		$reference = TAKA_Platform_Data::normalize_content_reference( $reference, $context );
+		$prefix = '_taka_' . $field;
+		?>
+		<div class="taka-content-reference-fields" style="border:1px solid #dcdcde;padding:12px;margin:12px 0;background:#fff;">
+			<h3><?php echo esc_html( $label ); ?></h3>
+			<input type="hidden" name="<?php echo esc_attr( $prefix ); ?>[context]" value="<?php echo esc_attr( $context ); ?>">
+			<p><label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>[enabled]" value="1" <?php checked( '1', (string) ( $reference['enabled'] ?? '0' ) ); ?>> <?php echo esc_html__( 'Use existing content block', 'taka-platform' ); ?></label></p>
+			<p><label><strong><?php echo esc_html__( 'Content block', 'taka-platform' ); ?></strong><br><select class="widefat" name="<?php echo esc_attr( $prefix ); ?>[block_id]"><?php foreach ( self::content_block_choices() as $value => $choice_label ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( (string) ( $reference['block_id'] ?? '' ), (string) $value ); ?>><?php echo esc_html( $choice_label ); ?></option><?php endforeach; ?></select></label></p>
+			<p><label><strong><?php echo esc_html__( 'Display style', 'taka-platform' ); ?></strong><br><input class="widefat" type="text" name="<?php echo esc_attr( $prefix ); ?>[display_style]" value="<?php echo esc_attr( $reference['display_style'] ?? 'default' ); ?>"></label></p>
+			<p><label><strong><?php echo esc_html__( 'Custom title', 'taka-platform' ); ?></strong><br><input class="widefat" type="text" name="<?php echo esc_attr( $prefix ); ?>[custom_title]" value="<?php echo esc_attr( $reference['custom_title'] ?? '' ); ?>"></label></p>
+			<p class="description"><?php echo esc_html__( 'Referenced block content stays reusable. Local content remains saved and is used again if this reference is disabled.', 'taka-platform' ); ?></p>
+		</div>
+		<?php
+	}
+
+	private static function render_content_section_reference_fields( $section_key, $reference ) {
+		$reference = TAKA_Platform_Data::normalize_content_reference( $reference, 'homepage_section' );
+		$prefix = 'sections[' . sanitize_key( $section_key ) . '][content_reference]';
+		?>
+		<div class="taka-content-reference-fields">
+			<input type="hidden" name="<?php echo esc_attr( $prefix ); ?>[context]" value="homepage_section">
+			<p><label><input type="checkbox" name="<?php echo esc_attr( $prefix ); ?>[enabled]" value="1" <?php checked( '1', (string) ( $reference['enabled'] ?? '0' ) ); ?>> <?php echo esc_html__( 'Use existing content block', 'taka-platform' ); ?></label></p>
+			<p><label><strong><?php echo esc_html__( 'Content block', 'taka-platform' ); ?></strong><br><select class="regular-text" name="<?php echo esc_attr( $prefix ); ?>[block_id]"><?php foreach ( self::content_block_choices() as $value => $choice_label ) : ?><option value="<?php echo esc_attr( $value ); ?>" <?php selected( (string) ( $reference['block_id'] ?? '' ), (string) $value ); ?>><?php echo esc_html( $choice_label ); ?></option><?php endforeach; ?></select></label></p>
+			<p><label><strong><?php echo esc_html__( 'Display style', 'taka-platform' ); ?></strong><br><input class="regular-text" type="text" name="<?php echo esc_attr( $prefix ); ?>[display_style]" value="<?php echo esc_attr( $reference['display_style'] ?? 'default' ); ?>"></label></p>
+			<p><label><strong><?php echo esc_html__( 'Custom title', 'taka-platform' ); ?></strong><br><input class="regular-text" type="text" name="<?php echo esc_attr( $prefix ); ?>[custom_title]" value="<?php echo esc_attr( $reference['custom_title'] ?? '' ); ?>"></label></p>
+			<p class="description"><?php echo esc_html__( 'Referenced block content stays reusable. Local content remains saved and is used again if this reference is disabled.', 'taka-platform' ); ?></p>
+		</div>
+		<?php
+	}
+
+	private static function save_content_reference_meta( $post_id, $field, $context ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) { return; }
+		if ( ! isset( $_POST[ self::NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) || ! current_user_can( 'edit_post', $post_id ) ) { return; }
+		$key = '_taka_' . $field;
+		$posted = isset( $_POST[ $key ] ) && is_array( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : array();
+		update_post_meta( $post_id, $key, TAKA_Platform_Data::normalize_content_reference( $posted, $context ) );
+	}
+
+	private static function render_content_block_used_by( $post_id ) {
+		$contexts = TAKA_Platform_Data::content_block_usage_contexts();
+		$block = TAKA_Platform_Data::get_content_block( (string) $post_id, false );
+		$ids = array_filter( array( (string) $post_id, $block['slug'] ?? '' ) );
+		$used = array();
+		foreach ( $ids as $id ) {
+			$used = array_merge( $used, $contexts[ $id ] ?? array() );
+		}
+		echo '<div class="taka-content-block-used-by"><h3>' . esc_html__( 'Used by', 'taka-platform' ) . '</h3>';
+		if ( empty( $used ) ) {
+			echo '<p class="description">' . esc_html__( 'No references found yet.', 'taka-platform' ) . '</p>';
+		} else {
+			echo '<ul>';
+			foreach ( array_unique( $used ) as $context ) { echo '<li>' . esc_html( $context ) . '</li>'; }
+			echo '</ul>';
+		}
+		echo '</div>';
+	}
 
 	private static function event_option_select( $post_id, $field, $label ) {
 		$raw = (string) self::meta( $post_id, $field );

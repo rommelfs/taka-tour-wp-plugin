@@ -9,6 +9,7 @@ class TAKA_Platform_Data {
 	const EVENT_POST_TYPE = TAKA_PLATFORM_CPT_EVENT;
 	const ORGANIZER_POST_TYPE = TAKA_PLATFORM_CPT_ORGANIZER;
 	const VENUE_POST_TYPE = TAKA_PLATFORM_CPT_VENUE;
+	const CONTENT_BLOCK_POST_TYPE = TAKA_PLATFORM_CPT_CONTENT_BLOCK;
 	const MEDIA_OPTION = 'taka_tour_media_settings';
 	const HERO_OPTION = 'taka_platform_hero_settings';
 	const SECTIONS_OPTION = 'taka_platform_content_sections';
@@ -209,6 +210,14 @@ class TAKA_Platform_Data {
 	/** User-facing text fields that support object-level translations. */
 	public static function translatable_text_fields( $object_type ) {
 		$fields = array(
+			'content_block' => array(
+				'kicker' => 'Kicker',
+				'title' => 'Title',
+				'subtitle' => 'Subtitle',
+				'body' => 'Body',
+				'button_label' => 'Button label',
+				'button_url' => 'Button URL',
+			),
 			'event' => array(
 				'description' => 'Seminar description',
 				'subtitle' => 'Subtitle',
@@ -278,6 +287,196 @@ class TAKA_Platform_Data {
 			$object[ $field ] = self::resolve_dynamic_text( $values[ $field ] ?? '', $lang, $source_language );
 		}
 		return $object;
+	}
+
+	/** Content block types for reusable editorial content. */
+	public static function content_block_types() {
+		return array(
+			'generic' => 'Generic',
+			'biography' => 'Biography',
+			'booking_information' => 'Booking information',
+			'policy' => 'Policy',
+			'event_description' => 'Event description',
+			'organizer_description' => 'Organizer description',
+			'venue_information' => 'Venue information',
+			'training_topic' => 'Training topic',
+			'community' => 'Community',
+			'sponsor' => 'Sponsor',
+			'speaker' => 'Speaker',
+		);
+	}
+
+	/** Content reference contexts supported in v2.1.0. */
+	public static function content_reference_contexts() {
+		return array(
+			'homepage_section' => 'Homepage section',
+			'event_description' => 'Event description',
+			'event_booking' => 'Event booking',
+			'event_sidebar' => 'Event sidebar',
+			'organizer_profile' => 'Organizer profile',
+			'venue_information' => 'Venue information',
+			'ticket_panel' => 'Ticket panel',
+			'modal' => 'Modal',
+		);
+	}
+
+	/** Text fields available on one reusable content block. */
+	public static function content_block_text_fields() {
+		return self::translatable_text_fields( 'content_block' );
+	}
+
+	/** Load reusable content blocks from WordPress. */
+	public static function get_content_blocks( $resolve_translations = false, $lang = null ) {
+		$blocks = self::load_content_blocks_from_wp();
+		if ( $resolve_translations ) {
+			$lang = $lang ?: taka_tour_current_language();
+			foreach ( $blocks as $key => $block ) {
+				$blocks[ $key ] = self::resolve_content_block( $block, $lang );
+			}
+		}
+		return $blocks;
+	}
+
+	/** Get one content block by post ID or slug/config ID. */
+	public static function get_content_block( $block_id, $resolve_translations = false, $lang = null ) {
+		$block_id = (string) $block_id;
+		if ( '' === $block_id || '0' === $block_id ) { return null; }
+		$blocks = self::get_content_blocks( $resolve_translations, $lang );
+		return $blocks[ $block_id ] ?? null;
+	}
+
+	/** Resolve one content block for frontend display. */
+	public static function resolve_content_block( $block, $lang = null ) {
+		if ( ! is_array( $block ) ) { return array(); }
+		$lang = $lang ?: taka_tour_current_language();
+		$block = self::resolve_object_text_fields( $block, 'content_block', $lang );
+		$block['image'] = self::resolve_attachment_url( absint( $block['image_id'] ?? 0 ), 'full', (string) ( $block['image_url'] ?? '' ) );
+		$block['gallery_images'] = array_values( array_filter( array_merge( self::attachment_urls( $block['gallery_image_ids'] ?? array(), 'full' ), (array) ( $block['gallery_image_urls'] ?? array() ) ) ) );
+		return $block;
+	}
+
+	/** Normalize a content-reference payload. */
+	public static function normalize_content_reference( $reference, $context = '' ) {
+		$reference = is_array( $reference ) ? $reference : array();
+		$context = sanitize_key( $reference['context'] ?? $context );
+		return array(
+			'block_id' => sanitize_text_field( (string) ( $reference['block_id'] ?? '' ) ),
+			'context' => $context,
+			'enabled' => array_key_exists( 'enabled', $reference ) ? ( ! empty( $reference['enabled'] ) ? '1' : '0' ) : '0',
+			'sort_order' => (int) ( $reference['sort_order'] ?? 0 ),
+			'display_style' => sanitize_key( $reference['display_style'] ?? 'default' ),
+			'custom_title' => self::normalize_dynamic_text_value( $reference['custom_title'] ?? '' ),
+			'override_translations' => self::normalize_content_section_translations( array( 'translations' => $reference['override_translations'] ?? array() ) ),
+		);
+	}
+
+	/** Resolve a content reference into translated block fields. */
+	public static function resolve_content_reference( $reference, $lang = null ) {
+		$reference = self::normalize_content_reference( $reference );
+		if ( '1' !== (string) ( $reference['enabled'] ?? '0' ) || '' === (string) ( $reference['block_id'] ?? '' ) ) {
+			return null;
+		}
+		$block = self::get_content_block( $reference['block_id'], true, $lang );
+		if ( ! is_array( $block ) || '1' !== (string) ( $block['enabled'] ?? '1' ) ) {
+			return null;
+		}
+		$lang = $lang ?: taka_tour_current_language();
+		$override_source = array(
+			'source_language' => self::platform_fallback_language(),
+			'translations' => $reference['override_translations'] ?? array(),
+		);
+		foreach ( array_keys( self::content_block_text_fields() ) as $field ) {
+			$override = self::resolve_content_section_field( $override_source, $field, $lang );
+			if ( '' !== trim( (string) $override ) ) {
+				$block[ $field ] = $override;
+			}
+		}
+		$custom_title = self::resolve_dynamic_text( $reference['custom_title'] ?? '', $lang, self::platform_fallback_language() );
+		if ( '' !== trim( (string) $custom_title ) ) {
+			$block['title'] = $custom_title;
+		}
+		$block['content_reference'] = $reference;
+		return $block;
+	}
+
+	/** Render one content reference through the existing content-section partial. */
+	public static function render_content_reference( $reference, $context = '', $lang = null ) {
+		$reference = self::normalize_content_reference( $reference, $context );
+		$block = self::resolve_content_reference( $reference, $lang );
+		if ( ! is_array( $block ) ) { return ''; }
+		$section = array_merge(
+			array(
+				'key' => sanitize_key( ( $context ?: 'content_block' ) . '_' . ( $block['slug'] ?? $block['id'] ?? 'block' ) ),
+				'visible' => '1',
+				'layout' => 'text_only',
+				'background_style' => 'plain',
+				'image_fit' => 'contain',
+				'image_position' => 'center center',
+				'css_class' => '',
+			),
+			$block
+		);
+		return taka_tour_render_template( 'partials/content-section.php', array( 'section' => $section ) );
+	}
+
+	/** Usage contexts for admin and translation package context labels. */
+	public static function content_block_usage_contexts() {
+		$contexts = array();
+		foreach ( self::get_content_sections( false ) as $key => $section ) {
+			$reference = self::normalize_content_reference( $section['content_reference'] ?? array(), 'homepage_section' );
+			if ( '1' === (string) $reference['enabled'] && '' !== $reference['block_id'] ) {
+				$title = self::resolve_dynamic_text( $section['title'] ?? '', self::platform_fallback_language(), self::content_section_source_language( $section ) );
+				$contexts[ $reference['block_id'] ][] = 'Homepage / ' . ( '' !== trim( (string) $title ) ? $title : $key );
+			}
+		}
+		foreach ( self::get_events() as $event ) {
+			$reference = self::normalize_content_reference( $event['content_references']['event_description'] ?? array(), 'event_description' );
+			if ( '1' === (string) $reference['enabled'] && '' !== $reference['block_id'] ) {
+				$contexts[ $reference['block_id'] ][] = 'Event / ' . ( $event['title'] ?? ( $event['id'] ?? '' ) ) . ' / Description';
+			}
+		}
+		return array_map( 'array_values', $contexts );
+	}
+
+	private static function load_content_blocks_from_wp() {
+		if ( ! self::can_use_wp_posts() ) { return array(); }
+		$posts = get_posts( array( 'post_type' => self::CONTENT_BLOCK_POST_TYPE, 'post_status' => array( 'publish', 'draft' ), 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
+		$blocks = array();
+		foreach ( $posts as $post ) {
+			$id = (string) $post->ID;
+			$slug = (string) get_post_meta( $post->ID, '_taka_block_slug', true );
+			if ( '' === $slug ) { $slug = (string) get_post_meta( $post->ID, '_taka_config_id', true ); }
+			if ( '' === $slug ) { $slug = $post->post_name; }
+			$gallery_ids = self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) );
+			$gallery_urls = self::lines_to_array( get_post_meta( $post->ID, '_taka_gallery_image_urls', true ) );
+			$block = array(
+				'id' => $id,
+				'config_id' => $slug,
+				'slug' => $slug,
+				'internal_name' => get_the_title( $post ),
+				'type' => sanitize_key( get_post_meta( $post->ID, '_taka_block_type', true ) ?: 'generic' ),
+				'category' => (string) get_post_meta( $post->ID, '_taka_category', true ),
+				'source_language' => (string) get_post_meta( $post->ID, '_taka_source_language', true ),
+				'text_translations' => self::normalize_object_text_translations( get_post_meta( $post->ID, '_taka_text_translations', true ), self::content_block_text_fields() ),
+				'kicker' => (string) get_post_meta( $post->ID, '_taka_kicker', true ),
+				'title' => (string) get_post_meta( $post->ID, '_taka_block_title', true ),
+				'subtitle' => (string) get_post_meta( $post->ID, '_taka_subtitle', true ),
+				'body' => $post->post_content,
+				'button_label' => (string) get_post_meta( $post->ID, '_taka_button_label', true ),
+				'button_url' => (string) get_post_meta( $post->ID, '_taka_button_url', true ),
+				'image_id' => absint( get_post_meta( $post->ID, '_taka_image_id', true ) ),
+				'image_url' => (string) get_post_meta( $post->ID, '_taka_image_url', true ),
+				'gallery_image_ids' => $gallery_ids,
+				'gallery_image_urls' => $gallery_urls,
+				'enabled' => 'draft' !== $post->post_status && ( '' === (string) get_post_meta( $post->ID, '_taka_enabled', true ) || '1' === (string) get_post_meta( $post->ID, '_taka_enabled', true ) ) ? '1' : '0',
+				'notes' => (string) get_post_meta( $post->ID, '_taka_notes', true ),
+				'created_at' => $post->post_date_gmt,
+				'updated_at' => $post->post_modified_gmt,
+			);
+			$blocks[ $id ] = $block;
+			if ( '' !== $slug ) { $blocks[ $slug ] = $block; }
+		}
+		return $blocks;
 	}
 
 
@@ -559,6 +758,9 @@ class TAKA_Platform_Data {
 				'ticket_card_text' => (string) get_post_meta( $post->ID, '_taka_ticket_card_text', true ),
 					'ticket_tab_label' => (string) get_post_meta( $post->ID, '_taka_ticket_tab_label', true ),
 				'booking_information' => self::event_booking_information_from_meta( $post->ID ),
+				'content_references' => array(
+					'event_description' => self::normalize_content_reference( get_post_meta( $post->ID, '_taka_content_reference_event_description', true ), 'event_description' ),
+				),
 				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
 				'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ),
 				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ),
@@ -625,7 +827,7 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['source_language'] = $event['source_language'] ?? self::platform_fallback_language(); $event['text_translations'] = self::normalize_object_text_translations( $event['text_translations'] ?? array(), self::translatable_text_fields( 'event' ) ); $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null ); $event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null ); $event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' ); $event['route_order'] = $event['route_order'] ?? null; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); $event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' ); return $event; }, $events );
+		return array_map( static function ( $event ) { $event['source_language'] = $event['source_language'] ?? self::platform_fallback_language(); $event['text_translations'] = self::normalize_object_text_translations( $event['text_translations'] ?? array(), self::translatable_text_fields( 'event' ) ); $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null ); $event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null ); $event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' ); $event['route_order'] = $event['route_order'] ?? null; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['content_references'] = is_array( $event['content_references'] ?? null ) ? $event['content_references'] : array(); $event['content_references']['event_description'] = self::normalize_content_reference( $event['content_references']['event_description'] ?? array(), 'event_description' ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); $event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' ); return $event; }, $events );
 	}
 
 	/** Global media labels. */
@@ -994,7 +1196,26 @@ class TAKA_Platform_Data {
 		}
 		foreach ( $sections as $key => $section ) {
 			$section = self::normalize_content_section( $section );
-			if ( $resolve_translations ) { $section = self::resolve_dynamic_section_translations( $section, $lang ); }
+			if ( $resolve_translations ) {
+				$section = self::resolve_dynamic_section_translations( $section, $lang );
+				$block = self::resolve_content_reference( $section['content_reference'] ?? array(), $lang );
+				if ( is_array( $block ) ) {
+					foreach ( array_keys( self::content_block_text_fields() ) as $field ) {
+						if ( '' !== trim( (string) ( $block[ $field ] ?? '' ) ) ) {
+							$section[ $field ] = $block[ $field ];
+						}
+					}
+					if ( ! empty( $block['image_id'] ) || ! empty( $block['image_url'] ) ) {
+						$section['image_id'] = $block['image_id'] ?? 0;
+						$section['image_url'] = $block['image_url'] ?? '';
+					}
+					if ( ! empty( $block['gallery_image_ids'] ) || ! empty( $block['gallery_image_urls'] ) ) {
+						$section['gallery_image_ids'] = $block['gallery_image_ids'] ?? array();
+						$section['gallery_image_urls'] = $block['gallery_image_urls'] ?? array();
+					}
+					$section['referenced_block'] = $block;
+				}
+			}
 			$section['key']             = $key;
 			$section['image']           = self::resolve_attachment_url( absint( $section['image_id'] ?? 0 ), 'full', (string) ( $section['image_url'] ?? '' ) );
 			$section['secondary_image'] = self::resolve_attachment_url( absint( $section['secondary_image_id'] ?? 0 ), 'full', (string) ( $section['secondary_image_url'] ?? '' ) );
@@ -1039,6 +1260,7 @@ class TAKA_Platform_Data {
 			'text'                => self::normalize_dynamic_text_value( $section['text'] ?? ( $section['body'] ?? '' ) ),
 			'body'                => self::normalize_dynamic_text_value( $section['body'] ?? ( $section['text'] ?? '' ) ),
 			'translations'        => $translations,
+			'content_reference'   => self::normalize_content_reference( $section['content_reference'] ?? array(), 'homepage_section' ),
 			'image_id'            => absint( $section['image_id'] ?? 0 ),
 			'image_url'           => (string) ( $section['image_url'] ?? ( $section['image'] ?? '' ) ),
 			'secondary_image_id'  => absint( $section['secondary_image_id'] ?? 0 ),
@@ -1256,6 +1478,11 @@ class TAKA_Platform_Data {
 			$event['subtitle'] = taka_tour_translate( 'seminars.' . $slug . '.subtitle', $event['subtitle'] ?? '', $lang );
 			if ( ! self::is_wordpress_event_record( $event ) ) {
 				$event['description'] = taka_tour_translate( 'seminars.' . $slug . '.description', $event['description'] ?? '', $lang );
+			}
+			$description_block = self::resolve_content_reference( $event['content_references']['event_description'] ?? array(), $lang );
+			if ( is_array( $description_block ) && '' !== trim( (string) ( $description_block['body'] ?? '' ) ) ) {
+				$event['description'] = (string) $description_block['body'];
+				$event['description_content_block'] = $description_block;
 			}
 			$legacy_format = self::is_wordpress_event_record( $event ) ? ( $event['format'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.type', $event['format'] ?? '', $lang );
 			$legacy_audience = self::is_wordpress_event_record( $event ) ? ( $event['audience'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.audience', $event['audience'] ?? '', $lang );

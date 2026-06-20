@@ -8,7 +8,9 @@ Editors export a package, send it to ChatGPT, Claude, Gemini, DeepL or a human t
 
 Go to **TAKA Platform -> Translations** and use **Export Translation Package**.
 
-The export includes dynamic content such as Content Sections, Booking Information, Ticket Section copy and Hero text. Each item has a stable ID, context, source language, source text, SHA-256 source hash and empty target-language translation slots.
+The export includes dynamic content such as Content Sections, reusable Content Blocks, Booking Information, Ticket Section copy and Hero text. Each item has a stable ID, context, source language, source text, SHA-256 source hash and empty target-language translation slots.
+
+Reusable Content Blocks are exported once as `content_block` items. If a block is referenced from several places, the package includes usage contexts so translators can understand where the text appears without translating the same source text multiple times.
 
 Each translatable object can define its own `source_language`. This allows a Finnish event, Japanese guest text or English international block to be translated from its real original language instead of assuming German.
 
@@ -55,7 +57,7 @@ Frontend dynamic values resolve in this order:
 4. English
 5. first non-empty value
 
-This applies to Content Sections, Booking Information, Ticket Section headings and Hero headings/buttons.
+This applies to Content Sections, Content Blocks, Booking Information, Ticket Section headings and Hero headings/buttons.
 
 ## Provider Independence
 
