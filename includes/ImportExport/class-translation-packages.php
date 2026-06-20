@@ -36,17 +36,22 @@ class TAKA_Platform_Translation_Packages {
 
 	/** Normalize target language list. */
 	public static function sanitize_target_languages( $langs, $source_language = 'de' ) {
+		$targets = self::sanitize_selected_languages( $langs );
+		if ( empty( $targets ) ) {
+			$targets = TAKA_Platform_I18n::instance()->get_all_languages();
+		}
+		return array_values( array_diff( $targets, array( $source_language ) ) );
+	}
+
+	/** Normalize selected translation languages without removing a global source language. */
+	private static function sanitize_selected_languages( $langs ) {
 		$langs = is_array( $langs ) ? $langs : array();
 		$targets = array();
 		foreach ( $langs as $lang ) {
 			$lang = self::sanitize_language( $lang, '' );
-			if ( '' !== $lang && $lang !== $source_language ) { $targets[] = $lang; }
+			if ( '' !== $lang ) { $targets[] = $lang; }
 		}
-		$targets = array_values( array_unique( $targets ) );
-		if ( empty( $targets ) ) {
-			$targets = array_values( array_diff( TAKA_Platform_I18n::instance()->get_all_languages(), array( $source_language ) ) );
-		}
-		return $targets;
+		return array_values( array_unique( $targets ) );
 	}
 
 	/** Default glossary terms. */
@@ -101,13 +106,14 @@ class TAKA_Platform_Translation_Packages {
 		$source_language = self::sanitize_language( $args['source_language'] ?? self::default_source_language(), self::default_source_language() );
 		$use_object_sources = ! empty( $args['use_object_source_languages'] );
 		$targets = self::sanitize_target_languages( $args['target_languages'] ?? array(), $source_language );
+		$item_language_scope = $use_object_sources ? array_values( array_unique( array_merge( $targets, array( $source_language ) ) ) ) : $targets;
 		$include_existing = ! empty( $args['include_existing_translations'] );
 		$include_context = ! empty( $args['include_context'] );
 		$only_missing = ! empty( $args['only_missing_translations'] );
 		$items = self::collect_items( array(
 			'source_language' => $source_language,
 			'use_object_source_languages' => $use_object_sources,
-			'target_languages' => $targets,
+			'target_languages' => $item_language_scope,
 			'include_existing_translations' => $include_existing,
 			'include_context' => $include_context,
 			'only_missing_translations' => $only_missing,
@@ -128,6 +134,7 @@ class TAKA_Platform_Translation_Packages {
 			),
 			'translator_prompt' => self::translator_prompt(),
 			'glossary' => $glossary,
+			'warnings' => self::validation_warnings( $items ),
 			'items' => $items,
 		);
 	}
@@ -152,14 +159,17 @@ class TAKA_Platform_Translation_Packages {
 				else { $status[ $lang ]['missing']++; }
 			}
 		}
-		return array( 'total_items' => count( $items ), 'languages' => $status );
+		return array( 'total_items' => count( $items ), 'languages' => $status, 'warnings' => self::validation_warnings( $items ) );
 	}
 
 	/** Collect package items from supported dynamic content scopes. */
 	public static function collect_items( $args = array() ) {
 		$source_language = self::sanitize_language( $args['source_language'] ?? self::default_source_language(), self::default_source_language() );
 		$use_object_sources = array_key_exists( 'use_object_source_languages', $args ) ? ! empty( $args['use_object_source_languages'] ) : true;
-		$targets = self::sanitize_target_languages( $args['target_languages'] ?? array(), $source_language );
+		$targets = self::sanitize_selected_languages( $args['target_languages'] ?? array() );
+		if ( empty( $targets ) ) {
+			$targets = TAKA_Platform_I18n::instance()->get_all_languages();
+		}
 		$include_existing = ! empty( $args['include_existing_translations'] );
 		$include_context = array_key_exists( 'include_context', $args ) ? ! empty( $args['include_context'] ) : true;
 		$only_missing = ! empty( $args['only_missing_translations'] );
@@ -201,6 +211,24 @@ class TAKA_Platform_Translation_Packages {
 			}
 		}
 		return $items;
+	}
+
+	private static function validation_warnings( $items ) {
+		$warnings = array();
+		if ( ! in_array( 'de', TAKA_Platform_I18n::instance()->get_all_languages(), true ) ) {
+			return $warnings;
+		}
+		foreach ( $items as $item ) {
+			if ( 'en' !== ( $item['source_language'] ?? '' ) ) {
+				continue;
+			}
+			$translations = is_array( $item['translations'] ?? null ) ? $item['translations'] : array();
+			$existing = is_array( $item['existing_translations'] ?? null ) ? $item['existing_translations'] : array();
+			if ( ! array_key_exists( 'de', $translations ) && ! array_key_exists( 'de', $existing ) ) {
+				$warnings[] = 'Missing German translation target for English source item: ' . ( $item['id'] ?? '' );
+			}
+		}
+		return $warnings;
 	}
 
 	/** Import a package from decoded JSON. */

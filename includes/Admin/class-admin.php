@@ -517,6 +517,9 @@ class TAKA_Platform_Admin {
 					<tr><td><strong><?php echo esc_html( strtoupper( $lang ) ); ?></strong></td><td><?php echo esc_html( (string) $row['translated'] ); ?></td><td><?php echo esc_html( (string) $row['missing'] ); ?></td></tr>
 				<?php endforeach; ?>
 			</tbody></table>
+			<?php if ( ! empty( $status['warnings'] ) ) : ?>
+				<div class="notice notice-warning inline"><p><strong><?php echo esc_html__( 'Translation package warnings', 'taka-platform' ); ?></strong></p><?php foreach ( $status['warnings'] as $warning ) : ?><p><?php echo esc_html( $warning ); ?></p><?php endforeach; ?></div>
+			<?php endif; ?>
 			<h2><?php echo esc_html__( 'Export Translation Package', 'taka-platform' ); ?></h2>
 			<textarea class="large-text code" rows="9" readonly><?php echo esc_textarea( TAKA_Platform_Translation_Packages::translator_prompt() ); ?></textarea>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -524,7 +527,7 @@ class TAKA_Platform_Admin {
 				<?php wp_nonce_field( 'taka_platform_export_translation_package', self::NONCE ); ?>
 				<table class="form-table" role="presentation"><tbody>
 					<?php self::settings_select_row( 'source_language', __( 'Source language', 'taka-platform' ), 'de', $langs ); ?>
-					<tr><th scope="row"><?php echo esc_html__( 'Target languages', 'taka-platform' ); ?></th><td><?php foreach ( $langs as $lang => $label ) : if ( 'de' === $lang ) { continue; } ?><label style="display:inline-block;margin-right:12px;"><input type="checkbox" name="target_languages[]" value="<?php echo esc_attr( $lang ); ?>" <?php checked( in_array( $lang, $default_targets, true ) ); ?>> <?php echo esc_html( $label ); ?></label><?php endforeach; ?></td></tr>
+					<tr><th scope="row"><?php echo esc_html__( 'Target languages', 'taka-platform' ); ?></th><td><?php foreach ( $langs as $lang => $label ) : ?><label style="display:inline-block;margin-right:12px;"><input type="checkbox" name="target_languages[]" value="<?php echo esc_attr( $lang ); ?>" <?php checked( in_array( $lang, $default_targets, true ) ); ?>> <?php echo esc_html( $label ); ?></label><?php endforeach; ?><p class="description"><?php echo esc_html__( 'For per-object source languages, each item exports all selected languages except that item’s own source language.', 'taka-platform' ); ?></p></td></tr>
 					<tr><th scope="row"><?php echo esc_html__( 'Source behavior', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="use_object_source_languages" value="1" checked> <?php echo esc_html__( 'Use per-object source languages', 'taka-platform' ); ?></label><p class="description"><?php echo esc_html__( 'Disable to override all source languages with the selected source language.', 'taka-platform' ); ?></p></td></tr>
 					<tr><th scope="row"><?php echo esc_html__( 'Package options', 'taka-platform' ); ?></th><td>
 						<p><label><input type="checkbox" name="only_missing_translations" value="1" checked> <?php echo esc_html__( 'Only missing translations', 'taka-platform' ); ?></label></p>

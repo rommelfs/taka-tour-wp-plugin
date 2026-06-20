@@ -158,6 +158,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v2.0.1
+
+- Fixed TAKA Translation Package exports so target languages are computed per item source language, allowing German translations for English-source content.
+
 ### v2.0.0
 
 - Added provider-independent TAKA Translation Packages for exporting, translating and importing dynamic multilingual content.
