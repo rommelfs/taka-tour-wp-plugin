@@ -473,7 +473,7 @@ class TAKA_Platform_Admin {
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'TAKA Platform Import / Export', 'taka-platform' ); ?></h1>
 			<?php if ( is_array( $result ) ) : ?>
-				<div class="notice notice-info"><p><?php echo esc_html( $result['message'] ?? '' ); ?></p><pre><?php echo esc_html( print_r( $result['summary'] ?? array(), true ) ); ?></pre></div>
+				<div class="notice notice-info"><p><?php echo esc_html( $result['message'] ?? '' ); ?></p><?php self::render_import_summary( $result['summary'] ?? array() ); ?></div>
 			<?php endif; ?>
 			<h2><?php echo esc_html__( 'Import config/tour-events.php', 'taka-platform' ); ?></h2>
 			<form method="post" enctype="multipart/form-data" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
@@ -482,7 +482,7 @@ class TAKA_Platform_Admin {
 				<table class="form-table" role="presentation"><tbody>
 					<tr><th scope="row"><?php echo esc_html__( 'Import source', 'taka-platform' ); ?></th><td>
 						<p><label><input type="radio" name="source" value="bundled" checked> <?php echo esc_html__( 'Bundled config/tour-events.php', 'taka-platform' ); ?></label></p>
-						<p><label><input type="radio" name="source" value="upload"> <?php echo esc_html__( 'Upload PHP config file', 'taka-platform' ); ?></label><br><input type="file" name="config_file" accept=".php"></p>
+						<p><label><input type="radio" name="source" value="upload"> <?php echo esc_html__( 'Upload JSON config file', 'taka-platform' ); ?></label><br><input type="file" name="config_file" accept=".json"></p>
 						<p><label><input type="radio" name="source" value="json"> <?php echo esc_html__( 'Paste JSON', 'taka-platform' ); ?></label><br><textarea class="large-text code" rows="8" name="config_json" placeholder="{ &quot;organizers&quot;: {}, &quot;venues&quot;: {}, &quot;events&quot;: [] }"></textarea></p>
 					</td></tr>
 					<tr><th scope="row"><?php echo esc_html__( 'Options', 'taka-platform' ); ?></th><td>
@@ -594,6 +594,23 @@ class TAKA_Platform_Admin {
 			<p><?php echo esc_html__( 'Dynamic fields can store per-language arrays. The current manual translation provider fills missing values from the default language; external AI providers can hook into taka_platform_translate_text later.', 'taka-platform' ); ?></p>
 		</div>
 		<?php
+	}
+
+	/** Render import summary without debug-style output. */
+	private static function render_import_summary( $summary ) {
+		if ( ! is_array( $summary ) || empty( $summary ) ) { return; }
+		echo '<ul>';
+		foreach ( $summary as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$parts = array();
+				foreach ( $value as $sub_key => $sub_value ) {
+					$parts[] = sanitize_key( $sub_key ) . ': ' . ( is_scalar( $sub_value ) ? (string) $sub_value : wp_json_encode( $sub_value ) );
+				}
+				$value = implode( ', ', $parts );
+			}
+			echo '<li><strong>' . esc_html( sanitize_key( $key ) ) . ':</strong> ' . esc_html( is_scalar( $value ) ? (string) $value : wp_json_encode( $value ) ) . '</li>';
+		}
+		echo '</ul>';
 	}
 
 	/** Render Events Manager export integration page. */
@@ -1148,23 +1165,21 @@ class TAKA_Platform_Admin {
 
 		if ( 'upload' === $source ) {
 			if ( empty( $_FILES['config_file']['tmp_name'] ) || ! is_uploaded_file( $_FILES['config_file']['tmp_name'] ) ) {
-				return new WP_Error( 'taka_tour_missing_upload', __( 'No PHP config file uploaded.', 'taka-platform' ) );
+				return new WP_Error( 'taka_tour_missing_upload', __( 'No JSON config file uploaded.', 'taka-platform' ) );
 			}
 			$name = sanitize_file_name( $_FILES['config_file']['name'] ?? '' );
-			if ( 'php' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) ) {
-				return new WP_Error( 'taka_tour_invalid_upload', __( 'Uploaded config must be a PHP file.', 'taka-platform' ) );
+			if ( 'json' !== strtolower( pathinfo( $name, PATHINFO_EXTENSION ) ) ) {
+				return new WP_Error( 'taka_tour_invalid_upload', __( 'Uploaded config must be a JSON file.', 'taka-platform' ) );
 			}
-			if ( function_exists( 'exec' ) && defined( 'PHP_BINARY' ) ) {
-				$output = array();
-				$status = 0;
-				@exec( escapeshellarg( PHP_BINARY ) . ' -l ' . escapeshellarg( $_FILES['config_file']['tmp_name'] ), $output, $status );
-				if ( 0 !== (int) $status ) {
-					return new WP_Error( 'taka_tour_invalid_php_config', __( 'Uploaded PHP config failed syntax validation.', 'taka-platform' ) );
-				}
+			$type = function_exists( 'wp_check_filetype' ) ? wp_check_filetype( $name, array( 'json' => 'application/json' ) ) : array( 'ext' => 'json' );
+			if ( 'json' !== ( $type['ext'] ?? '' ) ) {
+				return new WP_Error( 'taka_tour_invalid_upload', __( 'Uploaded config must be a JSON file.', 'taka-platform' ) );
 			}
-			ob_start();
-			$data = ( static function ( $file ) { return require $file; } )( $_FILES['config_file']['tmp_name'] );
-			ob_end_clean();
+			$json = file_get_contents( $_FILES['config_file']['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			$data = json_decode( (string) $json, true );
+			if ( JSON_ERROR_NONE !== json_last_error() ) {
+				return new WP_Error( 'taka_tour_invalid_json', __( 'Invalid JSON import data.', 'taka-platform' ) );
+			}
 			return self::validate_import_config( $data );
 		}
 

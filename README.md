@@ -89,7 +89,7 @@ The Hero location overview supports configurable display modes: list, flags, rou
 The Import / Export screen supports:
 
 - bundled PHP config
-- uploaded compatible PHP config
+- uploaded JSON config
 - pasted JSON with `organizers`, `venues` and `events`
 - dry-run previews
 - import missing only
@@ -166,6 +166,10 @@ The script checks PHP syntax for all `*.php` files with `php -l` and scans the r
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v2.2.1
+
+- Audited and hardened import/export handling, replacing uploaded PHP config execution with JSON-only uploads and documenting remaining security review findings.
 
 ### v2.2.0
 
