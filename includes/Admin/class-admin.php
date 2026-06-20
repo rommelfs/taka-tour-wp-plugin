@@ -176,6 +176,7 @@ class TAKA_Platform_Admin {
 		add_submenu_page( 'taka-platform', __( 'Import / Export', 'taka-platform' ), __( 'Import / Export', 'taka-platform' ), 'manage_options', 'taka-tour-import-export', array( __CLASS__, 'render_import_export' ) );
 		add_submenu_page( 'taka-platform', __( 'Settings', 'taka-platform' ), __( 'Settings', 'taka-platform' ), 'manage_options', 'taka-tour-settings', array( __CLASS__, 'render_settings' ) );
 		add_submenu_page( 'taka-platform', __( 'Translations', 'taka-platform' ), __( 'Translations', 'taka-platform' ), 'manage_options', 'taka-platform-translations', array( __CLASS__, 'render_translations' ) );
+		add_submenu_page( 'taka-platform', __( 'Integrations / Events Manager', 'taka-platform' ), __( 'Events Manager', 'taka-platform' ), 'manage_options', 'taka-platform-events-manager', array( __CLASS__, 'render_events_manager_integration' ) );
 	}
 
 
@@ -591,6 +592,46 @@ class TAKA_Platform_Admin {
 			</tbody></table>
 			<h2><?php echo esc_html__( 'Dynamic content translation workflow', 'taka-platform' ); ?></h2>
 			<p><?php echo esc_html__( 'Dynamic fields can store per-language arrays. The current manual translation provider fills missing values from the default language; external AI providers can hook into taka_platform_translate_text later.', 'taka-platform' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/** Render Events Manager export integration page. */
+	public static function render_events_manager_integration() {
+		if ( ! current_user_can( 'manage_options' ) ) { return; }
+		$lang = taka_tour_current_language();
+		$rest_url = rest_url( TAKA_Platform_Events_Manager_Integration::REST_NAMESPACE . TAKA_Platform_Events_Manager_Integration::REST_ROUTE );
+		$providers = TAKA_Platform_Events_Manager_Integration::providers();
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html__( 'Integrations / Events Manager', 'taka-platform' ); ?></h1>
+			<p><?php echo esc_html__( 'TAKA Platform remains the source of truth. These exports provide normalized event data for Events Manager and other external tools without deleting or syncing external events automatically.', 'taka-platform' ); ?></p>
+
+			<h2><?php echo esc_html__( 'REST event feed', 'taka-platform' ); ?></h2>
+			<p><code><?php echo esc_html( $rest_url ); ?></code></p>
+			<p class="description"><?php echo esc_html__( 'Optional query parameter: ?lang=de, en, fr, nl, lb, fi or ja.', 'taka-platform' ); ?></p>
+
+			<h2><?php echo esc_html__( 'Export formats', 'taka-platform' ); ?></h2>
+			<table class="widefat striped">
+				<thead><tr><th><?php echo esc_html__( 'Format', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Action', 'taka-platform' ); ?></th></tr></thead>
+				<tbody>
+					<?php foreach ( $providers as $provider ) : ?>
+						<tr>
+							<td><?php echo esc_html( $provider->label() ); ?></td>
+							<td><a class="button" href="<?php echo esc_url( TAKA_Platform_Events_Manager_Integration::export_url( $provider->key(), $lang ) ); ?>"><?php echo esc_html__( 'Download', 'taka-platform' ); ?></a></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+
+			<h2><?php echo esc_html__( 'Events Manager mapping', 'taka-platform' ); ?></h2>
+			<ul>
+				<li><?php echo esc_html__( 'Event title maps to event_name and post_title.', 'taka-platform' ); ?></li>
+				<li><?php echo esc_html__( 'Description maps to post_content.', 'taka-platform' ); ?></li>
+				<li><?php echo esc_html__( 'First and last program items provide start and end date/time.', 'taka-platform' ); ?></li>
+				<li><?php echo esc_html__( 'Venue fields map to Events Manager location columns.', 'taka-platform' ); ?></li>
+				<li><?php echo esc_html__( 'Ticket URL, organizers and TAKA event ID are exported as custom attributes/fields.', 'taka-platform' ); ?></li>
+			</ul>
 		</div>
 		<?php
 	}

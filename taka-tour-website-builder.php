@@ -2,14 +2,14 @@
 /**
  * Plugin Name: TAKA Platform
  * Description: Ticketing, Attendance, Knowledge & Administration for reusable event and seminar tours.
- * Version: 2.1.0
+ * Version: 2.2.0
  * Author: TAKA Platform
  * Text Domain: taka-platform
  */
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TAKA_PLATFORM_VERSION', '2.1.0' );
+define( 'TAKA_PLATFORM_VERSION', '2.2.0' );
 define( 'TAKA_PLATFORM_PLUGIN_FILE', __FILE__ );
 define( 'TAKA_PLATFORM_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TAKA_PLATFORM_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -33,6 +33,12 @@ require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-pretix-provider.
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-ticket-provider-registry.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Data/class-repository.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/ImportExport/class-translation-packages.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/interface-event-export-provider.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/class-ics-provider.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/class-csv-provider.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/class-json-provider.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/class-events-manager-csv-provider.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/class-events-manager-integration.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Frontend/class-organizer-dashboard.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Frontend/class-renderer.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Core/class-plugin.php';
@@ -64,6 +70,7 @@ add_action(
 	'plugins_loaded',
 	static function () {
 		add_action( 'init', array( 'TAKA_Platform_Admin', 'register_post_types' ) );
+		TAKA_Platform_Events_Manager_Integration::init();
 		TAKA_Platform_Plugin::instance();
 		if ( is_admin() ) {
 			TAKA_Platform_Admin::init();

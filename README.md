@@ -99,6 +99,10 @@ The Import / Export screen supports:
 
 Imports are idempotent through stable `_taka_config_id` identifiers. Export provides a PHP config representation and JSON.
 
+## Integrations
+
+The Events Manager integration exports normalized TAKA event data without making Events Manager the source of truth. Admins can download ICS, CSV, JSON and Events Manager compatible CSV files, or consume the stable REST endpoint at `/wp-json/taka-platform/v1/events`. See [docs/integrations-events-manager.md](docs/integrations-events-manager.md).
+
 ## Translation Packages
 
 TAKA Translation Packages (TTP) provide a provider-independent JSON workflow for dynamic multilingual content. Editors can export untranslated or changed content, translate it with ChatGPT, Claude, Gemini, DeepL or human translators, then import the completed JSON without an API requirement. See [docs/translations.md](docs/translations.md).
@@ -162,6 +166,10 @@ The script checks PHP syntax for all `*.php` files with `php -l` and scans the r
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v2.2.0
+
+- Added an Events Manager export integration with ICS, CSV, JSON, Events Manager compatible CSV and a normalized REST event feed.
 
 ### v2.1.0
 
