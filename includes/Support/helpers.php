@@ -26,6 +26,20 @@ function taka_tour_render_template( $template, $args = array() ) {
 }
 
 /**
+ * Render a TAKA Platform template with scoped variables.
+ *
+ * The legacy taka_tour_* helper remains available for existing templates and
+ * third-party customizations.
+ *
+ * @param string $template Template file relative to templates directory.
+ * @param array  $args     Template variables.
+ * @return string
+ */
+function taka_platform_render_template( $template, $args = array() ) {
+	return taka_tour_render_template( $template, $args );
+}
+
+/**
  * Return allowed HTML for rich template text.
  *
  * @return array
@@ -45,6 +59,15 @@ function taka_tour_allowed_html() {
 		'pretix-widget' => array( 'event' => array() ),
 	);
 
+}
+
+/**
+ * Return allowed HTML for rich TAKA Platform text.
+ *
+ * @return array
+ */
+function taka_platform_allowed_html() {
+	return taka_tour_allowed_html();
 }
 
 /**
@@ -78,6 +101,15 @@ function taka_platform_translate( $key, $fallback = '', $lang = null ) {
  */
 function taka_tour_current_language() {
 	return TAKA_Platform_I18n::instance()->get_current_language();
+}
+
+/**
+ * Return the active TAKA Platform language.
+ *
+ * @return string
+ */
+function taka_platform_current_language() {
+	return taka_tour_current_language();
 }
 
 /**

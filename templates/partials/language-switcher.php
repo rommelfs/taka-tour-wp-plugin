@@ -6,7 +6,7 @@
 defined( 'ABSPATH' ) || exit;
 
 $current = taka_tour_current_language();
-$items   = Taka_Tour_I18n::instance()->get_language_switcher_items();
+$items   = TAKA_Platform_I18n::instance()->get_language_switcher_items();
 ?>
 <nav class="taka-language-menu" aria-label="<?php echo esc_attr( taka_tour_translate( 'language.switcher_label', 'Sprache wählen' ) ); ?>">
 	<?php foreach ( $items as $index => $item ) : ?>

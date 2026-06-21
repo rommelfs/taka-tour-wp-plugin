@@ -24,7 +24,7 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 		<?php foreach ( $seminars as $index => $seminar ) : ?>
 			<?php
 			$panel_key        = $seminar['slug'] ?? $seminar['id'] ?? $index;
-			$pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar );
+			$pretix_event_url = TAKA_Platform_Data::pretix_event_url( $seminar );
 			$time_display     = implode( '–', array_filter( array( $seminar['time_start'] ?? '', $seminar['time_end'] ?? '' ) ) );
 			$drawers          = is_array( $seminar['info_drawers'] ?? null ) ? $seminar['info_drawers'] : array();
 			$event_key        = sanitize_html_class( (string) $panel_key );

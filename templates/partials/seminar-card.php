@@ -5,7 +5,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$pretix_event_url = Taka_Tour_Data::pretix_event_url( $seminar );
+$pretix_event_url = TAKA_Platform_Data::pretix_event_url( $seminar );
 $time_parts       = array_filter( array( $seminar['time_start'] ?? '', $seminar['time_end'] ?? '' ) );
 $time_display     = implode( '–', $time_parts );
 $summary_details  = array(

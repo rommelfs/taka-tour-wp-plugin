@@ -8,6 +8,8 @@ The TAKA European Tour 2026 remains the first reference implementation and bundl
 
 Core architecture uses the `TAKA_Platform_*` namespace, the `taka-platform` text domain and generic platform constants. Existing TAKA Tour class names, constants and shortcodes remain available through compatibility shims so existing sites keep working.
 
+See [docs/branding-migration.md](docs/branding-migration.md) for the compatibility rules that guide the migration from the original TAKA Tour plugin identity to the generic TAKA Platform.
+
 ## Public shortcodes
 
 Backward-compatible shortcodes:
