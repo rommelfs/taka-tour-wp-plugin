@@ -2,7 +2,7 @@
 /**
  * Structured tour event configuration.
  *
- * @package Taka_Tour
+ * @package TAKA_Platform
  */
 
 return array(

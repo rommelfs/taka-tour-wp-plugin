@@ -5,7 +5,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$cards = Taka_Tour_Data::image_grid();
+$cards = TAKA_Platform_Data::image_grid();
 ?>
 <section class="taka-section taka-editorial-gallery">
 	<div class="taka-editorial-gallery__intro">
