@@ -1506,6 +1506,7 @@ class TAKA_Platform_Admin {
 		}
 	}
 	public static function save_event( $post_id ) {
+		if ( ! self::can_save_post_meta( $post_id ) ) { return; }
 		$posted_relationships = self::sanitize_event_organizer_relationships( $_POST['taka_platform_event_organizers'] ?? array() );
 		if ( ! empty( $posted_relationships ) ) {
 			$_POST['_taka_organizer_id'] = (string) absint( $posted_relationships[0]['organizer_id'] ?? 0 );
@@ -1528,6 +1529,7 @@ class TAKA_Platform_Admin {
 		self::save_object_text_translations( $post_id, 'event' );
 		self::save_event_organizer_relationships( $post_id, $posted_relationships );
 		self::save_event_program_items( $post_id );
+		self::save_event_ticket_meta( $post_id );
 	}
 
 	private static function render_event_organizer_relationship_fields( $post_id ) {
@@ -1690,8 +1692,7 @@ class TAKA_Platform_Admin {
 
 	/** Save fields. */
 	private static function save( $post_id, $fields ) {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) { return; }
-		if ( ! isset( $_POST[ self::NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) || ! current_user_can( 'edit_post', $post_id ) ) { return; }
+		if ( ! self::can_save_post_meta( $post_id ) ) { return; }
 		foreach ( $fields as $field ) {
 			$key = '_taka_' . $field;
 			if ( ! isset( $_POST[ $key ] ) ) { delete_post_meta( $post_id, $key ); continue; }
@@ -1705,6 +1706,31 @@ class TAKA_Platform_Admin {
 			else { $value = sanitize_text_field( $value ); }
 			update_post_meta( $post_id, $key, $value );
 		}
+	}
+
+	private static function can_save_post_meta( $post_id ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) { return false; }
+		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) { return false; }
+		if ( ! isset( $_POST[ self::NONCE ] ) ) { return false; }
+		if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) ) { return false; }
+		return current_user_can( 'edit_post', $post_id );
+	}
+
+	private static function save_event_ticket_meta( $post_id ) {
+		foreach ( array( 'ticket_provider', 'ticket_status', 'ticket_shop_url' ) as $field ) {
+			$posted_key = self::posted_event_ticket_key( $field );
+			if ( '' === $posted_key ) { continue; }
+			$value = wp_unslash( $_POST[ $posted_key ] );
+			$value = 'ticket_shop_url' === $field ? esc_url_raw( $value ) : sanitize_text_field( $value );
+			update_post_meta( $post_id, '_taka_' . $field, $value );
+		}
+	}
+
+	private static function posted_event_ticket_key( $field ) {
+		$prefixed = '_taka_' . $field;
+		if ( isset( $_POST[ $prefixed ] ) ) { return $prefixed; }
+		if ( isset( $_POST[ $field ] ) ) { return $field; }
+		return '';
 	}
 
 	/** Render repeatable co-organizer UI on organizer edit screens. */
