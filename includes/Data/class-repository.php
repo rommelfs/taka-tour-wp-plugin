@@ -30,38 +30,109 @@ class TAKA_Platform_Data {
 	/** Event fields backed by configurable option lists. */
 	public static function event_option_list_fields() {
 		return array(
-			'audience' => 'Audience',
+			'ticket_provider' => 'Ticket Provider',
+			'ticket_status' => 'Ticket Status',
 			'format' => 'Format',
+			'audience' => 'Audience',
+			'level' => 'Level',
+			'country' => 'Country',
+			'currency' => 'Currency',
 		);
 	}
 
 	/** Default configurable option lists. */
 	public static function default_option_lists() {
 		return array(
-			'audience' => array(
-				'label' => 'Audience',
+			'ticket_provider' => array(
+				'label' => 'Ticket Provider',
 				'options' => array(
-					array( 'key' => 'adults', 'label' => 'Erwachsene', 'source_language' => 'de', 'sort_order' => 10, 'enabled' => '1' ),
-					array( 'key' => 'children', 'label' => 'Kinder', 'source_language' => 'de', 'sort_order' => 20, 'enabled' => '1' ),
-					array( 'key' => 'children_and_youth', 'label' => 'Kinder und Jugendliche', 'source_language' => 'de', 'sort_order' => 30, 'enabled' => '1' ),
-					array( 'key' => 'youth', 'label' => 'Jugendliche', 'source_language' => 'de', 'sort_order' => 40, 'enabled' => '1' ),
-					array( 'key' => 'adults_and_youth', 'label' => 'Erwachsene und Jugendliche', 'source_language' => 'de', 'sort_order' => 50, 'enabled' => '1' ),
-					array( 'key' => 'all', 'label' => 'Alle', 'source_language' => 'de', 'sort_order' => 60, 'enabled' => '1' ),
+					self::option( 'none', 'None', 'en', array( 'de' => 'Kein Anbieter' ), 10 ),
+					self::option( 'pretix', 'Pretix', 'en', array(), 20 ),
+					self::option( 'events_manager', 'Events Manager', 'en', array(), 30 ),
+					self::option( 'woocommerce', 'WooCommerce', 'en', array(), 40 ),
+					self::option( 'external', 'External', 'en', array( 'de' => 'Extern' ), 50 ),
+					self::option( 'custom', 'Custom', 'en', array( 'de' => 'Benutzerdefiniert' ), 60 ),
+				),
+			),
+			'ticket_status' => array(
+				'label' => 'Ticket Status',
+				'options' => array(
+					self::option( 'coming_soon', 'Ticketshop folgt', 'de', array( 'en' => 'Ticket shop coming soon' ), 10 ),
+					self::option( 'available', 'Verfuegbar', 'de', array( 'en' => 'Available' ), 20 ),
+					self::option( 'sold_out', 'Ausverkauft', 'de', array( 'en' => 'Sold out' ), 30 ),
+					self::option( 'waiting_list', 'Warteliste', 'de', array( 'en' => 'Waiting list' ), 40 ),
+					self::option( 'cancelled', 'Abgesagt', 'de', array( 'en' => 'Cancelled' ), 50 ),
+					self::option( 'closed', 'Geschlossen', 'de', array( 'en' => 'Closed' ), 60 ),
+					self::option( 'past', 'Vergangen', 'de', array( 'en' => 'Past' ), 70 ),
 				),
 			),
 			'format' => array(
 				'label' => 'Format',
 				'options' => array(
-					array( 'key' => 'evening_seminar', 'label' => 'Abendseminar', 'source_language' => 'de', 'sort_order' => 10, 'enabled' => '1' ),
-					array( 'key' => 'half_day_seminar', 'label' => 'Halbtagseminar', 'source_language' => 'de', 'sort_order' => 20, 'enabled' => '1' ),
-					array( 'key' => 'day_seminar', 'label' => 'Tagesseminar', 'source_language' => 'de', 'sort_order' => 30, 'enabled' => '1' ),
-					array( 'key' => 'two_day_seminar', 'label' => '2-Tage-Seminar', 'source_language' => 'de', 'sort_order' => 40, 'enabled' => '1' ),
-					array( 'key' => 'weekend_seminar', 'label' => 'Wochenendseminar', 'source_language' => 'de', 'sort_order' => 50, 'enabled' => '1' ),
-					array( 'key' => 'tour_event', 'label' => 'Tour-Event', 'source_language' => 'de', 'sort_order' => 60, 'enabled' => '1' ),
-					array( 'key' => 'seminar', 'label' => 'Seminar', 'source_language' => 'de', 'sort_order' => 70, 'enabled' => '1' ),
+					self::option( 'evening', 'Abendseminar', 'de', array( 'en' => 'Evening seminar' ), 10, '', array( 'evening_seminar' ) ),
+					self::option( 'half_day', 'Halbtagseminar', 'de', array( 'en' => 'Half-day seminar' ), 20, '', array( 'half_day_seminar' ) ),
+					self::option( 'one_day', 'Tagesseminar', 'de', array( 'en' => 'One-day seminar' ), 30, '', array( 'day_seminar' ) ),
+					self::option( 'weekend', 'Wochenendseminar', 'de', array( 'en' => 'Weekend seminar' ), 40, '', array( 'weekend_seminar' ) ),
+					self::option( 'two_day', '2-Tage-Seminar', 'de', array( 'en' => 'Two-day seminar' ), 50, '', array( 'two_day_seminar' ) ),
+					self::option( 'training_camp', 'Trainingslager', 'de', array( 'en' => 'Training camp' ), 60 ),
+					self::option( 'private_lesson', 'Privatunterricht', 'de', array( 'en' => 'Private lesson' ), 70 ),
+					self::option( 'examination', 'Pruefung', 'de', array( 'en' => 'Examination' ), 80 ),
+					self::option( 'seminar', 'Seminar', 'de', array( 'en' => 'Seminar' ), 90 ),
+					self::option( 'children_seminar', 'Kinderseminar', 'de', array( 'en' => 'Children seminar' ), 100 ),
+				),
+			),
+			'audience' => array(
+				'label' => 'Audience',
+				'options' => array(
+					self::option( 'everyone', 'Alle', 'de', array( 'en' => 'Everyone' ), 10, '', array( 'all' ) ),
+					self::option( 'children', 'Kinder', 'de', array( 'en' => 'Children' ), 20 ),
+					self::option( 'children_teens', 'Kinder und Jugendliche', 'de', array( 'en' => 'Children and teens' ), 30, '', array( 'children_and_youth' ) ),
+					self::option( 'teens', 'Jugendliche', 'de', array( 'en' => 'Teens' ), 40 ),
+					self::option( 'teens_adults', 'Erwachsene und Jugendliche', 'de', array( 'en' => 'Teens and adults' ), 50, '', array( 'adults_and_youth' ) ),
+					self::option( 'adults', 'Erwachsene', 'de', array( 'en' => 'Adults' ), 60 ),
+					self::option( 'families', 'Familien', 'de', array( 'en' => 'Families' ), 70 ),
+					self::option( 'seniors', 'Senioren', 'de', array( 'en' => 'Seniors' ), 80 ),
+				),
+			),
+			'level' => array(
+				'label' => 'Level',
+				'options' => array(
+					self::option( 'all', 'Alle Level', 'de', array( 'en' => 'All levels' ), 10, '', array( 'Alle Stilrichtungen und Level' ) ),
+					self::option( 'beginners', 'Anfaenger', 'de', array( 'en' => 'Beginners' ), 20 ),
+					self::option( 'intermediate', 'Mittelstufe', 'de', array( 'en' => 'Intermediate' ), 30 ),
+					self::option( 'advanced', 'Fortgeschrittene', 'de', array( 'en' => 'Advanced' ), 40 ),
+					self::option( 'black_belts', 'Schwarzgurte', 'de', array( 'en' => 'Black belts' ), 50 ),
+					self::option( 'instructors', 'Trainer', 'de', array( 'en' => 'Instructors' ), 60 ),
+				),
+			),
+			'country' => array(
+				'label' => 'Country',
+				'options' => array(
+					self::option( 'DE', 'Germany', 'en', array( 'de' => 'Deutschland' ), 10, self::flag_for_country_code( 'DE' ) ),
+					self::option( 'LU', 'Luxembourg', 'en', array( 'de' => 'Luxemburg' ), 20, self::flag_for_country_code( 'LU' ) ),
+					self::option( 'NL', 'Netherlands', 'en', array( 'de' => 'Niederlande' ), 30, self::flag_for_country_code( 'NL' ) ),
+					self::option( 'BE', 'Belgium', 'en', array( 'de' => 'Belgien' ), 40, self::flag_for_country_code( 'BE' ) ),
+					self::option( 'FI', 'Finland', 'en', array( 'de' => 'Finnland' ), 50, self::flag_for_country_code( 'FI' ) ),
+					self::option( 'FR', 'France', 'en', array( 'de' => 'Frankreich' ), 60, self::flag_for_country_code( 'FR' ) ),
+					self::option( 'JP', 'Japan', 'en', array( 'de' => 'Japan' ), 70, self::flag_for_country_code( 'JP' ) ),
+					self::option( 'US', 'United States', 'en', array( 'de' => 'Vereinigte Staaten' ), 80, self::flag_for_country_code( 'US' ) ),
+				),
+			),
+			'currency' => array(
+				'label' => 'Currency',
+				'options' => array(
+					self::option( 'EUR', 'EUR', 'en', array( 'de' => 'Euro' ), 10 ),
+					self::option( 'JPY', 'JPY', 'en', array( 'de' => 'Japanischer Yen' ), 20 ),
+					self::option( 'USD', 'USD', 'en', array( 'de' => 'US-Dollar' ), 30 ),
+					self::option( 'GBP', 'GBP', 'en', array( 'de' => 'Pfund Sterling' ), 40 ),
+					self::option( 'CHF', 'CHF', 'en', array( 'de' => 'Schweizer Franken' ), 50 ),
 				),
 			),
 		);
+	}
+
+	private static function option( $key, $label, $source_language = 'de', $translations = array(), $sort_order = 0, $icon = '', $aliases = array() ) {
+		return array( 'key' => $key, 'label' => $label, 'source_language' => $source_language, 'translations' => $translations, 'sort_order' => $sort_order, 'enabled' => '1', 'icon' => $icon, 'aliases' => $aliases );
 	}
 
 	/** Load normalized configurable option lists. */
@@ -76,11 +147,14 @@ class TAKA_Platform_Data {
 		$lists = is_array( $lists ) ? $lists : array();
 		$normalized = array();
 		foreach ( self::event_option_list_fields() as $list_key => $fallback_label ) {
-			$list = is_array( $lists[ $list_key ] ?? null ) ? $lists[ $list_key ] : ( $defaults[ $list_key ] ?? array() );
+			$default_list = is_array( $defaults[ $list_key ] ?? null ) ? $defaults[ $list_key ] : array();
+			$stored_list = is_array( $lists[ $list_key ] ?? null ) ? $lists[ $list_key ] : array();
+			$list = array_merge( $default_list, $stored_list );
+			$list['options'] = array_merge( (array) ( $default_list['options'] ?? array() ), (array) ( $stored_list['options'] ?? array() ) );
 			$options = array();
 			foreach ( (array) ( $list['options'] ?? array() ) as $option ) {
 				if ( ! is_array( $option ) ) { continue; }
-				$key = sanitize_key( $option['key'] ?? '' );
+				$key = self::normalize_option_key( $list_key, $option['key'] ?? '' );
 				$label = sanitize_text_field( $option['label'] ?? '' );
 				if ( '' === $key || '' === $label ) { continue; }
 				$source_language = in_array( $option['source_language'] ?? '', self::content_section_languages(), true ) ? sanitize_key( $option['source_language'] ) : self::platform_fallback_language();
@@ -88,6 +162,9 @@ class TAKA_Platform_Data {
 				foreach ( self::content_section_languages() as $lang ) {
 					$translations[ $lang ] = sanitize_text_field( $option['translations'][ $lang ] ?? '' );
 				}
+				$icon = sanitize_text_field( $option['icon'] ?? '' );
+				$raw_aliases = is_array( $option['aliases'] ?? null ) ? $option['aliases'] : preg_split( '/\s*,\s*/', (string) ( $option['aliases'] ?? '' ) );
+				$aliases = array_values( array_filter( array_map( 'sanitize_text_field', (array) $raw_aliases ) ) );
 				$enabled = array_key_exists( 'enabled', $option ) ? ( ! empty( $option['enabled'] ) ? '1' : '0' ) : '1';
 				if ( ! $include_disabled && '1' !== $enabled ) { continue; }
 				$options[ $key ] = array(
@@ -97,6 +174,8 @@ class TAKA_Platform_Data {
 					'translations' => $translations,
 					'sort_order' => (int) ( $option['sort_order'] ?? 0 ),
 					'enabled' => $enabled,
+					'icon' => $icon,
+					'aliases' => $aliases,
 				);
 			}
 			usort( $options, static function ( $a, $b ) { return ( (int) ( $a['sort_order'] ?? 0 ) <=> (int) ( $b['sort_order'] ?? 0 ) ) ?: strcmp( (string) ( $a['label'] ?? '' ), (string) ( $b['label'] ?? '' ) ); } );
@@ -106,6 +185,48 @@ class TAKA_Platform_Data {
 			);
 		}
 		return $normalized;
+	}
+
+	/** Merge imported option lists into an existing option-list set by stable list and option IDs. */
+	public static function merge_option_lists( $base, $incoming ) {
+		$merged = self::normalize_option_lists( $base, true );
+		if ( ! is_array( $incoming ) ) {
+			return $merged;
+		}
+
+		foreach ( self::event_option_list_fields() as $list_key => $fallback_label ) {
+			if ( ! is_array( $incoming[ $list_key ] ?? null ) ) { continue; }
+			$list = $incoming[ $list_key ];
+			if ( ! isset( $merged[ $list_key ] ) ) {
+				$merged[ $list_key ] = array( 'label' => $fallback_label, 'options' => array() );
+			}
+			if ( isset( $list['label'] ) ) {
+				$merged[ $list_key ]['label'] = sanitize_text_field( $list['label'] );
+			}
+
+			$options = array();
+			foreach ( (array) ( $merged[ $list_key ]['options'] ?? array() ) as $option ) {
+				if ( ! is_array( $option ) || empty( $option['key'] ) ) { continue; }
+				$options[ (string) $option['key'] ] = $option;
+			}
+			foreach ( (array) ( $list['options'] ?? array() ) as $option ) {
+				if ( ! is_array( $option ) ) { continue; }
+				$key = self::normalize_option_key( $list_key, $option['key'] ?? '' );
+				if ( '' === $key ) { continue; }
+				$options[ $key ] = array_merge( $options[ $key ] ?? array( 'key' => $key ), $option, array( 'key' => $key ) );
+			}
+			$merged[ $list_key ]['options'] = array_values( $options );
+		}
+
+		return self::normalize_option_lists( $merged, true );
+	}
+
+	private static function normalize_option_key( $list_key, $key ) {
+		$key = trim( (string) $key );
+		if ( in_array( $list_key, array( 'country', 'currency' ), true ) ) {
+			return strtoupper( preg_replace( '/[^A-Za-z0-9_\\-]/', '', $key ) );
+		}
+		return sanitize_key( $key );
 	}
 
 	/** Resolve the display label for an option-list value, preserving unknown legacy text. */
@@ -141,7 +262,9 @@ class TAKA_Platform_Data {
 		$lang = $lang ?: self::platform_fallback_language();
 		$choices = array();
 		foreach ( self::get_option_lists( false )[ $list_key ]['options'] ?? array() as $option ) {
-			$choices[ (string) ( $option['key'] ?? '' ) ] = self::option_label_for_language( $option, $lang );
+			$label = self::option_label_for_language( $option, $lang );
+			$icon = trim( (string) ( $option['icon'] ?? '' ) );
+			$choices[ (string) ( $option['key'] ?? '' ) ] = '' !== $icon ? $icon . ' ' . $label : $label;
 		}
 		return array_filter( $choices, static function ( $label, $key ) { return '' !== (string) $key && '' !== trim( (string) $label ); }, ARRAY_FILTER_USE_BOTH );
 	}
@@ -190,7 +313,7 @@ class TAKA_Platform_Data {
 		$value = trim( (string) $value );
 		if ( '' === $value ) { return false; }
 		if ( $value === (string) ( $option['key'] ?? '' ) ) { return true; }
-		$candidates = array_merge( array( $option['label'] ?? '' ), array_values( (array) ( $option['translations'] ?? array() ) ) );
+		$candidates = array_merge( array( $option['label'] ?? '' ), array_values( (array) ( $option['translations'] ?? array() ) ), array_values( (array) ( $option['aliases'] ?? array() ) ) );
 		foreach ( $candidates as $candidate ) {
 			if ( 0 === strcasecmp( $value, trim( (string) $candidate ) ) ) { return true; }
 		}
@@ -214,6 +337,83 @@ class TAKA_Platform_Data {
 			return false;
 		}
 		return '' === trim( (string) ( $option['translations'][ $lang ] ?? '' ) );
+	}
+
+	/** Normalize one event option-list value to its stable ID while preserving unknown legacy values. */
+	public static function normalize_event_option_value( $field, $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) { return ''; }
+		$matched = self::option_key_for_value( $field, $value );
+		if ( '' !== $matched ) { return $matched; }
+		return sanitize_text_field( $value );
+	}
+
+	/** Normalize language code lists from legacy CSV or multiselect input. */
+	public static function normalize_language_codes( $value ) {
+		$items = is_array( $value ) ? $value : preg_split( '/\s*,\s*/', (string) $value );
+		$allowed = self::content_section_languages();
+		$out = array();
+		foreach ( (array) $items as $item ) {
+			$lang = sanitize_key( (string) $item );
+			if ( in_array( $lang, $allowed, true ) ) { $out[] = $lang; }
+		}
+		return array_values( array_unique( $out ) );
+	}
+
+	/** Labels for supported event language codes. */
+	public static function language_choices() {
+		$labels = array( 'de' => 'Deutsch', 'en' => 'English', 'fr' => 'Francais', 'nl' => 'Nederlands', 'lb' => 'Letzebuergesch', 'fi' => 'Suomi', 'ja' => 'Japanese' );
+		$out = array();
+		foreach ( self::content_section_languages() as $lang ) {
+			$out[ $lang ] = $labels[ $lang ] ?? strtoupper( $lang );
+		}
+		return $out;
+	}
+
+	/** Convert country labels or codes into ISO-3166 alpha-2 codes when possible. */
+	public static function country_code_for_value( $value ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) { return ''; }
+		$matched = self::option_key_for_value( 'country', $value );
+		if ( '' !== $matched ) { return strtoupper( $matched ); }
+		$code = strtoupper( preg_replace( '/[^A-Za-z]/', '', $value ) );
+		return 2 === strlen( $code ) ? $code : '';
+	}
+
+	/** Display label for a country code or legacy country label. */
+	public static function country_label( $value, $lang = null ) {
+		$value = trim( (string) $value );
+		if ( '' === $value ) { return ''; }
+		return self::resolve_option_list_label( 'country', $value, $lang, $value );
+	}
+
+	/** Suggest languages from a country code or legacy country label. */
+	public static function languages_for_country( $country ) {
+		$code = self::country_code_for_value( $country );
+		$map = array(
+			'FI' => array( 'fi', 'en', 'de' ),
+			'DE' => array( 'de', 'en' ),
+			'FR' => array( 'fr', 'en', 'de' ),
+			'NL' => array( 'nl', 'en', 'de' ),
+			'BE' => array( 'fr', 'nl', 'de', 'en' ),
+			'LU' => array( 'fr', 'de', 'lb', 'en' ),
+			'JP' => array( 'ja', 'en' ),
+		);
+		return $map[ $code ] ?? array( 'en' );
+	}
+
+	/** Suggested timezone for a country code or legacy country label. */
+	public static function timezone_for_country( $country ) {
+		$map = array( 'DE' => 'Europe/Berlin', 'LU' => 'Europe/Luxembourg', 'NL' => 'Europe/Amsterdam', 'BE' => 'Europe/Brussels', 'FI' => 'Europe/Helsinki', 'FR' => 'Europe/Paris', 'JP' => 'Asia/Tokyo', 'US' => 'America/New_York' );
+		$code = self::country_code_for_value( $country );
+		return $map[ $code ] ?? '';
+	}
+
+	/** Suggested currency for a country code or legacy country label. */
+	public static function currency_for_country( $country ) {
+		$map = array( 'DE' => 'EUR', 'LU' => 'EUR', 'NL' => 'EUR', 'BE' => 'EUR', 'FI' => 'EUR', 'FR' => 'EUR', 'JP' => 'JPY', 'US' => 'USD' );
+		$code = self::country_code_for_value( $country );
+		return $map[ $code ] ?? '';
 	}
 
 
@@ -619,6 +819,32 @@ class TAKA_Platform_Data {
 		);
 	}
 
+	/** Unknown legacy option values that should be reviewed by administrators. */
+	public static function option_list_warnings() {
+		$warnings = array();
+		$fields = array_keys( self::event_option_list_fields() );
+		foreach ( self::load_config()['events'] ?? array() as $event ) {
+			foreach ( $fields as $field ) {
+				if ( 'currency' === $field && empty( $event[ $field ] ) ) { continue; }
+				$value = (string) ( $event[ $field ] ?? '' );
+				if ( '' !== $value && '' === self::option_key_for_value( $field, $value ) ) {
+					$warnings[] = sprintf( __( 'Config event "%1$s" has unknown %2$s value "%3$s".', 'taka-platform' ), $event['title'] ?? ( $event['id'] ?? '' ), $field, $value );
+				}
+			}
+		}
+		if ( self::can_use_wp_posts() ) {
+			foreach ( self::query_post_ids( self::EVENT_POST_TYPE, 'any' ) as $post_id ) {
+				foreach ( $fields as $field ) {
+					$value = (string) get_post_meta( $post_id, '_taka_' . $field, true );
+					if ( '' !== $value && '' === self::option_key_for_value( $field, $value ) ) {
+						$warnings[] = sprintf( __( 'Event post #%1$d has unknown %2$s value "%3$s".', 'taka-platform' ), $post_id, $field, $value );
+					}
+				}
+			}
+		}
+		return array_values( array_unique( $warnings ) );
+	}
+
 	/** Event source diagnostics for admin troubleshooting. */
 	public static function event_diagnostics( $lang = null ) {
 		$lang = $lang ?: taka_tour_current_language();
@@ -794,9 +1020,9 @@ class TAKA_Platform_Data {
 				'text_translations' => self::normalize_object_text_translations( get_post_meta( $post->ID, '_taka_text_translations', true ), self::translatable_text_fields( 'organizer' ) ),
 				'legal_name' => (string) get_post_meta( $post->ID, '_taka_legal_name', true ),
 				'website' => (string) get_post_meta( $post->ID, '_taka_website', true ),
-				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
-				'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ),
-				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ),
+				'country' => self::normalize_event_option_value( 'country', get_post_meta( $post->ID, '_taka_country', true ) ),
+				'country_code' => self::country_code_for_value( get_post_meta( $post->ID, '_taka_country_code', true ) ?: get_post_meta( $post->ID, '_taka_country', true ) ),
+				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ) ?: self::flag_for_country_code( self::country_code_for_value( get_post_meta( $post->ID, '_taka_country', true ) ) ),
 				'logo_id' => $logo_id,
 				'logo_url' => self::resolve_attachment_url( $logo_id, 'large', (string) get_post_meta( $post->ID, '_taka_logo_url', true ) ),
 				'logo' => self::resolve_attachment_url( $logo_id, 'large', (string) get_post_meta( $post->ID, '_taka_logo_url', true ) ),
@@ -837,7 +1063,8 @@ class TAKA_Platform_Data {
 				'map_y' => self::nullable_meta( $post->ID, 'map_y' ),
 				'route_map_label' => (string) get_post_meta( $post->ID, '_taka_route_map_label', true ),
 				'map_label' => (string) get_post_meta( $post->ID, '_taka_map_label', true ),
-				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ),
+				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ) ?: self::timezone_for_country( get_post_meta( $post->ID, '_taka_country', true ) ),
+				'currency' => self::normalize_event_option_value( 'currency', get_post_meta( $post->ID, '_taka_currency', true ) ?: self::currency_for_country( get_post_meta( $post->ID, '_taka_country', true ) ) ),
 				'website' => (string) get_post_meta( $post->ID, '_taka_website', true ),
 				'parking' => (string) get_post_meta( $post->ID, '_taka_parking', true ),
 				'accessibility' => (string) get_post_meta( $post->ID, '_taka_accessibility', true ),
@@ -884,14 +1111,14 @@ class TAKA_Platform_Data {
 				'description' => (string) get_post_meta( $post->ID, '_taka_short_description', true ) ?: $post->post_content,
 				'long_description' => (string) get_post_meta( $post->ID, '_taka_long_description', true ),
 				'ticket_card_text' => (string) get_post_meta( $post->ID, '_taka_ticket_card_text', true ),
-					'ticket_tab_label' => (string) get_post_meta( $post->ID, '_taka_ticket_tab_label', true ),
+				'ticket_tab_label' => (string) get_post_meta( $post->ID, '_taka_ticket_tab_label', true ),
 				'booking_information' => self::event_booking_information_from_meta( $post->ID ),
 				'content_references' => array(
 					'event_description' => self::normalize_content_reference( get_post_meta( $post->ID, '_taka_content_reference_event_description', true ), 'event_description' ),
 				),
-				'country' => (string) get_post_meta( $post->ID, '_taka_country', true ),
-				'country_code' => (string) get_post_meta( $post->ID, '_taka_country_code', true ),
-				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ),
+				'country' => self::normalize_event_option_value( 'country', get_post_meta( $post->ID, '_taka_country', true ) ),
+				'country_code' => self::country_code_for_value( get_post_meta( $post->ID, '_taka_country_code', true ) ?: get_post_meta( $post->ID, '_taka_country', true ) ),
+				'flag' => (string) get_post_meta( $post->ID, '_taka_flag', true ) ?: self::flag_for_country_code( self::country_code_for_value( get_post_meta( $post->ID, '_taka_country', true ) ) ),
 				'route_map_x' => self::nullable_meta( $post->ID, 'route_map_x' ),
 				'route_map_y' => self::nullable_meta( $post->ID, 'route_map_y' ),
 				'map_x' => self::nullable_meta( $post->ID, 'map_x' ),
@@ -906,17 +1133,18 @@ class TAKA_Platform_Data {
 				'time_end' => (string) get_post_meta( $post->ID, '_taka_time_end', true ),
 				'doors_open' => (string) get_post_meta( $post->ID, '_taka_doors_open', true ),
 				'program_items' => self::normalize_program_items( get_post_meta( $post->ID, '_taka_program_items', true ) ),
-				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ),
+				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ) ?: self::timezone_for_country( get_post_meta( $post->ID, '_taka_country', true ) ),
+				'currency' => self::normalize_event_option_value( 'currency', get_post_meta( $post->ID, '_taka_currency', true ) ?: self::currency_for_country( get_post_meta( $post->ID, '_taka_country', true ) ) ),
 				'organizer' => $legacy_organizer_id,
 				'organizers' => $organizer_relationships,
 				'venue' => $venue_id,
 				'venues' => $venues,
-				'format' => (string) get_post_meta( $post->ID, '_taka_format', true ),
-				'audience' => (string) get_post_meta( $post->ID, '_taka_audience', true ),
-				'level' => (string) get_post_meta( $post->ID, '_taka_level', true ),
+				'format' => self::normalize_event_option_value( 'format', get_post_meta( $post->ID, '_taka_format', true ) ),
+				'audience' => self::normalize_event_option_value( 'audience', get_post_meta( $post->ID, '_taka_audience', true ) ),
+				'level' => self::normalize_event_option_value( 'level', get_post_meta( $post->ID, '_taka_level', true ) ),
 				'status' => 'confirmed',
-				'ticket_status' => (string) get_post_meta( $post->ID, '_taka_ticket_status', true ),
-				'ticket_provider' => strtolower( (string) get_post_meta( $post->ID, '_taka_ticket_provider', true ) ),
+				'ticket_status' => self::normalize_event_option_value( 'ticket_status', get_post_meta( $post->ID, '_taka_ticket_status', true ) ),
+				'ticket_provider' => self::normalize_event_option_value( 'ticket_provider', strtolower( (string) get_post_meta( $post->ID, '_taka_ticket_provider', true ) ) ),
 				'ticket_shop_url' => (string) get_post_meta( $post->ID, '_taka_ticket_shop_url', true ),
 				'image_id' => $image_id,
 				'image_url' => (string) get_post_meta( $post->ID, '_taka_image_url', true ),
@@ -929,7 +1157,7 @@ class TAKA_Platform_Data {
 				'gallery_urls' => self::attachment_urls( self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ) ),
 				'gallery' => self::attachment_urls( self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) ) ),
 				'photo_credit' => (string) get_post_meta( $post->ID, '_taka_photo_credit', true ),
-				'languages' => self::csv_to_strings( get_post_meta( $post->ID, '_taka_languages', true ) ),
+				'languages' => self::normalize_language_codes( get_post_meta( $post->ID, '_taka_languages', true ) ),
 				'notes' => (string) get_post_meta( $post->ID, '_taka_notes', true ),
 				'accessibility' => (string) get_post_meta( $post->ID, '_taka_accessibility', true ),
 				'parking' => (string) get_post_meta( $post->ID, '_taka_parking', true ),
@@ -982,7 +1210,42 @@ class TAKA_Platform_Data {
 
 	/** Normalize config events. */
 	private static function normalize_config_events( $events ) {
-		return array_map( static function ( $event ) { $event['data_source'] = 'config_fallback'; $event['wp_post_id'] = ''; $event['source_language'] = $event['source_language'] ?? self::platform_fallback_language(); $event['text_translations'] = self::normalize_object_text_translations( $event['text_translations'] ?? array(), self::translatable_text_fields( 'event' ) ); $event['long_description'] = $event['long_description'] ?? ''; $event['ticket_card_text'] = $event['ticket_card_text'] ?? ''; $event['accessibility'] = $event['accessibility'] ?? ''; $event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null ); $event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null ); $event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' ); $event['route_order'] = $event['route_order'] ?? null; $event['image_id'] = $event['image_id'] ?? 0; $event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' ); $event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 ); $event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) ); $event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id']; $event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url']; $event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array(); $event['gallery_urls'] = $event['gallery'] ?? array(); $event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false ); $event['content_references'] = is_array( $event['content_references'] ?? null ) ? $event['content_references'] : array(); $event['content_references']['event_description'] = self::normalize_content_reference( $event['content_references']['event_description'] ?? array(), 'event_description' ); $event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event ); $event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' ); return $event; }, $events );
+		return array_map( static function ( $event ) {
+			$event['data_source'] = 'config_fallback';
+			$event['wp_post_id'] = '';
+			$event['source_language'] = $event['source_language'] ?? self::platform_fallback_language();
+			$event['text_translations'] = self::normalize_object_text_translations( $event['text_translations'] ?? array(), self::translatable_text_fields( 'event' ) );
+			$event['long_description'] = $event['long_description'] ?? '';
+			$event['ticket_card_text'] = $event['ticket_card_text'] ?? '';
+			$event['accessibility'] = $event['accessibility'] ?? '';
+			$event['country'] = self::normalize_event_option_value( 'country', $event['country_code'] ?? ( $event['country'] ?? '' ) );
+			$event['country_code'] = self::country_code_for_value( $event['country'] ?? '' );
+			$event['flag'] = self::flag_for_country_code( $event['country_code'] ?? '' );
+			$event['timezone'] = $event['timezone'] ?? self::timezone_for_country( $event['country'] ?? '' );
+			$event['currency'] = self::normalize_event_option_value( 'currency', $event['currency'] ?? self::currency_for_country( $event['country'] ?? '' ) );
+			foreach ( array( 'format', 'audience', 'level', 'ticket_provider', 'ticket_status' ) as $field ) {
+				$event[ $field ] = self::normalize_event_option_value( $field, $event[ $field ] ?? '' );
+			}
+			$event['languages'] = ! empty( $event['languages'] ) ? self::normalize_language_codes( $event['languages'] ) : self::languages_for_country( $event['country'] ?? '' );
+			$event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null );
+			$event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null );
+			$event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' );
+			$event['route_order'] = $event['route_order'] ?? null;
+			$event['image_id'] = $event['image_id'] ?? 0;
+			$event['image_url'] = $event['image_url'] ?? ( $event['image'] ?? '' );
+			$event['group_image_id'] = $event['group_image_id'] ?? ( $event['past_group_photo_id'] ?? 0 );
+			$event['group_image_url'] = $event['group_image_url'] ?? ( $event['group_image'] ?? ( $event['past_group_photo_url'] ?? '' ) );
+			$event['past_group_photo_id'] = $event['past_group_photo_id'] ?? $event['group_image_id'];
+			$event['past_group_photo_url'] = $event['past_group_photo_url'] ?? $event['group_image_url'];
+			$event['gallery_image_ids'] = $event['gallery_image_ids'] ?? array();
+			$event['gallery_urls'] = $event['gallery'] ?? array();
+			$event['booking_information'] = self::normalize_booking_information( $event['booking_information'] ?? array(), false );
+			$event['content_references'] = is_array( $event['content_references'] ?? null ) ? $event['content_references'] : array();
+			$event['content_references']['event_description'] = self::normalize_content_reference( $event['content_references']['event_description'] ?? array(), 'event_description' );
+			$event['program_items'] = self::normalize_program_items( $event['program_items'] ?? ( $event['program'] ?? array() ), $event );
+			$event['organizers'] = self::normalize_event_organizer_relationships( $event['organizers'] ?? array(), $event['organizer'] ?? '' );
+			return $event;
+		}, $events );
 	}
 
 	/** Global media labels. */
@@ -1560,9 +1823,6 @@ class TAKA_Platform_Data {
 		return apply_filters( 'taka_platform_gallery_images', array( array( 'id' => 'community', 'title' => 'Community', 'text' => 'Internationale Karate-Familie.', 'image' => $images['community_group'], 'wide' => true ), array( 'id' => 'kobudo', 'title' => 'Kobudo', 'text' => 'Bo-Arbeit, Distanz und Timing.', 'image' => $images['kobudo'] ), array( 'id' => 'softblock', 'title' => 'Soft Blocking', 'text' => 'Weiche Struktur statt roher Kraft.', 'image' => $images['softblock'] ), array( 'id' => 'together', 'title' => 'Gemeinsam üben', 'text' => 'Lernen durch Beobachten, Austausch und Wiederholung.', 'image' => $images['together_practice'] ), array( 'id' => 'kids', 'title' => 'Kinderseminar', 'text' => 'Kinderseminar Trier', 'image' => $images['kids_group'] ), array( 'id' => 'group', 'title' => 'Gruppenfoto', 'text' => 'Gemeinschaft über Dojo- und Landesgrenzen hinweg.', 'image' => $images['group_large'], 'wide' => true ) ), 'homepage' );
 	}
 
-	/** Suggest languages from country. */
-	public static function languages_for_country( $country ) { $map = array( 'Finland' => array( 'fi', 'en', 'de' ), 'Germany' => array( 'de', 'en' ), 'France' => array( 'fr', 'en', 'de' ), 'Netherlands' => array( 'nl', 'en', 'de' ), 'Belgium' => array( 'fr', 'nl', 'de', 'en' ), 'Luxembourg' => array( 'fr', 'de', 'lb', 'en' ) ); return $map[ $country ] ?? array( 'en' ); }
-
 	/** Normalize flexible event program items with legacy date/time fallback. */
 	public static function normalize_program_items( $items, $event = array() ) {
 		if ( ! is_array( $items ) ) { $items = array(); }
@@ -1657,12 +1917,20 @@ class TAKA_Platform_Data {
 			}
 			$legacy_format = self::is_wordpress_event_record( $event ) ? ( $event['format'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.type', $event['format'] ?? '', $lang );
 			$legacy_audience = self::is_wordpress_event_record( $event ) ? ( $event['audience'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.audience', $event['audience'] ?? '', $lang );
+			$legacy_level = self::is_wordpress_event_record( $event ) ? ( $event['level'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.level', $event['level'] ?? '', $lang );
 			$event['format'] = self::resolve_option_list_label( 'format', $event['format'] ?? '', $lang, $legacy_format );
 			$event['audience'] = self::resolve_option_list_label( 'audience', $event['audience'] ?? '', $lang, $legacy_audience );
-			$event['level'] = taka_tour_translate( 'seminars.' . $slug . '.level', $event['level'] ?? '', $lang );
+			$event['level'] = self::resolve_option_list_label( 'level', $event['level'] ?? '', $lang, $legacy_level );
 			$event['parking'] = taka_tour_translate( 'seminars.' . $slug . '.parking', $event['parking'] ?? '', $lang );
 			$event['type'] = $event['format'];
-			$event['country_label'] = taka_tour_translate( 'country.' . sanitize_key( $event['country'] ?? '' ), $event['country'] ?? '', $lang );
+			$country_id = self::normalize_event_option_value( 'country', $event['country'] ?? ( $event['country_code'] ?? '' ) );
+			$event['country_id'] = $country_id;
+			$event['country_code'] = self::country_code_for_value( $event['country_code'] ?? $country_id );
+			$event['country_label'] = self::country_label( $country_id ?: ( $event['country_code'] ?? '' ), $lang );
+			$event['country'] = $event['country_label'] ?: ( $event['country'] ?? '' );
+			$event['flag'] = $event['flag'] ?: self::flag_for_country_code( $event['country_code'] ?? '' );
+			$currency = trim( (string) ( $event['currency'] ?? '' ) );
+			$event['currency'] = self::normalize_event_option_value( 'currency', '' !== $currency ? $currency : self::currency_for_country( $event['country_code'] ?? $country_id ) );
 			$event['program_items'] = self::normalize_program_items( $event['program_items'] ?? array(), $event );
 			if ( ! empty( $event['program_items'] ) ) {
 				$event['date_start'] = $event['date_start'] ?: ( $event['program_items'][0]['date'] ?? '' );
@@ -1708,7 +1976,7 @@ class TAKA_Platform_Data {
 
 	/** Convert a two-letter country code into its Unicode regional indicator flag. */
 	public static function flag_for_country_code( $country_code ) {
-		$code = strtoupper( preg_replace( '/[^A-Z]/', '', (string) $country_code ) );
+		$code = strtoupper( preg_replace( '/[^A-Za-z]/', '', (string) $country_code ) );
 		if ( 2 !== strlen( $code ) ) { return ''; }
 		$flag = '';
 		for ( $i = 0; $i < 2; $i++ ) {

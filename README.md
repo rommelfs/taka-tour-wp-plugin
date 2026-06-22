@@ -84,7 +84,7 @@ Organizers support legal names, websites, logos, contact data, social links and 
 
 ## Option lists
 
-Recurring event fields such as audience and format use configurable option lists from **TAKA Platform -> Settings**. Events store stable option keys where possible, while unknown legacy text values remain valid and continue to render as fallback text. Option labels have a source language, translations, sort order and enabled state, and are included in TAKA Translation Packages.
+Recurring event fields such as ticket provider, ticket status, format, audience, level, country and currency use configurable option lists from **TAKA Platform -> Option Lists**. Events store stable option keys where possible, while unknown legacy text values remain valid and are reported for review. Option labels have a source language, translations, aliases, optional icons, sort order and enabled state, and are included in TAKA Translation Packages. See [docs/option-lists.md](docs/option-lists.md).
 
 ## Hero route map
 
