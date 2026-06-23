@@ -1208,6 +1208,30 @@ class TAKA_Platform_Data {
 		return (string) ( $items[0]['time_start'] ?? '' );
 	}
 
+	/** Stable key used by ticket tabs and event share URLs. */
+	public static function event_panel_key( $event ) {
+		$event = is_array( $event ) ? $event : array();
+		foreach ( array( 'slug', 'id', 'config_id', 'wp_post_id' ) as $field ) {
+			$value = trim( (string) ( $event[ $field ] ?? '' ) );
+			if ( '' !== $value ) { return $value; }
+		}
+		return '';
+	}
+
+	/** Build a direct frontend URL that opens the ticket section with one event selected. */
+	public static function event_share_url( $event, $lang = null, $base_url = '' ) {
+		$event_key = self::event_panel_key( $event );
+		if ( '' === $event_key ) { return ''; }
+		if ( '' === $base_url && function_exists( 'get_permalink' ) ) { $base_url = (string) get_permalink(); }
+		if ( '' === $base_url && function_exists( 'home_url' ) ) { $base_url = (string) home_url( '/' ); }
+		if ( '' === $base_url ) { return '#tickets'; }
+		$lang = null === $lang && function_exists( 'taka_tour_current_language' ) ? taka_tour_current_language() : $lang;
+		$args = array( 'taka_event' => $event_key );
+		if ( '' !== trim( (string) $lang ) ) { $args['taka_lang'] = sanitize_key( $lang ); }
+		$url = function_exists( 'add_query_arg' ) ? add_query_arg( $args, $base_url ) : rtrim( $base_url, '?' ) . '?' . http_build_query( $args );
+		return strtok( $url, '#' ) . '#tickets';
+	}
+
 	/** Get public events by organizer. */
 	public static function get_events_by_organizer( $organizer_id ) {
 		return array_values( array_filter( self::get_public_events(), static function ( $event ) use ( $organizer_id ) { if ( (string) $organizer_id === (string) ( $event['organizer'] ?? '' ) ) { return true; } foreach ( $event['organizers'] ?? array() as $relationship ) { if ( (string) $organizer_id === (string) ( $relationship['organizer_id'] ?? '' ) ) { return true; } } return false; } ) );

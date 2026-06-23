@@ -83,14 +83,15 @@ $line_points = count( $stops ) > 1 ? implode( ' ', array_map( static fn( $stop )
 			<?php foreach ( $stops as $stop ) : ?>
 				<?php
 				$event = $stop['event'];
-				$tab_key = (string) ( $event['slug'] ?? $event['id'] ?? '' );
+				$tab_key = TAKA_Platform_Data::event_panel_key( $event );
+				$share_url = TAKA_Platform_Data::event_share_url( $event, taka_tour_current_language() ) ?: '#tickets';
 				$country = trim( (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ) );
 				$flag = trim( (string) ( $event['hero_flag'] ?? '' ) );
 				$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
 				$stop_class = 'taka-hero-route-map__stop taka-hero-route-map__stop--' . $stop['label_side'];
 				$label_offset = round( (float) $stop['label_offset'] * 0.2, 2 ) . 'rem';
 				?>
-				<a class="<?php echo esc_attr( $stop_class ); ?>" href="#tickets" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['y'] ); ?>%;--taka-route-label-offset:<?php echo esc_attr( $label_offset ); ?>;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
+				<a class="<?php echo esc_attr( $stop_class ); ?>" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['y'] ); ?>%;--taka-route-label-offset:<?php echo esc_attr( $label_offset ); ?>;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 					<span class="taka-hero-route-map__pin" aria-hidden="true"></span>
 					<span class="taka-hero-route-map__label"><?php if ( '' !== $flag ) : ?><span class="taka-hero-location-flag" aria-hidden="true"><?php echo esc_html( $flag ); ?></span><?php endif; ?><span class="taka-hero-route-map__label-text"><?php echo esc_html( $stop['label'] ); ?></span></span>
 				</a>

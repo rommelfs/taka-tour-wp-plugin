@@ -204,7 +204,12 @@
     "visible": "表示",
     "relationship": "関係",
     "primary_organizer": "主催者",
-    "additional_organizers": "追加主催者"
+    "additional_organizers": "追加主催者",
+    "share_actions": "イベントを共有",
+    "event_link": "イベントリンク",
+    "share_event": "共有",
+    "share_copied": "リンクをコピーしました",
+    "copy_event_link_prompt": "イベントリンクをコピー"
   },
   "country": {
     "france": "フランス"

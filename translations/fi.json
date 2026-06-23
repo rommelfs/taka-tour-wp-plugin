@@ -204,7 +204,12 @@
     "visible": "Näkyvissä",
     "relationship": "Suhde",
     "primary_organizer": "Pääjärjestäjä",
-    "additional_organizers": "Muut järjestäjät"
+    "additional_organizers": "Muut järjestäjät",
+    "share_actions": "Jaa tapahtuma",
+    "event_link": "Tapahtumalinkki",
+    "share_event": "Jaa",
+    "share_copied": "Linkki kopioitu",
+    "copy_event_link_prompt": "Kopioi tapahtumalinkki"
   },
   "country": {
     "france": "Ranska"

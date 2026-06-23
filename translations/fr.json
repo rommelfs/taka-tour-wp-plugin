@@ -204,7 +204,12 @@
     "visible": "Visible",
     "relationship": "Relation",
     "primary_organizer": "Organisateur principal",
-    "additional_organizers": "Organisateurs supplémentaires"
+    "additional_organizers": "Organisateurs supplémentaires",
+    "share_actions": "Partager l’événement",
+    "event_link": "Lien événement",
+    "share_event": "Partager",
+    "share_copied": "Lien copié",
+    "copy_event_link_prompt": "Copier le lien de l’événement"
   },
   "country": {
     "france": "France"

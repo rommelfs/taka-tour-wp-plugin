@@ -204,7 +204,12 @@
     "visible": "Zichtbaar",
     "relationship": "Relatie",
     "primary_organizer": "Hoofdorganisator",
-    "additional_organizers": "Aanvullende organisatoren"
+    "additional_organizers": "Aanvullende organisatoren",
+    "share_actions": "Event delen",
+    "event_link": "Eventlink",
+    "share_event": "Delen",
+    "share_copied": "Link gekopieerd",
+    "copy_event_link_prompt": "Eventlink kopiëren"
   },
   "country": {
     "france": "Frankrijk"

@@ -17,13 +17,15 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 	<div class="taka-tabs taka-ticket-tabs" data-taka-tabs>
 		<div class="taka-tab-buttons taka-ticket-tabs__buttons" role="tablist" aria-label="<?php echo esc_attr( taka_tour_translate( 'tickets.select_event', 'Select event' ) ); ?>">
 			<?php foreach ( $seminars as $index => $seminar ) : ?>
-				<?php $panel_key = $seminar['slug'] ?? $seminar['id'] ?? $index; ?>
+				<?php $panel_key = TAKA_Platform_Data::event_panel_key( $seminar ) ?: (string) $index; ?>
 				<button class="<?php echo 0 === $index ? 'is-active' : ''; ?>" type="button" role="tab" data-tab="<?php echo esc_attr( $panel_key ); ?>" aria-selected="<?php echo 0 === $index ? 'true' : 'false'; ?>"><?php echo esc_html( $seminar['ticket_tab_label'] ?? $seminar['title'] ?? $seminar['city'] ?? '' ); ?></button>
 			<?php endforeach; ?>
 		</div>
 		<?php foreach ( $seminars as $index => $seminar ) : ?>
 			<?php
-			$panel_key        = $seminar['slug'] ?? $seminar['id'] ?? $index;
+			$panel_key        = TAKA_Platform_Data::event_panel_key( $seminar ) ?: (string) $index;
+			$share_event      = array_merge( $seminar, array( 'slug' => $panel_key ) );
+			$share_url        = TAKA_Platform_Data::event_share_url( $share_event, taka_tour_current_language() );
 			$pretix_event_url = TAKA_Platform_Data::pretix_event_url( $seminar );
 			$time_display     = implode( '–', array_filter( array( $seminar['time_start'] ?? '', $seminar['time_end'] ?? '' ) ) );
 			$drawers          = is_array( $seminar['info_drawers'] ?? null ) ? $seminar['info_drawers'] : array();
@@ -47,10 +49,16 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 				<div class="taka-ticket-booking-panel">
 					<div class="taka-ticket-event-panel">
 						<div class="taka-ticket-event-panel__header">
-							<div>
+							<div class="taka-ticket-event-panel__heading">
 								<h3><?php echo esc_html( $seminar['title'] ?? '' ); ?></h3>
 								<?php if ( ! empty( $seminar['subtitle'] ) ) : ?><p class="taka-ticket-event-panel__subtitle"><?php echo esc_html( $seminar['subtitle'] ); ?></p><?php endif; ?>
 							</div>
+							<?php if ( '' !== $share_url ) : ?>
+								<div class="taka-ticket-share-actions" aria-label="<?php echo esc_attr( taka_tour_translate( 'event.share_actions', 'Event teilen' ) ); ?>">
+									<a class="taka-ticket-share-link" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $panel_key ); ?>"><?php echo esc_html( taka_tour_translate( 'event.event_link', 'Event-Link' ) ); ?></a>
+									<button type="button" class="taka-ticket-share-button" data-taka-share-event data-share-url="<?php echo esc_url( $share_url ); ?>" data-share-title="<?php echo esc_attr( $seminar['title'] ?? '' ); ?>" data-share-label="<?php echo esc_attr( taka_tour_translate( 'event.share_event', 'Teilen' ) ); ?>" data-share-copied-label="<?php echo esc_attr( taka_tour_translate( 'event.share_copied', 'Link kopiert' ) ); ?>" data-share-prompt-label="<?php echo esc_attr( taka_tour_translate( 'event.copy_event_link_prompt', 'Event-Link kopieren' ) ); ?>"><?php echo esc_html( taka_tour_translate( 'event.share_event', 'Teilen' ) ); ?></button>
+								</div>
+							<?php endif; ?>
 						</div>
 						<div class="taka-ticket-event-panel__body">
 							<figure class="taka-ticket-event-panel__image <?php echo empty( $seminar['ticket_overview_image'] ) ? 'taka-ticket-event-panel__image--placeholder' : ''; ?>">

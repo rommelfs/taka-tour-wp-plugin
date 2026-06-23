@@ -41,6 +41,8 @@ Additional event-tour aliases:
 
 All aliases call the same rendering logic.
 
+Ticket tabs support direct event links with `?taka_event=<event-slug>#tickets`. These URLs open the ticket section with the referenced event selected and are used by the event share buttons.
+
 ## WordPress-first data flow
 
 WordPress is the primary live data source. If at least one `taka_event` post exists, the frontend renders published WordPress events. If no WordPress events exist, the plugin falls back to `config/tour-events.php` so a fresh install still renders the reference TAKA European Tour.
@@ -172,6 +174,10 @@ The script checks PHP syntax for all `*.php` files with `php -l` and scans the r
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v2.2.5
+
+- Added direct per-event ticket URLs and frontend share/copy buttons for individual events.
 
 ### v2.2.4
 
