@@ -49,6 +49,8 @@ Homepage rendering is descriptor-driven through `TAKA_Platform_Data::get_homepag
 
 Content References store the stable Content Block slug when one is available. Existing references that store a post ID or legacy alias key are still resolved. Clear the selected block to use the inline section or event content again.
 
+Use **TAKA Platform -> Diagnostics** to inspect the final source for each homepage Content Section, including the referenced block value, whether the block was found, its status/enabled flag and the final title/body used by the frontend.
+
 Fallback behavior follows the existing dynamic-content chain:
 
 1. current selected language

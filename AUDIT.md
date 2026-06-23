@@ -1,6 +1,6 @@
 # TAKA Platform Audit and Hardening
 
-Audit version: v2.2.1
+Audit version: v2.2.2
 
 ## Scope
 
@@ -19,6 +19,32 @@ Checked areas:
 - CSS/JS assets for obvious debug output
 
 ## Fixed Issues
+
+### Content Block references on homepage sections audited
+
+Homepage content sections were traced from shortcode rendering through `get_homepage_sections()`,
+`get_content_sections()`, `resolve_content_source()` and the shared `partials/content-section.php`
+renderer.
+
+Findings:
+
+- homepage content sections are data-driven and are not limited to predefined section IDs
+- unknown section keys use the generic `content_section` renderer
+- referenced Content Blocks are resolved through the same content-source mechanism used by event descriptions
+- the local happy path resolves a section key `instructor` referencing Content Block slug `takafumi-nakayama`
+- the likely live failure class is now narrowed to stored data shape, Content Block status/enabled state, slug mismatch or empty block fields
+
+Fix:
+
+- Content Block loading now falls back from `_taka_block_title` to the WordPress post title
+- Content Block body loading now falls back from `post_content` to legacy body/text/description meta and post excerpt
+- the admin Diagnostics page now shows final homepage section source data, including reference slug, block lookup result, block status/enabled state and final title/body excerpt
+
+Files touched:
+
+- `includes/Data/class-repository.php`
+- `includes/Admin/class-admin.php`
+- `docs/content-blocks.md`
 
 ### Uploaded PHP config execution removed
 

@@ -321,11 +321,48 @@ class TAKA_Platform_Admin {
 		if ( ! in_array( $lang, TAKA_Platform_I18n::instance()->get_all_languages(), true ) ) { $lang = TAKA_Platform_Data::platform_fallback_language(); }
 		$status = TAKA_Platform_Data::data_source_status();
 		$rows = TAKA_Platform_Data::event_diagnostics( $lang );
+		$section_rows = TAKA_Platform_Data::content_section_diagnostics( $lang );
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'TAKA Platform Diagnostics', 'taka-platform' ); ?></h1>
 			<p><?php echo esc_html__( 'This page shows the event source of truth and final ticket values used by the frontend.', 'taka-platform' ); ?></p>
 			<p><strong><?php echo esc_html__( 'Active frontend data source', 'taka-platform' ); ?>:</strong> <?php echo esc_html( ! empty( $status['using_database'] ) ? __( 'Database', 'taka-platform' ) : __( 'Config fallback', 'taka-platform' ) ); ?></p>
+			<h2><?php echo esc_html__( 'Content Sections', 'taka-platform' ); ?></h2>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php echo esc_html__( 'Section', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Visible', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Final source', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Reference', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Block found', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Block ID', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Block slug', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Block status', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Block enabled', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Final title', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Final body excerpt', 'taka-platform' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $section_rows as $row ) : ?>
+						<tr>
+							<td><code><?php echo esc_html( $row['key'] ?? '' ); ?></code></td>
+							<td><?php echo esc_html( $row['visible'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $row['content_source'] ?? '' ); ?></td>
+							<td><code><?php echo esc_html( $row['reference_block'] ?? '' ); ?></code></td>
+							<td><?php echo ! empty( $row['block_found'] ) ? esc_html__( 'Yes', 'taka-platform' ) : esc_html__( 'No', 'taka-platform' ); ?></td>
+							<td><?php echo esc_html( $row['block_id'] ?? '' ); ?></td>
+							<td><code><?php echo esc_html( $row['block_slug'] ?? '' ); ?></code></td>
+							<td><?php echo esc_html( $row['block_status'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $row['block_enabled'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $row['final_title'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $row['final_body_excerpt'] ?? '' ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<h2><?php echo esc_html__( 'Events', 'taka-platform' ); ?></h2>
 			<table class="widefat striped">
 				<thead>
 					<tr>

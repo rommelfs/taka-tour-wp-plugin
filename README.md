@@ -173,6 +173,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v2.2.2
+
+- Audited and hardened homepage Content Block references, including diagnostics for final section source data and robust Content Block title/body fallbacks.
+
 ### v2.2.1
 
 - Audited and hardened import/export handling, replacing uploaded PHP config execution with JSON-only uploads and documenting remaining security review findings.

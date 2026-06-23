@@ -832,6 +832,13 @@ class TAKA_Platform_Data {
 			$gallery_ids = self::csv_to_ints( get_post_meta( $post->ID, '_taka_gallery_image_ids', true ) );
 			$gallery_urls = self::lines_to_array( get_post_meta( $post->ID, '_taka_gallery_image_urls', true ) );
 			$enabled_meta = (string) get_post_meta( $post->ID, '_taka_enabled', true );
+			$title = (string) get_post_meta( $post->ID, '_taka_block_title', true );
+			if ( '' === trim( $title ) ) { $title = get_the_title( $post ); }
+			$body = (string) ( $post->post_content ?? '' );
+			if ( '' === trim( $body ) ) { $body = (string) get_post_meta( $post->ID, '_taka_body', true ); }
+			if ( '' === trim( $body ) ) { $body = (string) get_post_meta( $post->ID, '_taka_text', true ); }
+			if ( '' === trim( $body ) ) { $body = (string) get_post_meta( $post->ID, '_taka_description', true ); }
+			if ( '' === trim( $body ) ) { $body = (string) ( $post->post_excerpt ?? '' ); }
 			$block = array(
 				'id' => $id,
 				'config_id' => $config_id,
@@ -844,9 +851,9 @@ class TAKA_Platform_Data {
 				'source_language' => (string) get_post_meta( $post->ID, '_taka_source_language', true ),
 				'text_translations' => self::normalize_object_text_translations( get_post_meta( $post->ID, '_taka_text_translations', true ), self::content_block_text_fields() ),
 				'kicker' => (string) get_post_meta( $post->ID, '_taka_kicker', true ),
-				'title' => (string) get_post_meta( $post->ID, '_taka_block_title', true ),
+				'title' => $title,
 				'subtitle' => (string) get_post_meta( $post->ID, '_taka_subtitle', true ),
-				'body' => $post->post_content,
+				'body' => $body,
 				'button_label' => (string) get_post_meta( $post->ID, '_taka_button_label', true ),
 				'button_url' => (string) get_post_meta( $post->ID, '_taka_button_url', true ),
 				'image_id' => absint( get_post_meta( $post->ID, '_taka_image_id', true ) ),
@@ -982,6 +989,34 @@ class TAKA_Platform_Data {
 			'required_post_types_registered' => self::required_post_types_registered(),
 			'post_types' => $post_types,
 		);
+	}
+
+	/** Final content-section diagnostics for admin/debug views. */
+	public static function content_section_diagnostics( $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		$raw_sections = self::get_content_sections( false );
+		$final_sections = self::get_content_sections( true );
+		$rows = array();
+		foreach ( $final_sections as $key => $section ) {
+			$raw = is_array( $raw_sections[ $key ] ?? null ) ? $raw_sections[ $key ] : array();
+			$reference = self::normalize_content_reference( $raw['content_reference'] ?? array(), 'homepage_section' );
+			$block = self::get_content_block( $reference['block_id'] ?? '', true, $lang );
+			$body = trim( wp_strip_all_tags( (string) ( $section['body'] ?? ( $section['text'] ?? '' ) ) ) );
+			$rows[] = array(
+				'key' => (string) $key,
+				'visible' => (string) ( $section['visible'] ?? '1' ),
+				'content_source' => (string) ( $section['content_source'] ?? 'inline' ),
+				'reference_block' => (string) ( $reference['block_id'] ?? '' ),
+				'block_found' => is_array( $block ),
+				'block_id' => is_array( $block ) ? (string) ( $block['id'] ?? '' ) : '',
+				'block_slug' => is_array( $block ) ? (string) ( $block['slug'] ?? '' ) : '',
+				'block_status' => is_array( $block ) ? (string) ( $block['post_status'] ?? '' ) : '',
+				'block_enabled' => is_array( $block ) ? (string) ( $block['enabled'] ?? '' ) : '',
+				'final_title' => (string) ( $section['title'] ?? '' ),
+				'final_body_excerpt' => function_exists( 'mb_substr' ) ? mb_substr( $body, 0, 160 ) : substr( $body, 0, 160 ),
+			);
+		}
+		return $rows;
 	}
 
 	/** Unknown legacy option values that should be reviewed by administrators. */
