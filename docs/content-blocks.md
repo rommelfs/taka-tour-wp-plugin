@@ -37,7 +37,9 @@ Referenced content is not copied. Updating a Content Block updates every enabled
 
 ## Rendering
 
-Frontend rendering resolves references through `TAKA_Platform_Data::resolve_content_reference()`. `TAKA_Platform_Data::render_content_reference()` is available for places that need to render a reference as a standalone content section.
+Frontend rendering resolves content through `TAKA_Platform_Data::resolve_content_source()`. That method is the shared source-of-truth decision point for inline content versus referenced Content Blocks. It first tries an enabled, active referenced block and falls back to the inline object fields only when the reference cannot be resolved. Callers may require a specific block field; the event description uses this to require a non-empty block body before replacing the inline description.
+
+`TAKA_Platform_Data::resolve_content_reference()` remains the lower-level helper that turns one reference into translated block fields. `TAKA_Platform_Data::render_content_reference()` is available for places that need to render a reference as a standalone content section, and it also goes through the shared content-source resolver.
 
 For homepage sections, a referenced block can replace the visible section text and media. The reference display style can optionally override the parent section layout. For events, the referenced block body can replace the seminar description; layout-oriented display styles are stored but not used by the plain description renderer.
 

@@ -626,11 +626,81 @@ class TAKA_Platform_Data {
 		return $block;
 	}
 
+	/** Resolve an object content source, preferring an active referenced Content Block over inline fields. */
+	public static function resolve_content_source( $object, $lang = null, $args = array() ) {
+		$object = is_array( $object ) ? $object : array();
+		$lang = $lang ?: taka_tour_current_language();
+		$args = is_array( $args ) ? $args : array();
+		$context = sanitize_key( $args['context'] ?? 'homepage_section' );
+		$fields = array_values( array_unique( array_filter( (array) ( $args['fields'] ?? array_keys( self::content_block_text_fields() ) ), 'is_string' ) ) );
+		$required_field = sanitize_key( $args['required_field'] ?? '' );
+		$inline_resolved = ! empty( $args['inline_resolved'] );
+		$reference = self::normalize_content_reference( $object['content_reference'] ?? array(), $context );
+		$block = self::resolve_content_reference( $reference, $lang );
+
+		if ( is_array( $block ) && self::content_source_uses_block( $block, $required_field ) ) {
+			return self::content_source_from_block( $block, $reference, $fields );
+		}
+
+		$inline = $inline_resolved ? $object : self::resolve_dynamic_section_translations( $object, $lang );
+		return self::content_source_from_inline( $inline, $reference, $fields );
+	}
+
+	private static function content_source_from_block( $block, $reference, $fields ) {
+		$source = array(
+			'content_source' => 'content_block',
+			'content_reference' => $reference,
+			'referenced_block' => $block,
+			'image_id' => absint( $block['image_id'] ?? 0 ),
+			'image_url' => (string) ( $block['image_url'] ?? '' ),
+			'secondary_image_id' => 0,
+			'secondary_image_url' => '',
+			'gallery_image_ids' => (array) ( $block['gallery_image_ids'] ?? array() ),
+			'gallery_image_urls' => (array) ( $block['gallery_image_urls'] ?? array() ),
+		);
+		foreach ( $fields as $field ) {
+			$source[ $field ] = (string) ( $block[ $field ] ?? '' );
+		}
+		$source['text'] = (string) ( $source['body'] ?? '' );
+		$source['link_label'] = (string) ( $source['button_label'] ?? '' );
+		$source['link_url'] = (string) ( $source['button_url'] ?? '' );
+		return $source;
+	}
+
+	private static function content_source_from_inline( $inline, $reference, $fields ) {
+		$source = array(
+			'content_source' => 'inline',
+			'content_reference' => $reference,
+		);
+		foreach ( $fields as $field ) {
+			$source[ $field ] = (string) ( $inline[ $field ] ?? '' );
+		}
+		$source['text'] = (string) ( $source['body'] ?? ( $inline['text'] ?? '' ) );
+		$source['link_label'] = (string) ( $source['button_label'] ?? ( $inline['link_label'] ?? '' ) );
+		$source['link_url'] = (string) ( $source['button_url'] ?? ( $inline['link_url'] ?? '' ) );
+		return $source;
+	}
+
+	private static function content_source_uses_block( $source, $required_field = '' ) {
+		if ( '' !== $required_field ) {
+			return '' !== trim( (string) ( $source[ $required_field ] ?? '' ) );
+		}
+		return true;
+	}
+
 	/** Render one content reference through the existing content-section partial. */
 	public static function render_content_reference( $reference, $context = '', $lang = null ) {
 		$reference = self::normalize_content_reference( $reference, $context );
-		$block = self::resolve_content_reference( $reference, $lang );
-		if ( ! is_array( $block ) ) { return ''; }
+		$content_source = self::resolve_content_source(
+			array( 'content_reference' => $reference ),
+			$lang,
+			array(
+				'context' => $reference['context'] ?: $context,
+				'inline_resolved' => true,
+			)
+		);
+		if ( 'content_block' !== (string) ( $content_source['content_source'] ?? '' ) ) { return ''; }
+		$block = is_array( $content_source['referenced_block'] ?? null ) ? $content_source['referenced_block'] : array();
 		$section = array_merge(
 			array(
 				'key' => sanitize_key( ( $context ?: 'content_block' ) . '_' . ( $block['slug'] ?? $block['id'] ?? 'block' ) ),
@@ -642,8 +712,10 @@ class TAKA_Platform_Data {
 				'css_class' => '',
 				'sort_order' => (int) ( $reference['sort_order'] ?? 0 ),
 			),
-			$block
+			$content_source
 		);
+		$section['image'] = self::resolve_attachment_url( absint( $section['image_id'] ?? 0 ), 'full', (string) ( $section['image_url'] ?? '' ) );
+		$section['gallery_images'] = array_values( array_filter( array_merge( self::attachment_urls( $section['gallery_image_ids'] ?? array(), 'full' ), (array) ( $section['gallery_image_urls'] ?? array() ) ) ) );
 		$classes = array_filter( preg_split( '/\s+/', (string) ( $section['css_class'] ?? '' ) ) );
 		array_unshift( $classes, 'taka-content-reference' );
 		$section['css_class'] = implode( ' ', array_unique( $classes ) );
@@ -1675,27 +1747,26 @@ class TAKA_Platform_Data {
 		foreach ( $sections as $key => $section ) {
 			$section = self::normalize_content_section( $section );
 			if ( $resolve_translations ) {
-				$section = self::resolve_dynamic_section_translations( $section, $lang );
-				$block = self::resolve_content_reference( $section['content_reference'] ?? array(), $lang );
-				if ( is_array( $block ) ) {
-					foreach ( array_keys( self::content_block_text_fields() ) as $field ) {
-						if ( '' !== trim( (string) ( $block[ $field ] ?? '' ) ) ) {
-							$section[ $field ] = $block[ $field ];
-						}
-					}
-					if ( ! empty( $block['image_id'] ) || ! empty( $block['image_url'] ) ) {
-						$section['image_id'] = $block['image_id'] ?? 0;
-						$section['image_url'] = $block['image_url'] ?? '';
-					}
-					if ( ! empty( $block['gallery_image_ids'] ) || ! empty( $block['gallery_image_urls'] ) ) {
-						$section['gallery_image_ids'] = $block['gallery_image_ids'] ?? array();
-						$section['gallery_image_urls'] = $block['gallery_image_urls'] ?? array();
-					}
-					$display_style = sanitize_key( $block['content_reference']['display_style'] ?? 'default' );
+				$content_source = self::resolve_content_source( $section, $lang, array( 'context' => 'homepage_section' ) );
+				foreach ( array_keys( self::content_block_text_fields() ) as $field ) {
+					$section[ $field ] = $content_source[ $field ] ?? '';
+				}
+				$section['text'] = $content_source['text'] ?? ( $section['body'] ?? '' );
+				$section['link_label'] = $content_source['link_label'] ?? ( $section['button_label'] ?? '' );
+				$section['link_url'] = $content_source['link_url'] ?? ( $section['button_url'] ?? '' );
+				$section['content_source'] = $content_source['content_source'] ?? 'inline';
+				if ( 'content_block' === ( $content_source['content_source'] ?? '' ) ) {
+					$section['image_id'] = absint( $content_source['image_id'] ?? 0 );
+					$section['image_url'] = (string) ( $content_source['image_url'] ?? '' );
+					$section['secondary_image_id'] = 0;
+					$section['secondary_image_url'] = '';
+					$section['gallery_image_ids'] = $content_source['gallery_image_ids'] ?? array();
+					$section['gallery_image_urls'] = $content_source['gallery_image_urls'] ?? array();
+					$display_style = sanitize_key( $content_source['content_reference']['display_style'] ?? 'default' );
 					if ( 'default' !== $display_style && array_key_exists( $display_style, self::content_reference_display_styles() ) ) {
 						$section['layout'] = $display_style;
 					}
-					$section['referenced_block'] = $block;
+					$section['referenced_block'] = $content_source['referenced_block'] ?? array();
 				}
 			}
 			$section['key']             = $key;
@@ -1970,10 +2041,24 @@ class TAKA_Platform_Data {
 			if ( ! self::is_wordpress_event_record( $event ) ) {
 				$event['description'] = taka_tour_translate( 'seminars.' . $slug . '.description', $event['description'] ?? '', $lang );
 			}
-			$description_block = self::resolve_content_reference( $event['content_references']['event_description'] ?? array(), $lang );
-			if ( is_array( $description_block ) && '' !== trim( (string) ( $description_block['body'] ?? '' ) ) ) {
-				$event['description'] = (string) $description_block['body'];
-				$event['description_content_block'] = $description_block;
+			$description_source = self::resolve_content_source(
+				array(
+					'content_reference' => $event['content_references']['event_description'] ?? array(),
+					'body' => $event['description'] ?? '',
+				),
+				$lang,
+				array(
+					'context' => 'event_description',
+					'fields' => array( 'body' ),
+					'required_field' => 'body',
+					'inline_resolved' => true,
+				)
+			);
+			$event['description'] = (string) ( $description_source['body'] ?? ( $event['description'] ?? '' ) );
+			$event['description_content_source'] = (string) ( $description_source['content_source'] ?? 'inline' );
+			unset( $event['description_content_block'] );
+			if ( 'content_block' === $event['description_content_source'] ) {
+				$event['description_content_block'] = $description_source['referenced_block'] ?? array();
 			}
 			$legacy_format = self::is_wordpress_event_record( $event ) ? ( $event['format'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.type', $event['format'] ?? '', $lang );
 			$legacy_audience = self::is_wordpress_event_record( $event ) ? ( $event['audience'] ?? '' ) : taka_tour_translate( 'seminars.' . $slug . '.audience', $event['audience'] ?? '', $lang );
