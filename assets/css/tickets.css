@@ -956,6 +956,18 @@
 	grid-template-columns: minmax(95px, .22fr) minmax(0, 1fr);
 }
 
+.taka-program-summary__date-group {
+	display: grid;
+	gap: .12rem;
+}
+
+.taka-program-summary__date {
+	color: #2f3437;
+	font-size: .88rem;
+	font-weight: 800;
+	line-height: 1.3;
+}
+
 .taka-program-summary__items {
 	display: grid;
 	gap: .32rem;
@@ -1217,6 +1229,7 @@
 .taka-ticket-organizer-list {
 	display: grid;
 	gap: .55rem;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 	width: 100%;
 }
 
@@ -1250,4 +1263,10 @@
 	margin: 0 !important;
 	opacity: 1 !important;
 	text-transform: uppercase;
+}
+
+@media (max-width: 720px) {
+	.taka-ticket-organizer-list {
+		grid-template-columns: 1fr;
+	}
 }

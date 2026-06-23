@@ -173,6 +173,11 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v2.2.4
+
+- Normalized event organizer relationship ordering so organizers appear before co-organizers, supporting organizers, hosts and partners, and made the event organizer admin UI more compact.
+- Normalized event program dates, fixed weekday calculation for date-only values and sorted seminar plan items chronologically by date and start time.
+
 ### v2.2.3
 
 - Extended structured country option lists to Organizer and Venue admin screens, with derived country code/flag storage.

@@ -1750,7 +1750,7 @@ class TAKA_Platform_Admin {
 		<div class="taka-event-organizers" data-taka-event-organizers>
 			<h3><?php echo esc_html__( 'Event organizers', 'taka-platform' ); ?></h3>
 			<p class="description"><?php echo esc_html__( 'Assign one or more organizer profiles with a role for this event.', 'taka-platform' ); ?> <a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=' . TAKA_PLATFORM_CPT_ORGANIZER ) ); ?>"><?php echo esc_html__( 'Add new organizer', 'taka-platform' ); ?></a></p>
-			<div data-taka-event-organizer-list>
+			<div class="taka-event-organizer-list" data-taka-event-organizer-list>
 				<?php foreach ( $items as $index => $item ) : ?><?php self::render_event_organizer_relationship_row( (int) $index, $item, $organizers, $types ); ?><?php endforeach; ?>
 			</div>
 			<button type="button" class="button" data-taka-event-organizer-add><?php echo esc_html__( 'Add organizer', 'taka-platform' ); ?></button>
@@ -1763,8 +1763,8 @@ class TAKA_Platform_Admin {
 		$index_attr = esc_attr( (string) $index );
 		$prefix = 'taka_platform_event_organizers[' . $index_attr . ']';
 		?>
-		<div class="taka-event-organizer-item" data-taka-event-organizer-item style="border:1px solid #dcdcde;padding:12px;margin:12px 0;background:#fff;">
-			<p><strong><?php echo esc_html__( 'Event organizer', 'taka-platform' ); ?></strong> <button type="button" class="button-link-delete" data-taka-event-organizer-remove><?php echo esc_html__( 'Remove organizer', 'taka-platform' ); ?></button></p>
+		<div class="taka-event-organizer-item" data-taka-event-organizer-item>
+			<div class="taka-event-organizer-item__header"><strong><?php echo esc_html__( 'Event organizer', 'taka-platform' ); ?></strong> <button type="button" class="button-link-delete" data-taka-event-organizer-remove><?php echo esc_html__( 'Remove organizer', 'taka-platform' ); ?></button></div>
 			<p><label><?php echo esc_html__( 'Organizer', 'taka-platform' ); ?><br><select name="<?php echo esc_attr( $prefix ); ?>[organizer_id]"><option value="">—</option><?php foreach ( $organizers as $organizer ) : ?><option value="<?php echo esc_attr( (string) $organizer->ID ); ?>" <?php selected( (string) ( $item['organizer_id'] ?? '' ), (string) $organizer->ID ); ?>><?php echo esc_html( get_the_title( $organizer ) ); ?></option><?php endforeach; ?></select></label></p>
 			<p><label><?php echo esc_html__( 'Relationship', 'taka-platform' ); ?><br><select name="<?php echo esc_attr( $prefix ); ?>[relationship_type]"><?php foreach ( $types as $type => $label ) : ?><option value="<?php echo esc_attr( $type ); ?>" <?php selected( $item['relationship_type'] ?? 'organizer', $type ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?></select></label></p>
 			<p><label><?php echo esc_html__( 'Custom label', 'taka-platform' ); ?><br><input type="text" class="regular-text" name="<?php echo esc_attr( $prefix ); ?>[custom_label]" value="<?php echo esc_attr( $item['custom_label'] ?? '' ); ?>"></label></p>
@@ -1838,7 +1838,7 @@ class TAKA_Platform_Admin {
 			$seen[ $key ] = true;
 			$clean[] = array( 'organizer_id' => (string) $organizer_id, 'relationship_type' => $type, 'custom_label' => sanitize_text_field( $item['custom_label'] ?? '' ), 'visible' => ! empty( $item['visible'] ) ? 1 : 0, 'sort_order' => (int) ( $item['sort_order'] ?? 0 ) );
 		}
-		usort( $clean, static function ( $a, $b ) { return ( (int) $a['sort_order'] <=> (int) $b['sort_order'] ) ?: strcmp( (string) $a['relationship_type'], (string) $b['relationship_type'] ); } );
+		usort( $clean, array( 'TAKA_Platform_Data', 'compare_event_organizer_relationships' ) );
 		return $clean;
 	}
 

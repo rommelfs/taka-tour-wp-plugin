@@ -919,8 +919,26 @@ class TAKA_Platform_Data {
 		if ( empty( $clean ) && '' !== (string) $legacy_organizer && '0' !== (string) $legacy_organizer ) {
 			$clean[] = array( 'organizer_id' => (string) $legacy_organizer, 'relationship_type' => 'organizer', 'custom_label' => '', 'visible' => 1, 'sort_order' => 10 );
 		}
-		usort( $clean, static function ( $a, $b ) { return ( (int) $a['sort_order'] <=> (int) $b['sort_order'] ) ?: strcmp( (string) $a['relationship_type'], (string) $b['relationship_type'] ); } );
+		usort( $clean, array( __CLASS__, 'compare_event_organizer_relationships' ) );
 		return $clean;
+	}
+
+	/** Sort event organizer relationships by business role before editor sort order. */
+	public static function compare_event_organizer_relationships( $a, $b ) {
+		$role_order = array(
+			'organizer' => 0,
+			'co_organizer' => 10,
+			'supporting_organizer' => 20,
+			'host' => 30,
+			'partner' => 40,
+		);
+		$a_type = (string) ( $a['relationship_type'] ?? 'organizer' );
+		$b_type = (string) ( $b['relationship_type'] ?? 'organizer' );
+		$role_compare = ( $role_order[ $a_type ] ?? 100 ) <=> ( $role_order[ $b_type ] ?? 100 );
+		if ( 0 !== $role_compare ) { return $role_compare; }
+		$sort_compare = (int) ( $a['sort_order'] ?? 0 ) <=> (int) ( $b['sort_order'] ?? 0 );
+		if ( 0 !== $sort_compare ) { return $sort_compare; }
+		return strcmp( (string) ( $a['organizer_id'] ?? '' ), (string) ( $b['organizer_id'] ?? '' ) );
 	}
 
 	/** Load seed/fallback tour configuration. */
@@ -1177,10 +1195,10 @@ class TAKA_Platform_Data {
 
 	private static function event_sort_date( $event ) {
 		$date = (string) ( $event['date_start'] ?? '' );
-		if ( '' !== $date ) { return $date; }
+		if ( '' !== $date ) { return self::program_sort_date( $date ); }
 		$items = self::normalize_program_items( $event['program_items'] ?? array(), $event );
 		$date = (string) ( $items[0]['date'] ?? '' );
-		return '' !== $date ? $date : '9999-12-31';
+		return self::program_sort_date( $date );
 	}
 
 	private static function event_sort_time( $event ) {
@@ -2047,7 +2065,7 @@ class TAKA_Platform_Data {
 		$normalized = array();
 		foreach ( $items as $index => $item ) {
 			if ( ! is_array( $item ) ) { continue; }
-			$date = sanitize_text_field( $item['date'] ?? '' );
+			$date = self::normalize_program_date( $item['date'] ?? '' );
 			$start = sanitize_text_field( $item['time_start'] ?? ( $item['start_time'] ?? '' ) );
 			$end = sanitize_text_field( $item['time_end'] ?? ( $item['end_time'] ?? '' ) );
 			$title = sanitize_text_field( $item['title'] ?? '' );
@@ -2057,13 +2075,55 @@ class TAKA_Platform_Data {
 			$normalized[] = array( 'date' => $date, 'time_start' => $start, 'time_end' => $end, 'title' => $title, 'notes' => $notes, 'type' => $type ?: 'seminar', 'sort_order' => (int) ( $item['sort_order'] ?? $index ) );
 		}
 		if ( empty( $normalized ) && ( ! empty( $event['date_start'] ) || ! empty( $event['time_start'] ) || ! empty( $event['time_end'] ) ) ) {
-			$normalized[] = array( 'date' => (string) ( $event['date_start'] ?? '' ), 'time_start' => (string) ( $event['time_start'] ?? '' ), 'time_end' => (string) ( $event['time_end'] ?? '' ), 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 0 );
+			$normalized[] = array( 'date' => self::normalize_program_date( $event['date_start'] ?? '' ), 'time_start' => (string) ( $event['time_start'] ?? '' ), 'time_end' => (string) ( $event['time_end'] ?? '' ), 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 0 );
 			if ( ! empty( $event['date_end'] ) && ( $event['date_end'] !== ( $event['date_start'] ?? '' ) ) ) {
-				$normalized[] = array( 'date' => (string) $event['date_end'], 'time_start' => '', 'time_end' => '', 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 1 );
+				$normalized[] = array( 'date' => self::normalize_program_date( $event['date_end'] ), 'time_start' => '', 'time_end' => '', 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 1 );
 			}
 		}
-		usort( $normalized, static function ( $a, $b ) { return array( $a['date'], $a['sort_order'], $a['time_start'] ) <=> array( $b['date'], $b['sort_order'], $b['time_start'] ); } );
+		usort( $normalized, array( __CLASS__, 'compare_program_items' ) );
 		return $normalized;
+	}
+
+	/** Compare program rows chronologically while keeping sort order as a tie-breaker. */
+	public static function compare_program_items( $a, $b ) {
+		$date_compare = strcmp( self::program_sort_date( $a['date'] ?? '' ), self::program_sort_date( $b['date'] ?? '' ) );
+		if ( 0 !== $date_compare ) { return $date_compare; }
+		$time_compare = strcmp( (string) ( $a['time_start'] ?? '' ), (string) ( $b['time_start'] ?? '' ) );
+		if ( 0 !== $time_compare ) { return $time_compare; }
+		$sort_compare = (int) ( $a['sort_order'] ?? 0 ) <=> (int) ( $b['sort_order'] ?? 0 );
+		if ( 0 !== $sort_compare ) { return $sort_compare; }
+		return strcmp( (string) ( $a['title'] ?? '' ), (string) ( $b['title'] ?? '' ) );
+	}
+
+	/** Normalize legacy date formats into the date input format used by WordPress admin. */
+	private static function normalize_program_date( $date ) {
+		$date = sanitize_text_field( $date );
+		if ( '' === $date ) { return ''; }
+		foreach ( array( 'Y-m-d', 'd.m.Y', 'd/m/Y' ) as $format ) {
+			$parsed = DateTimeImmutable::createFromFormat( '!' . $format, $date );
+			if ( $parsed instanceof DateTimeImmutable && $parsed->format( $format ) === $date ) {
+				return $parsed->format( 'Y-m-d' );
+			}
+		}
+		return $date;
+	}
+
+	private static function program_sort_date( $date ) {
+		$date = self::normalize_program_date( $date );
+		return '' !== $date ? $date : '9999-12-31';
+	}
+
+	private static function program_date_label( $date ) {
+		$date = self::normalize_program_date( $date );
+		$parsed = self::program_date_object( $date );
+		return $parsed instanceof DateTimeImmutable ? $parsed->format( 'd.m.Y' ) : $date;
+	}
+
+	private static function program_date_object( $date ) {
+		$date = self::normalize_program_date( $date );
+		if ( '' === $date ) { return null; }
+		$parsed = DateTimeImmutable::createFromFormat( '!Y-m-d', $date );
+		return $parsed instanceof DateTimeImmutable && $parsed->format( 'Y-m-d' ) === $date ? $parsed : null;
 	}
 
 	private static function program_groups( $items, $lang ) {
@@ -2072,7 +2132,7 @@ class TAKA_Platform_Data {
 			$date = (string) ( $item['date'] ?? '' );
 			if ( '' === $date ) { $date = 'unscheduled'; }
 			if ( ! isset( $groups[ $date ] ) ) {
-				$groups[ $date ] = array( 'date' => $date, 'label' => 'unscheduled' === $date ? taka_tour_translate( 'event.date', 'Date', $lang ) : self::weekday_name( $date, $lang ), 'items' => array() );
+				$groups[ $date ] = array( 'date' => $date, 'date_label' => 'unscheduled' === $date ? '' : self::program_date_label( $date ), 'label' => 'unscheduled' === $date ? taka_tour_translate( 'event.date', 'Date', $lang ) : self::weekday_name( $date, $lang ), 'items' => array() );
 			}
 			$groups[ $date ]['items'][] = $item;
 		}
@@ -2093,9 +2153,9 @@ class TAKA_Platform_Data {
 	}
 
 	private static function weekday_name( $date, $lang ) {
-		$ts = strtotime( $date );
-		if ( false === $ts ) { return $date; }
-		$index = (int) gmdate( 'w', $ts );
+		$parsed = self::program_date_object( $date );
+		if ( ! $parsed instanceof DateTimeImmutable ) { return (string) $date; }
+		$index = (int) $parsed->format( 'w' );
 		$names = array(
 			'en' => array( 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ),
 			'de' => array( 'Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag' ),
@@ -2639,7 +2699,18 @@ class TAKA_Platform_Data {
 	private static function lines_to_array( $value ) { return array_values( array_filter( array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) $value ) ) ) ); }
 	private static function csv_to_ints( $value ) { return array_values( array_filter( array_map( 'absint', preg_split( '/\s*,\s*/', (string) $value ) ) ) ); }
 	private static function csv_to_strings( $value ) { return array_values( array_filter( array_map( 'trim', preg_split( '/\s*,\s*/', (string) $value ) ) ) ); }
-	private static function format_event_date( $event ) { $start = $event['date_start'] ?? ''; $end = $event['date_end'] ?? ''; if ( '' === $start ) { return ''; } $start_ts = strtotime( $start ); $end_ts = '' !== $end ? strtotime( $end ) : false; if ( false === $start_ts ) { return $start; } if ( false === $end_ts || $start === $end ) { return gmdate( 'j.', $start_ts ) . ' ' . self::month_name( (int) gmdate( 'n', $start_ts ) ) . ' ' . gmdate( 'Y', $start_ts ); } if ( gmdate( 'Ym', $start_ts ) === gmdate( 'Ym', $end_ts ) ) { return gmdate( 'j.', $start_ts ) . '–' . gmdate( 'j.', $end_ts ) . ' ' . self::month_name( (int) gmdate( 'n', $end_ts ) ) . ' ' . gmdate( 'Y', $end_ts ); } return gmdate( 'j.', $start_ts ) . ' ' . self::month_name( (int) gmdate( 'n', $start_ts ) ) . ' ' . gmdate( 'Y', $start_ts ) . ' – ' . gmdate( 'j.', $end_ts ) . ' ' . self::month_name( (int) gmdate( 'n', $end_ts ) ) . ' ' . gmdate( 'Y', $end_ts ); }
+	private static function format_event_date( $event ) {
+		$start = self::program_date_object( $event['date_start'] ?? '' );
+		$end = self::program_date_object( $event['date_end'] ?? '' );
+		if ( ! $start instanceof DateTimeImmutable ) { return (string) ( $event['date_start'] ?? '' ); }
+		if ( ! $end instanceof DateTimeImmutable || $start->format( 'Y-m-d' ) === $end->format( 'Y-m-d' ) ) {
+			return $start->format( 'j.' ) . ' ' . self::month_name( (int) $start->format( 'n' ) ) . ' ' . $start->format( 'Y' );
+		}
+		if ( $start->format( 'Ym' ) === $end->format( 'Ym' ) ) {
+			return $start->format( 'j.' ) . '–' . $end->format( 'j.' ) . ' ' . self::month_name( (int) $end->format( 'n' ) ) . ' ' . $end->format( 'Y' );
+		}
+		return $start->format( 'j.' ) . ' ' . self::month_name( (int) $start->format( 'n' ) ) . ' ' . $start->format( 'Y' ) . ' – ' . $end->format( 'j.' ) . ' ' . self::month_name( (int) $end->format( 'n' ) ) . ' ' . $end->format( 'Y' );
+	}
 	private static function month_name( $month ) { $months = array( 1 => 'Januar', 2 => 'Februar', 3 => 'März', 4 => 'April', 5 => 'Mai', 6 => 'Juni', 7 => 'Juli', 8 => 'August', 9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Dezember' ); return $months[ $month ] ?? ''; }
 	private static function format_address( $address ) { $street = $address['street'] ?? ''; $city_line = trim( ( $address['postal_code'] ?? '' ) . ' ' . ( $address['city'] ?? '' ) ); $country = $address['country_label'] ?? ( $address['country'] ?? '' ); return implode( ', ', array_filter( array( $street, $city_line, $country ) ) ); }
 	private static function ticket_status_label( $event, $lang ) { return '' !== self::pretix_event_url( $event ) ? taka_tour_translate( 'seminar.ticketshop_open_pretix', 'Tickets bei Pretix öffnen', $lang ) : taka_tour_translate( 'event.ticketshop_soon', taka_tour_translate( 'seminar.ticketshop_soon', 'Ticketshop folgt', $lang ), $lang ); }

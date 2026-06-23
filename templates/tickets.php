@@ -92,7 +92,10 @@ $ticket_settings = TAKA_Platform_Data::get_ticket_section_settings();
 									<h4><?php echo esc_html( taka_tour_translate( 'event.seminar_plan', 'Seminar plan' ) ); ?></h4>
 									<?php foreach ( $seminar['program_groups'] as $program_group ) : ?>
 										<div class="taka-program-summary__day">
-											<strong class="taka-program-summary__day-label"><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong>
+											<div class="taka-program-summary__date-group">
+												<strong class="taka-program-summary__day-label"><?php echo esc_html( $program_group['label'] ?? '' ); ?></strong>
+												<?php if ( ! empty( $program_group['date_label'] ) ) : ?><span class="taka-program-summary__date"><?php echo esc_html( $program_group['date_label'] ); ?></span><?php endif; ?>
+											</div>
 											<div class="taka-program-summary__items">
 												<?php foreach ( $program_group['items'] as $program_item ) : ?>
 													<div class="taka-program-summary__item"><span class="taka-program-summary__time"><?php echo esc_html( implode( '–', array_filter( array( $program_item['time_start'] ?? '', $program_item['time_end'] ?? '' ) ) ) ); ?></span><span class="taka-program-summary__title"><?php echo esc_html( $program_item['title'] ?? '' ); ?></span></div>

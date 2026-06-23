@@ -53,10 +53,48 @@
 	width: 100%;
 }
 
+.taka-event-organizer-list {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	margin: 12px 0;
+}
+
+.taka-event-organizer-item {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	box-sizing: border-box;
+	padding: 12px;
+}
+
+.taka-event-organizer-item__header {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.taka-event-organizer-item p {
+	margin: 0 0 10px;
+}
+
+.taka-event-organizer-item select,
+.taka-event-organizer-item input.regular-text,
+.taka-event-organizer-item input[type="number"] {
+	box-sizing: border-box;
+	max-width: 100%;
+	width: 100%;
+}
+
 @media (max-width: 782px) {
 	.taka-content-section-tabs__tab {
 		box-sizing: border-box;
 		margin-right: 0;
 		width: 50%;
+	}
+
+	.taka-event-organizer-list {
+		grid-template-columns: 1fr;
 	}
 }
