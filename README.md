@@ -175,6 +175,10 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ## Changelog
 
+### v2.2.9
+
+- Derived seminar plan weekdays and date labels from canonical program dates, with stale program item dates falling back to the current event date range.
+
 ### v2.2.8
 
 - Refactored the hero route map to use the current resolved event data source, chronological ordering and diagnostics for final station labels, coordinates and sort keys.

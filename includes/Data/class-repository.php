@@ -2101,6 +2101,7 @@ class TAKA_Platform_Data {
 			if ( '' === $date && '' === $start && '' === $end && '' === $title && '' === $notes ) { continue; }
 			$normalized[] = array( 'date' => $date, 'time_start' => $start, 'time_end' => $end, 'title' => $title, 'notes' => $notes, 'type' => $type ?: 'seminar', 'sort_order' => (int) ( $item['sort_order'] ?? $index ) );
 		}
+		$normalized = self::apply_event_date_range_to_program_items( $normalized, $event );
 		if ( empty( $normalized ) && ( ! empty( $event['date_start'] ) || ! empty( $event['time_start'] ) || ! empty( $event['time_end'] ) ) ) {
 			$normalized[] = array( 'date' => self::normalize_program_date( $event['date_start'] ?? '' ), 'time_start' => (string) ( $event['time_start'] ?? '' ), 'time_end' => (string) ( $event['time_end'] ?? '' ), 'title' => '', 'notes' => '', 'type' => 'seminar', 'sort_order' => 0 );
 			if ( ! empty( $event['date_end'] ) && ( $event['date_end'] !== ( $event['date_start'] ?? '' ) ) ) {
@@ -2109,6 +2110,58 @@ class TAKA_Platform_Data {
 		}
 		usort( $normalized, array( __CLASS__, 'compare_program_items' ) );
 		return $normalized;
+	}
+
+	/** Use event dates as the canonical fallback when legacy program item dates are missing or stale. */
+	private static function apply_event_date_range_to_program_items( $items, $event ) {
+		if ( empty( $items ) || empty( $event ) || ! is_array( $event ) ) { return $items; }
+		$event_dates = self::event_program_date_range( $event );
+		if ( empty( $event_dates ) ) { return $items; }
+
+		$outside_or_empty = false;
+		$item_dates = array();
+		foreach ( $items as $item ) {
+			$date = self::normalize_program_date( $item['date'] ?? '' );
+			if ( '' === $date || ! in_array( $date, $event_dates, true ) ) { $outside_or_empty = true; }
+			if ( '' !== $date && ! in_array( $date, $item_dates, true ) ) { $item_dates[] = $date; }
+		}
+		if ( ! $outside_or_empty ) { return $items; }
+
+		usort( $item_dates, static function ( $a, $b ) { return strcmp( self::program_sort_date( $a ), self::program_sort_date( $b ) ); } );
+		$date_map = array();
+		foreach ( $item_dates as $index => $date ) {
+			$date_map[ $date ] = $event_dates[ min( $index, count( $event_dates ) - 1 ) ];
+		}
+
+		$undated_index = 0;
+		foreach ( $items as $index => $item ) {
+			$date = self::normalize_program_date( $item['date'] ?? '' );
+			if ( '' === $date ) {
+				$items[ $index ]['date'] = $event_dates[ min( $undated_index, count( $event_dates ) - 1 ) ];
+				$undated_index++;
+				continue;
+			}
+			if ( ! in_array( $date, $event_dates, true ) && isset( $date_map[ $date ] ) ) {
+				$items[ $index ]['date'] = $date_map[ $date ];
+			}
+		}
+
+		return $items;
+	}
+
+	private static function event_program_date_range( $event ) {
+		$start = self::program_date_object( $event['date_start'] ?? '' );
+		if ( ! $start instanceof DateTimeImmutable ) { return array(); }
+		$end = self::program_date_object( $event['date_end'] ?? '' );
+		if ( ! $end instanceof DateTimeImmutable || $end < $start ) { $end = $start; }
+
+		$dates = array();
+		$current = $start;
+		for ( $guard = 0; $guard < 32 && $current <= $end; $guard++ ) {
+			$dates[] = $current->format( 'Y-m-d' );
+			$current = $current->modify( '+1 day' );
+		}
+		return $dates;
 	}
 
 	/** Compare program rows chronologically while keeping sort order as a tie-breaker. */
@@ -2193,6 +2246,21 @@ class TAKA_Platform_Data {
 			'ja' => array( '日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日' ),
 		);
 		return $names[ $lang ][ $index ] ?? $names['en'][ $index ];
+	}
+
+	/** Small diagnostics helper proving weekday labels are derived from canonical date parsing. */
+	public static function program_date_debug_check( $lang = 'de' ) {
+		return array_map(
+			static function ( $date ) use ( $lang ) {
+				return array(
+					'input' => $date,
+					'canonical' => self::normalize_program_date( $date ),
+					'date_label' => self::program_date_label( $date ),
+					'weekday' => self::weekday_name( $date, $lang ),
+				);
+			},
+			array( '2026-09-12', '2026-09-13' )
+		);
 	}
 
 	/** Get events enriched for active language and display. */

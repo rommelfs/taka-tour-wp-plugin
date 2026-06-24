@@ -323,6 +323,7 @@ class TAKA_Platform_Admin {
 		$rows = TAKA_Platform_Data::event_diagnostics( $lang );
 		$section_rows = TAKA_Platform_Data::content_section_diagnostics( $lang );
 		$route_rows = TAKA_Platform_Data::hero_route_map_diagnostics( $lang );
+		$date_debug_rows = TAKA_Platform_Data::program_date_debug_check( 'de' );
 		?>
 		<div class="wrap">
 			<h1><?php echo esc_html__( 'TAKA Platform Diagnostics', 'taka-platform' ); ?></h1>
@@ -392,6 +393,27 @@ class TAKA_Platform_Admin {
 							<td><?php echo esc_html( $row['final_map_label'] ?? '' ); ?></td>
 							<td><?php echo esc_html( $row['label_source'] ?? '' ); ?></td>
 							<td><code><?php echo esc_html( $row['sort_key'] ?? '' ); ?></code></td>
+						</tr>
+					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<h2><?php echo esc_html__( 'Program Date Parsing', 'taka-platform' ); ?></h2>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php echo esc_html__( 'Input', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Canonical date', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Date label', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'German weekday', 'taka-platform' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ( $date_debug_rows as $row ) : ?>
+						<tr>
+							<td><code><?php echo esc_html( $row['input'] ?? '' ); ?></code></td>
+							<td><code><?php echo esc_html( $row['canonical'] ?? '' ); ?></code></td>
+							<td><?php echo esc_html( $row['date_label'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $row['weekday'] ?? '' ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				</tbody>
