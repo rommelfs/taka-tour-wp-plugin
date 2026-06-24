@@ -271,20 +271,9 @@ body.admin-bar {
 	filter: drop-shadow(0 0 5px rgba(188, 0, 45, .45));
 }
 
-.taka-hero-route-map__leader {
-	stroke: rgba(255, 255, 255, .28);
-	stroke-linecap: round;
-	stroke-width: .38;
-	vector-effect: non-scaling-stroke;
-}
-
-.taka-hero-route-map__leader--mobile {
-	display: none;
-}
-
 .taka-hero-route-map__marker {
 	position: absolute;
-	z-index: 4;
+	z-index: 7;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -313,12 +302,13 @@ body.admin-bar {
 	z-index: 6;
 	display: inline-flex;
 	align-items: center;
-	gap: .32rem;
+	gap: .28rem;
 	box-sizing: border-box;
-	width: var(--taka-route-label-width, 11rem);
-	max-width: calc(100% - .75rem);
-	min-height: 2rem;
-	padding: .4rem .6rem;
+	width: max-content;
+	min-width: max-content;
+	max-width: none;
+	min-height: 1.75rem;
+	padding: .28rem .48rem;
 	border: 1px solid rgba(255, 255, 255, .14);
 	border-radius: 6px;
 	background: rgba(18, 17, 17, .78);
@@ -326,12 +316,11 @@ body.admin-bar {
 	color: #ffffff !important;
 	font-size: .74rem;
 	font-weight: 800;
-	line-height: 1.15;
+	line-height: normal;
 	overflow: visible;
-	overflow-wrap: anywhere;
 	text-decoration: none;
 	transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
-	white-space: normal;
+	white-space: nowrap;
 }
 
 .taka-hero-route-map__label::before {
@@ -361,11 +350,10 @@ body.admin-bar {
 }
 
 .taka-hero-route-map__label-text {
-	min-width: 0;
+	min-width: max-content;
 	overflow: visible;
-	overflow-wrap: anywhere;
 	text-overflow: clip;
-	white-space: normal;
+	white-space: nowrap;
 }
 
 .taka-hero-route-map__marker:hover .taka-hero-route-map__pin,
@@ -436,14 +424,6 @@ body.admin-bar {
 		box-shadow: 0 16px 38px rgba(0, 0, 0, .28);
 	}
 
-	.taka-hero-route-map__leader--desktop {
-		display: none;
-	}
-
-	.taka-hero-route-map__leader--mobile {
-		display: block;
-	}
-
 	.taka-hero-route-map__marker {
 		width: 1.45rem;
 		height: 1.45rem;
@@ -460,12 +440,14 @@ body.admin-bar {
 	.taka-hero-route-map__label {
 		top: var(--taka-route-label-mobile-y) !important;
 		left: var(--taka-route-label-mobile-x) !important;
-		width: var(--taka-route-label-mobile-width, 36%);
-		max-width: calc(100% - .5rem);
-		min-height: 1.6rem;
-		padding: .3rem .4rem;
-		font-size: .66rem;
-		line-height: 1.08;
+		width: max-content;
+		min-width: max-content;
+		max-width: none;
+		min-height: 1.45rem;
+		padding: .22rem .34rem;
+		font-size: .62rem;
+		line-height: normal;
+		white-space: nowrap;
 	}
 
 	.taka-hero-route-map__label--mobile-anchor-left {
@@ -489,7 +471,7 @@ body.admin-bar {
 	.taka-hero-route-map__label-text {
 		overflow: visible;
 		text-overflow: clip;
-		white-space: normal;
+		white-space: nowrap;
 	}
 
 	.taka-card-actions {
