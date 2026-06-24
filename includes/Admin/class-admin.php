@@ -776,8 +776,29 @@ class TAKA_Platform_Admin {
 			<h1><?php echo esc_html__( 'TAKA Platform Translations', 'taka-platform' ); ?></h1>
 			<p><?php echo esc_html__( 'TAKA Translation Packages export dynamic content as provider-independent JSON for ChatGPT, Claude, Gemini, DeepL, human translators and future API providers.', 'taka-platform' ); ?></p>
 			<?php if ( is_array( $result ) ) : ?>
-				<div class="notice notice-info"><p><strong><?php echo esc_html__( 'Import summary', 'taka-platform' ); ?>:</strong> <?php echo esc_html( sprintf( 'Imported translations: %d. Skipped existing translations: %d. Skipped changed source texts: %d. Errors: %d. Warnings: %d.', (int) ( $result['imported'] ?? 0 ), (int) ( $result['skipped_existing'] ?? 0 ), (int) ( $result['skipped_changed_source'] ?? 0 ), count( $result['errors'] ?? array() ), count( $result['warnings'] ?? array() ) ) ); ?></p>
+				<div class="notice notice-info"><p><strong><?php echo esc_html__( 'Import summary', 'taka-platform' ); ?>:</strong> <?php echo esc_html( sprintf( __( 'Imported translations: %1$d. Created: %2$d. Updated: %3$d. Skipped existing translations: %4$d. Skipped changed source texts: %5$d. Errors: %6$d. Warnings: %7$d.', 'taka-platform' ), (int) ( $result['imported'] ?? 0 ), (int) ( $result['created'] ?? 0 ), (int) ( $result['updated'] ?? 0 ), (int) ( $result['skipped_existing'] ?? 0 ), (int) ( $result['skipped_changed_source'] ?? 0 ), count( $result['errors'] ?? array() ), count( $result['warnings'] ?? array() ) ) ); ?></p>
 				<?php foreach ( array_merge( $result['errors'] ?? array(), $result['warnings'] ?? array() ) as $message ) : ?><p><?php echo esc_html( $message ); ?></p><?php endforeach; ?></div>
+				<?php if ( ! empty( $result['report'] ) && is_array( $result['report'] ) ) : ?>
+					<details open>
+						<summary><strong><?php echo esc_html__( 'Import report', 'taka-platform' ); ?></strong></summary>
+						<table class="widefat striped">
+							<thead><tr><th><?php echo esc_html__( 'Item ID', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Object type', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Object ID', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Field', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Source language', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Target language', 'taka-platform' ); ?></th><th><?php echo esc_html__( 'Status', 'taka-platform' ); ?></th></tr></thead>
+							<tbody>
+								<?php foreach ( $result['report'] as $row ) : ?>
+									<tr>
+										<td><code><?php echo esc_html( $row['item_id'] ?? '' ); ?></code></td>
+										<td><?php echo esc_html( $row['object_type'] ?? '' ); ?></td>
+										<td><code><?php echo esc_html( $row['object_id'] ?? '' ); ?></code></td>
+										<td><code><?php echo esc_html( $row['field'] ?? '' ); ?></code></td>
+										<td><code><?php echo esc_html( $row['source_language'] ?? '' ); ?></code></td>
+										<td><code><?php echo esc_html( $row['target_language'] ?? '' ); ?></code></td>
+										<td><?php echo esc_html( $row['status'] ?? '' ); ?></td>
+									</tr>
+								<?php endforeach; ?>
+							</tbody>
+						</table>
+					</details>
+				<?php endif; ?>
 			<?php endif; ?>
 			<h2><?php echo esc_html__( 'Translation Overview', 'taka-platform' ); ?></h2>
 			<p><strong><?php echo esc_html__( 'Canonical key count', 'taka-platform' ); ?>:</strong> <?php echo esc_html( (string) ( $audit['base_count'] ?? 0 ) ); ?></p>

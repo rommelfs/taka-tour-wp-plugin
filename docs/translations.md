@@ -33,7 +33,7 @@ Go to **TAKA Platform -> Translations** and use **Import Translation Package**.
 
 You can upload a `.json` file or paste JSON into the textarea. By default, imports do not overwrite non-empty translations. Editors may explicitly allow overwrites or allow importing when the source text changed since export.
 
-The import summary reports imported translations, skipped existing translations, skipped changed source texts, warnings and errors.
+The import summary reports imported translations, created translations, updated translations, skipped existing translations, skipped changed source texts, warnings and errors. It also shows an item-level import report with item ID, object type, object ID, field, source language, target language and import status. Use this report to verify that mixed-source packages translate each item from its own `source_language`.
 
 ## Glossary
 

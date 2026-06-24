@@ -236,7 +236,7 @@ class TAKA_Platform_Translation_Packages {
 
 	/** Import a package from decoded JSON. */
 	public static function import_package( $package, $args = array() ) {
-		$summary = array( 'imported' => 0, 'skipped_existing' => 0, 'skipped_changed_source' => 0, 'errors' => array(), 'warnings' => array() );
+		$summary = array( 'imported' => 0, 'created' => 0, 'updated' => 0, 'skipped_existing' => 0, 'skipped_changed_source' => 0, 'errors' => array(), 'warnings' => array(), 'report' => array() );
 		if ( ! is_array( $package ) || ( $package['package_type'] ?? '' ) !== self::PACKAGE_TYPE ) {
 			$summary['errors'][] = 'Invalid package_type.';
 			return $summary;
@@ -257,35 +257,81 @@ class TAKA_Platform_Translation_Packages {
 			$id = (string) $item['id'];
 			if ( empty( $index[ $id ] ) ) {
 				$summary['warnings'][] = 'Unknown item skipped: ' . $id;
+				foreach ( array_keys( (array) ( $item['translations'] ?? array() ) ) as $lang ) {
+					$summary['report'][] = self::import_report_row( $item, $lang, 'skipped_unknown_item' );
+				}
 				continue;
 			}
 			$current = $index[ $id ];
-			$source_language = self::sanitize_language( $item['source_language'] ?? ( $current['source_language'] ?? self::default_source_language() ), self::default_source_language() );
-			if ( $source_language !== ( $current['source_language'] ?? $source_language ) ) {
+			$translations = (array) ( $item['translations'] ?? array() );
+			$raw_source_language = trim( (string) ( $item['source_language'] ?? '' ) );
+			$current_source_language = self::sanitize_language( $current['source_language'] ?? self::default_source_language(), self::default_source_language() );
+			$source_language = self::sanitize_language( $raw_source_language, '' );
+			if ( '' === $source_language ) {
+				$source_language = $current_source_language;
+				$summary['warnings'][] = ( '' === $raw_source_language ? 'Missing' : 'Unsupported' ) . ' source language for ' . $id . '. Falling back to current object source language ' . $source_language . '.';
+			}
+			if ( $source_language !== $current_source_language ) {
 				$summary['warnings'][] = 'Source language changed for ' . $id . '.';
 			}
 			$current_source = self::value_for_language( $current['value'], $source_language );
 			if ( ! $allow_changed && ! hash_equals( (string) ( $item['source_hash'] ?? '' ), self::hash( $current_source ) ) ) {
 				$summary['skipped_changed_source']++;
 				$summary['warnings'][] = 'Source text changed since export: ' . $id;
+				foreach ( array_keys( $translations ) as $lang ) {
+					$summary['report'][] = self::import_report_row( $item, $lang, 'skipped_changed_source' );
+				}
 				continue;
 			}
-			foreach ( $item['translations'] as $lang => $translation ) {
+			foreach ( $translations as $lang => $translation ) {
+				$raw_lang = (string) $lang;
 				$lang = self::sanitize_language( $lang, '' );
-				if ( '' === $lang || $lang === $source_language || '' === trim( (string) $translation ) ) { continue; }
+				if ( '' === $lang ) {
+					$summary['warnings'][] = 'Unsupported target language for ' . $id . ': ' . $raw_lang;
+					$summary['report'][] = self::import_report_row( $item, $raw_lang, 'skipped_unsupported_language' );
+					continue;
+				}
+				if ( $lang === $source_language ) {
+					$summary['report'][] = self::import_report_row( $item, $lang, 'skipped_source_language' );
+					continue;
+				}
+				if ( '' === trim( (string) $translation ) ) {
+					$summary['report'][] = self::import_report_row( $item, $lang, 'skipped_empty_translation' );
+					continue;
+				}
 				$existing = self::value_for_language( $current['value'], $lang, false );
 				if ( ! $overwrite && '' !== trim( (string) $existing ) ) {
 					$summary['skipped_existing']++;
+					$summary['report'][] = self::import_report_row( $item, $lang, 'skipped_existing' );
 					continue;
 				}
 				$changes[ $current['object_type'] ][ $current['object_id'] ][ $current['field'] ][ $lang ] = function_exists( 'wp_kses_post' ) ? wp_kses_post( $translation ) : sanitize_textarea_field( $translation );
 				$summary['imported']++;
+				if ( '' === trim( (string) $existing ) ) {
+					$summary['created']++;
+					$summary['report'][] = self::import_report_row( $item, $lang, 'created' );
+				} else {
+					$summary['updated']++;
+					$summary['report'][] = self::import_report_row( $item, $lang, 'imported' );
+				}
 			}
 		}
 		if ( $summary['imported'] > 0 ) {
 			self::apply_changes( $changes );
 		}
 		return $summary;
+	}
+
+	private static function import_report_row( $item, $target_language, $status ) {
+		return array(
+			'item_id' => (string) ( $item['id'] ?? '' ),
+			'object_type' => (string) ( $item['object_type'] ?? '' ),
+			'object_id' => (string) ( $item['object_id'] ?? '' ),
+			'field' => (string) ( $item['field'] ?? '' ),
+			'source_language' => (string) ( $item['source_language'] ?? '' ),
+			'target_language' => (string) $target_language,
+			'status' => (string) $status,
+		);
 	}
 
 	/** Decode JSON safely. */
