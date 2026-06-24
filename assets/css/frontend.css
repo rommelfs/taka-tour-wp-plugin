@@ -250,6 +250,7 @@ body.admin-bar {
 	inset: 0;
 	width: 100%;
 	height: 100%;
+	pointer-events: none;
 }
 
 .taka-hero-route-map__silhouette {
@@ -269,6 +270,7 @@ body.admin-bar {
 	stroke-linejoin: round;
 	stroke-width: 1.55;
 	filter: drop-shadow(0 0 5px rgba(188, 0, 45, .45));
+	vector-effect: non-scaling-stroke;
 }
 
 .taka-hero-route-map__marker {
