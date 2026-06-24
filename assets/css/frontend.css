@@ -227,7 +227,7 @@ body.admin-bar {
 
 .taka-hero-route-map {
 	position: relative;
-	width: min(100%, 46rem);
+	width: min(100%, 48rem);
 	margin-top: 1.5rem;
 }
 
@@ -236,9 +236,12 @@ body.admin-bar {
 	aspect-ratio: 1.52;
 	min-height: 20rem;
 	overflow: hidden;
+	isolation: isolate;
 	background:
 		linear-gradient(145deg, rgba(24, 20, 20, .92), rgba(72, 22, 30, .78)),
 		linear-gradient(180deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .02));
+	border: 1px solid rgba(255, 255, 255, .12);
+	border-radius: 8px;
 	box-shadow: 0 24px 60px rgba(0, 0, 0, .32);
 }
 
@@ -269,9 +272,14 @@ body.admin-bar {
 }
 
 .taka-hero-route-map__leader {
-	stroke: rgba(255, 255, 255, .42);
+	stroke: rgba(255, 255, 255, .28);
 	stroke-linecap: round;
-	stroke-width: .45;
+	stroke-width: .38;
+	vector-effect: non-scaling-stroke;
+}
+
+.taka-hero-route-map__leader--mobile {
+	display: none;
 }
 
 .taka-hero-route-map__marker {
@@ -305,22 +313,33 @@ body.admin-bar {
 	z-index: 6;
 	display: inline-flex;
 	align-items: center;
-	gap: .22rem;
+	gap: .32rem;
+	box-sizing: border-box;
 	width: var(--taka-route-label-width, 11rem);
-	max-width: min(14rem, 44vw);
+	max-width: calc(100% - .75rem);
 	min-height: 2rem;
-	padding: .36rem .56rem;
+	padding: .4rem .6rem;
+	border: 1px solid rgba(255, 255, 255, .14);
 	border-radius: 6px;
-	background: rgba(20, 18, 18, .72);
-	box-shadow: 0 .35rem 1.1rem rgba(0, 0, 0, .24);
+	background: rgba(18, 17, 17, .78);
+	box-shadow: 0 .35rem 1rem rgba(0, 0, 0, .22);
 	color: #ffffff !important;
-	font-size: .76rem;
+	font-size: .74rem;
 	font-weight: 800;
 	line-height: 1.15;
 	overflow: visible;
+	overflow-wrap: anywhere;
 	text-decoration: none;
-	transition: background .16s ease, box-shadow .16s ease;
+	transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
 	white-space: normal;
+}
+
+.taka-hero-route-map__label::before {
+	content: "";
+	align-self: stretch;
+	flex: 0 0 .18rem;
+	border-radius: 999px;
+	background: transparent;
 }
 
 .taka-hero-route-map__label--anchor-left {
@@ -344,6 +363,7 @@ body.admin-bar {
 .taka-hero-route-map__label-text {
 	min-width: 0;
 	overflow: visible;
+	overflow-wrap: anywhere;
 	text-overflow: clip;
 	white-space: normal;
 }
@@ -358,8 +378,13 @@ body.admin-bar {
 .taka-hero-route-map__label:hover,
 .taka-hero-route-map__label:focus-visible,
 .taka-hero-route-map__label.is-active {
-	background: rgba(188, 0, 45, .82);
-	box-shadow: 0 .45rem 1.25rem rgba(0, 0, 0, .32);
+	border-color: rgba(199, 163, 92, .75);
+	background: rgba(38, 30, 28, .9);
+	box-shadow: 0 .45rem 1.15rem rgba(0, 0, 0, .3);
+}
+
+.taka-hero-route-map__label.is-active::before {
+	background: #BC002D;
 }
 
 .taka-hero-route-map__marker:focus-visible,
@@ -404,11 +429,19 @@ body.admin-bar {
 	}
 
 	.taka-hero-route-map__canvas {
-		aspect-ratio: .86;
-		min-height: 26rem;
+		aspect-ratio: .74;
+		min-height: 31rem;
 		max-width: 100%;
 		overflow: hidden;
 		box-shadow: 0 16px 38px rgba(0, 0, 0, .28);
+	}
+
+	.taka-hero-route-map__leader--desktop {
+		display: none;
+	}
+
+	.taka-hero-route-map__leader--mobile {
+		display: block;
 	}
 
 	.taka-hero-route-map__marker {
@@ -427,12 +460,30 @@ body.admin-bar {
 	.taka-hero-route-map__label {
 		top: var(--taka-route-label-mobile-y) !important;
 		left: var(--taka-route-label-mobile-x) !important;
-		width: var(--taka-route-label-mobile-width, min(9rem, 43vw));
-		max-width: min(9rem, 43vw);
+		width: var(--taka-route-label-mobile-width, 36%);
+		max-width: calc(100% - .5rem);
 		min-height: 1.6rem;
-		padding: .22rem .34rem;
-		font-size: .68rem;
-		line-height: 1.05;
+		padding: .3rem .4rem;
+		font-size: .66rem;
+		line-height: 1.08;
+	}
+
+	.taka-hero-route-map__label--mobile-anchor-left {
+		justify-content: flex-start;
+		text-align: left;
+		transform: translate(0, -50%);
+	}
+
+	.taka-hero-route-map__label--mobile-anchor-right {
+		justify-content: flex-end;
+		text-align: right;
+		transform: translate(-100%, -50%);
+	}
+
+	.taka-hero-route-map__label--mobile-anchor-center {
+		justify-content: center;
+		text-align: center;
+		transform: translate(-50%, -50%);
 	}
 
 	.taka-hero-route-map__label-text {

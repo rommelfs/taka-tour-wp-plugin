@@ -90,7 +90,7 @@ Recurring fields such as ticket provider, ticket status, format, audience, level
 
 ## Hero route map
 
-The Hero location overview supports configurable display modes: list, flags, route map and route map with list. The route map is a lightweight SVG/HTML tour infographic with clickable event stops derived from the same resolved event data used by tickets and event lists. It uses event start datetime as the primary route order, `tour_order` / legacy `route_order` only as a tie-breaker, optional `route_map_x` / `route_map_y` event or venue marker coordinates, automatic route layout fallback, flags and an accessible fallback list for keyboard, screen-reader and mobile users. Event and venue editors can optionally set separate route label coordinates (`route_map_label_x` / `route_map_label_y`), `route_map_label_anchor`, `route_map_label_width` and `route_map_leader_line`; otherwise labels use a deliberate composition grid that keeps dense Trier/Konz/Saarwellingen-style clusters readable without CSS clipping. Legacy `map` and `map_with_list` display modes are normalized to the route map modes for backward compatibility.
+The Hero location overview supports configurable display modes: list, flags, route map and route map with list. The route map is a lightweight SVG/HTML tour infographic with clickable event stops derived from the same resolved event data used by tickets and event lists. It uses explicit `tour_order` / legacy `route_order` values when present, otherwise event start datetime, optional `route_map_x` / `route_map_y` event or venue marker coordinates, automatic route layout fallback, flags and accessible text links for keyboard, screen-reader and mobile users. Event and venue editors can optionally set separate route label coordinates (`route_map_label_x` / `route_map_label_y`), `route_map_label_anchor`, `route_map_label_width` and `route_map_leader_line`; otherwise labels are placed by the reusable Rendering label-layout helper, which assigns labels to side columns, stacks dense clusters, clamps labels to safe bounds and keeps leader lines minimal. Legacy `map` and `map_with_list` display modes are normalized to the route map modes for backward compatibility.
 
 ## Import / Export
 
@@ -152,6 +152,7 @@ New platform modules live in smaller responsibility-based folders:
 - `includes/Data/` repository/data-source logic
 - `includes/Frontend/` shortcode renderer
 - `includes/I18n/` static translation loader
+- `includes/Rendering/` frontend rendering helpers such as route-map label layout
 - `includes/Tickets/` ticket-provider interface, Pretix provider and registry
 - `includes/Support/` shared helper functions
 
@@ -177,7 +178,7 @@ Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `tak
 
 ### v2.2.13
 
-- Improved the Hero route map composition with separate marker and label coordinates, leader lines, diagnostics and non-clipped responsive labels.
+- Replaced the Hero route map's fixed label slots with automatic side-column label layout, responsive collision avoidance and minimal per-viewport leader lines.
 
 ### v2.2.12
 

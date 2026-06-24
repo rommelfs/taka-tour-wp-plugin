@@ -2444,7 +2444,6 @@ class TAKA_Platform_Data {
 			$label = trim( (string) ( $point['label'] ?? '' ) );
 			if ( '' === $label ) { $label = self::hero_route_location_name( $event ); }
 			if ( '' === $label ) { continue; }
-			$label_layout = self::hero_route_label_layout( $event, $marker_x, $marker_y, $index, $count, $point );
 
 			$stations[] = array(
 				'event' => $event,
@@ -2452,6 +2451,7 @@ class TAKA_Platform_Data {
 				'event_title' => (string) ( $event['title'] ?? '' ),
 				'location_name' => self::hero_route_location_name( $event ),
 				'country' => (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ),
+				'date_label' => (string) ( $event['date'] ?? '' ),
 				'start_datetime' => self::event_start_datetime( $event ),
 				'tour_order' => self::event_tour_order( $event ),
 				'marker_x' => $marker_x,
@@ -2460,22 +2460,20 @@ class TAKA_Platform_Data {
 				'y' => $marker_y,
 				'coordinate_source' => (string) ( $point['coordinate_source'] ?? ( null !== $manual_x || null !== $manual_y ? 'event_or_venue' : 'auto' ) ),
 				'label' => $label,
+				'display_label' => $label,
+				'short_label' => trim( (string) ( $event['route_map_short_label'] ?? ( $event['short_label'] ?? '' ) ) ) ?: $label,
 				'label_source' => (string) ( $point['label_source'] ?? 'event' ),
-				'label_x' => $label_layout['x'],
-				'label_y' => $label_layout['y'],
-				'label_anchor' => $label_layout['anchor'],
-				'label_width' => $label_layout['width'],
-				'label_mobile_x' => $label_layout['mobile_x'],
-				'label_mobile_y' => $label_layout['mobile_y'],
-				'label_mobile_width' => $label_layout['mobile_width'],
-				'leader_line' => $label_layout['leader_line'],
-				'label_layout_source' => $label_layout['source'],
+				'label_manual_x' => self::map_coordinate( $point['label_x'] ?? null ),
+				'label_manual_y' => self::map_coordinate( $point['label_y'] ?? null ),
+				'label_manual_anchor' => self::route_map_label_anchor( $point['label_anchor'] ?? '' ),
+				'label_manual_width' => self::route_map_label_width( $point['label_width'] ?? '' ),
+				'leader_line_preference' => $point['leader_line'] ?? null,
 				'sort_key' => self::hero_route_sort_key( $event ),
 				'index' => $index,
 			);
 		}
 
-		return $stations;
+		return TAKA_Platform_Tour_Map_Label_Layout::compute( $stations );
 	}
 
 	/** Diagnostics rows for the Admin -> Diagnostics route map section. */
@@ -2504,20 +2502,20 @@ class TAKA_Platform_Data {
 		);
 	}
 
-	/** Compare hero route stations chronologically, then by explicit tour order, then by display name. */
+	/** Compare hero route stations by explicit tour order when present, then chronologically. */
 	private static function compare_hero_route_map_events( $a, $b ) {
-		$a_start = self::event_start_datetime( $a );
-		$b_start = self::event_start_datetime( $b );
-		if ( '' !== $a_start || '' !== $b_start ) {
-			$start_compare = strcmp( '' !== $a_start ? $a_start : '9999-12-31T23:59', '' !== $b_start ? $b_start : '9999-12-31T23:59' );
-			if ( 0 !== $start_compare ) { return $start_compare; }
-		}
-
 		$a_order = self::event_tour_order( $a );
 		$b_order = self::event_tour_order( $b );
 		if ( null !== $a_order || null !== $b_order ) {
 			$order_compare = ( $a_order ?? 999999 ) <=> ( $b_order ?? 999999 );
 			if ( 0 !== $order_compare ) { return $order_compare; }
+		}
+
+		$a_start = self::event_start_datetime( $a );
+		$b_start = self::event_start_datetime( $b );
+		if ( '' !== $a_start || '' !== $b_start ) {
+			$start_compare = strcmp( '' !== $a_start ? $a_start : '9999-12-31T23:59', '' !== $b_start ? $b_start : '9999-12-31T23:59' );
+			if ( 0 !== $start_compare ) { return $start_compare; }
 		}
 
 		$label_compare = strcmp( self::hero_route_location_name( $a ) ?: (string) ( $a['title'] ?? '' ), self::hero_route_location_name( $b ) ?: (string) ( $b['title'] ?? '' ) );
@@ -2558,7 +2556,7 @@ class TAKA_Platform_Data {
 
 	private static function hero_route_sort_key( $event ) {
 		$order = self::event_tour_order( $event );
-		return 'start=' . ( self::event_start_datetime( $event ) ?: 'none' ) . ';tour_order=' . ( null === $order ? 'none' : (string) $order ) . ';label=' . ( self::hero_route_location_name( $event ) ?: (string) ( $event['title'] ?? '' ) );
+		return 'tour_order=' . ( null === $order ? 'none' : (string) $order ) . ';start=' . ( self::event_start_datetime( $event ) ?: 'none' ) . ';label=' . ( self::hero_route_location_name( $event ) ?: (string) ( $event['title'] ?? '' ) );
 	}
 
 	private static function hero_route_location_name( $event, $venue = null ) {
@@ -2649,64 +2647,6 @@ class TAKA_Platform_Data {
 		}
 
 		return array( 'x' => $x, 'y' => $y, 'label' => $label, 'label_source' => $label_source, 'coordinate_source' => $coordinate_source, 'label_x' => $label_x, 'label_y' => $label_y, 'label_anchor' => $label_anchor, 'label_width' => $label_width, 'leader_line' => $leader_line );
-	}
-
-	/** Resolve label coordinates independently from marker coordinates. */
-	private static function hero_route_label_layout( $event, $marker_x, $marker_y, $index, $count, $point = array() ) {
-		$manual_x = self::map_coordinate( $point['label_x'] ?? null );
-		$manual_y = self::map_coordinate( $point['label_y'] ?? null );
-		$manual_anchor = self::route_map_label_anchor( $point['label_anchor'] ?? '' );
-		if ( null !== $manual_x && null !== $manual_y ) {
-			$layout = array(
-				'x' => $manual_x,
-				'y' => $manual_y,
-				'anchor' => '' !== $manual_anchor ? $manual_anchor : 'left',
-				'width' => self::route_map_label_width( $point['label_width'] ?? '' ) ?: '12rem',
-				'mobile_x' => $manual_x,
-				'mobile_y' => $manual_y,
-				'mobile_width' => 'min(9rem, 42vw)',
-				'leader_line' => null === ( $point['leader_line'] ?? null ) ? true : (bool) $point['leader_line'],
-				'source' => 'manual',
-			);
-			return $layout;
-		}
-
-		$slots = self::hero_route_label_slots();
-		$slot = $slots[ $index ] ?? self::hero_route_fallback_label_slot( $marker_x, $marker_y, $index, $count );
-		$slot['leader_line'] = null === ( $point['leader_line'] ?? null ) ? (bool) ( $slot['leader_line'] ?? true ) : (bool) $point['leader_line'];
-		$slot['source'] = 'composition_grid';
-		return $slot;
-	}
-
-	private static function hero_route_label_slots() {
-		// The map is a fixed visual composition: markers follow location coordinates,
-		// labels use stable slots so dense station clusters remain readable.
-		return array(
-			array( 'x' => 58, 'y' => 9, 'anchor' => 'left', 'width' => '10.5rem', 'mobile_x' => 52, 'mobile_y' => 8, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 74, 'y' => 24, 'anchor' => 'left', 'width' => '11rem', 'mobile_x' => 54, 'mobile_y' => 21, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 74, 'y' => 36, 'anchor' => 'left', 'width' => '11rem', 'mobile_x' => 54, 'mobile_y' => 34, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 74, 'y' => 48, 'anchor' => 'left', 'width' => '11rem', 'mobile_x' => 54, 'mobile_y' => 47, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 62, 'y' => 61, 'anchor' => 'left', 'width' => '10rem', 'mobile_x' => 54, 'mobile_y' => 60, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 62, 'y' => 72, 'anchor' => 'left', 'width' => '10rem', 'mobile_x' => 54, 'mobile_y' => 73, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 14, 'y' => 70, 'anchor' => 'left', 'width' => '13rem', 'mobile_x' => 6, 'mobile_y' => 71, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-			array( 'x' => 14, 'y' => 80, 'anchor' => 'left', 'width' => '11rem', 'mobile_x' => 6, 'mobile_y' => 81, 'mobile_width' => 'min(8.5rem, 42vw)', 'leader_line' => true ),
-			array( 'x' => 14, 'y' => 90, 'anchor' => 'left', 'width' => '12rem', 'mobile_x' => 6, 'mobile_y' => 92, 'mobile_width' => 'min(9rem, 43vw)', 'leader_line' => true ),
-		);
-	}
-
-	private static function hero_route_fallback_label_slot( $marker_x, $marker_y, $index, $count ) {
-		$progress = 1 >= $count ? 0 : $index / max( 1, $count - 1 );
-		$right_column = 0 === $index % 2;
-		return array(
-			'x' => $right_column ? 72 : 12,
-			'y' => max( 8, min( 94, 10 + $progress * 84 ) ),
-			'anchor' => 'left',
-			'width' => '11rem',
-			'mobile_x' => $right_column ? 54 : 6,
-			'mobile_y' => max( 8, min( 93, 9 + $progress * 84 ) ),
-			'mobile_width' => 'min(9rem, 43vw)',
-			'leader_line' => true,
-		);
 	}
 
 	private static function route_map_label_anchor( $value ) {
