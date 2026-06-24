@@ -90,7 +90,7 @@ Recurring fields such as ticket provider, ticket status, format, audience, level
 
 ## Hero route map
 
-The Hero location overview supports configurable display modes: list, flags, route map and route map with list. The route map is a lightweight SVG/HTML tour infographic with clickable event stops derived from the same resolved event data used by tickets and event lists. It uses event start datetime as the primary route order, `tour_order` / legacy `route_order` only as a tie-breaker, optional `route_map_x` / `route_map_y` event or venue coordinates, automatic route layout fallback, flags and an accessible fallback list for keyboard, screen-reader and mobile users. Event and venue editors can optionally set route-map label placement (`top`, `right`, `bottom`, `left`) plus small `dx`/`dy` offsets for dense clusters; otherwise labels use automatic placement and cluster spacing. Legacy `map` and `map_with_list` display modes are normalized to the route map modes for backward compatibility.
+The Hero location overview supports configurable display modes: list, flags, route map and route map with list. The route map is a lightweight SVG/HTML tour infographic with clickable event stops derived from the same resolved event data used by tickets and event lists. It uses event start datetime as the primary route order, `tour_order` / legacy `route_order` only as a tie-breaker, optional `route_map_x` / `route_map_y` event or venue marker coordinates, automatic route layout fallback, flags and an accessible fallback list for keyboard, screen-reader and mobile users. Event and venue editors can optionally set separate route label coordinates (`route_map_label_x` / `route_map_label_y`), `route_map_label_anchor`, `route_map_label_width` and `route_map_leader_line`; otherwise labels use a deliberate composition grid that keeps dense Trier/Konz/Saarwellingen-style clusters readable without CSS clipping. Legacy `map` and `map_with_list` display modes are normalized to the route map modes for backward compatibility.
 
 ## Import / Export
 
@@ -174,6 +174,10 @@ The script checks PHP syntax for all `*.php` files with `php -l` and scans the r
 Existing pages using `[taka_homepage]` and existing CPT data (`taka_event`, `taka_organizer`, `taka_venue`) continue to work. Existing constants such as `TAKA_TOUR_VERSION` map to the new platform constants. Existing class names such as `Taka_Tour_Data` are aliased to the new `TAKA_Platform_*` classes.
 
 ## Changelog
+
+### v2.2.13
+
+- Improved the Hero route map composition with separate marker and label coordinates, leader lines, diagnostics and non-clipped responsive labels.
 
 ### v2.2.12
 
