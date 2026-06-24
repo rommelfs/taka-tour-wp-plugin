@@ -2686,12 +2686,12 @@ class TAKA_Platform_Data {
 			$dy = 1.0;
 		}
 
-		$x = $last_x + ( $dx / $length * 5.5 );
-		$y = max( $last_y + 3.0, $last_y + max( .35, abs( $dy / $length ) ) * 4.5, 86.5 );
+		$x = $last_x + ( $dx / $length * 2.5 ) + ( ( 50.0 - $last_x ) * .16 );
+		$y = max( $last_y + 8.0, $last_y + max( .35, abs( $dy / $length ) ) * 8.5, 93.0 );
 
 		return array(
 			'marker_x' => max( 18.0, min( 82.0, $x ) ),
-			'marker_y' => max( 12.0, min( 87.0, $y ) ),
+			'marker_y' => max( 12.0, min( 94.0, $y ) ),
 			'coordinate_source' => 'virtual_cta:after_final_station',
 		);
 	}
