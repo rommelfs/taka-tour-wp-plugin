@@ -386,6 +386,7 @@ class TAKA_Platform_Admin {
 				<thead>
 					<tr>
 						<th><?php echo esc_html__( 'Route index', 'taka-platform' ); ?></th>
+						<th><?php echo esc_html__( 'Type', 'taka-platform' ); ?></th>
 						<th><?php echo esc_html__( 'Event ID', 'taka-platform' ); ?></th>
 						<th><?php echo esc_html__( 'Event title', 'taka-platform' ); ?></th>
 						<th><?php echo esc_html__( 'Location name', 'taka-platform' ); ?></th>
@@ -409,6 +410,7 @@ class TAKA_Platform_Admin {
 					<?php foreach ( $route_rows as $row ) : ?>
 						<tr>
 							<td><code><?php echo esc_html( $row['route_index'] ?? '' ); ?></code></td>
+							<td><code><?php echo esc_html( $row['station_type'] ?? 'event' ); ?></code></td>
 							<td><code><?php echo esc_html( $row['event_id'] ?? '' ); ?></code></td>
 							<td><?php echo esc_html( $row['event_title'] ?? '' ); ?></td>
 							<td><?php echo esc_html( $row['location_name'] ?? '' ); ?></td>
@@ -1111,6 +1113,11 @@ class TAKA_Platform_Admin {
 					<?php self::settings_select_row( 'hero[text_position]', __( 'Hero text position', 'taka-platform' ), $hero['text_position'] ?? 'left', $positions ); ?>
 					<?php self::settings_select_row( 'hero[vertical_alignment]', __( 'Hero vertical alignment', 'taka-platform' ), $hero['vertical_alignment'] ?? 'center', $verticals ); ?>
 					<?php self::settings_select_row( 'hero[location_display_mode]', __( 'Hero location display mode', 'taka-platform' ), $hero['location_display_mode'] ?? 'route_map_with_list', $location_modes ); ?>
+					<tr><th scope="row"><?php echo esc_html__( 'Route CTA station', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="hero[route_cta_enabled]" value="1" <?php checked( (string) ( $hero['route_cta_enabled'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show final “become a host” station on the route map', 'taka-platform' ); ?></label></td></tr>
+					<?php self::settings_multilingual_text_row( 'hero[route_cta_label]', __( 'Route CTA label', 'taka-platform' ), $hero['route_cta_label'] ?? '' ); ?>
+					<?php self::settings_multilingual_text_row( 'hero[route_cta_sublabel]', __( 'Route CTA sublabel', 'taka-platform' ), $hero['route_cta_sublabel'] ?? '' ); ?>
+					<?php self::settings_text_row( 'hero[route_cta_target]', __( 'Route CTA target', 'taka-platform' ), $hero['route_cta_target'] ?? '#become-a-host' ); ?>
+					<?php self::settings_text_row( 'hero[route_cta_context]', __( 'Route CTA context / year', 'taka-platform' ), $hero['route_cta_context'] ?? '2027' ); ?>
 				</tbody></table>
 				<?php submit_button( __( 'Save hero settings', 'taka-platform' ) ); ?>
 			</form>
@@ -1268,6 +1275,7 @@ class TAKA_Platform_Admin {
 		if ( ! current_user_can( 'manage_options' ) ) { wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) ); }
 		check_admin_referer( TAKA_Platform_Data::HERO_OPTION, self::NONCE );
 		$posted = isset( $_POST['hero'] ) && is_array( $_POST['hero'] ) ? wp_unslash( $_POST['hero'] ) : array();
+		$current = TAKA_Platform_Data::get_hero_settings( false );
 		$clean  = array(
 			'kicker'                 => sanitize_text_field( $posted['kicker'] ?? '' ),
 			'source_language'        => TAKA_Platform_Translation_Packages::sanitize_language( $posted['source_language'] ?? 'de' ),
@@ -1286,6 +1294,11 @@ class TAKA_Platform_Admin {
 			'text_position'          => in_array( $posted['text_position'] ?? 'left', array( 'left', 'center', 'right' ), true ) ? sanitize_key( $posted['text_position'] ) : 'left',
 			'vertical_alignment'     => in_array( $posted['vertical_alignment'] ?? 'center', array( 'top', 'center', 'bottom' ), true ) ? sanitize_key( $posted['vertical_alignment'] ) : 'center',
 			'location_display_mode'  => TAKA_Platform_Data::normalize_hero_location_display_mode( $posted['location_display_mode'] ?? 'route_map_with_list' ),
+			'route_cta_enabled'      => ! empty( $posted['route_cta_enabled'] ) ? '1' : '0',
+			'route_cta_label'        => self::sanitize_dynamic_text( $posted['route_cta_label'] ?? ( $current['route_cta_label'] ?? '' ), false ),
+			'route_cta_sublabel'     => self::sanitize_dynamic_text( $posted['route_cta_sublabel'] ?? ( $current['route_cta_sublabel'] ?? '' ), false ),
+			'route_cta_target'       => sanitize_text_field( $posted['route_cta_target'] ?? ( $current['route_cta_target'] ?? '#become-a-host' ) ),
+			'route_cta_context'      => sanitize_text_field( $posted['route_cta_context'] ?? ( $current['route_cta_context'] ?? '2027' ) ),
 		);
 		update_option( TAKA_Platform_Data::HERO_OPTION, $clean, false );
 		wp_safe_redirect( add_query_arg( 'updated', '1', admin_url( 'admin.php?page=taka-tour-settings' ) ) );

@@ -416,8 +416,8 @@ class TAKA_Platform_Translation_Packages {
 			$definitions[] = array(
 				'type' => 'hero',
 				'context_prefix' => 'Hero',
-				'fields' => array( 'kicker' => 'Kicker', 'title' => 'Title', 'subtitle' => 'Subtitle', 'primary_button_label' => 'Primary button label', 'secondary_button_label' => 'Secondary button label' ),
-				'objects' => array( 'global' => array( 'label' => 'Homepage hero', 'source_language' => self::sanitize_language( $hero['source_language'] ?? 'de' ), 'values' => array( 'kicker' => $hero['kicker'] ?? '', 'title' => $hero['title'] ?? '', 'subtitle' => $hero['description'] ?? '', 'primary_button_label' => $hero['primary_button_label'] ?? '', 'secondary_button_label' => $hero['secondary_button_label'] ?? '' ) ) ),
+				'fields' => array( 'kicker' => 'Kicker', 'title' => 'Title', 'subtitle' => 'Subtitle', 'primary_button_label' => 'Primary button label', 'secondary_button_label' => 'Secondary button label', 'route_cta_label' => 'Route CTA label', 'route_cta_sublabel' => 'Route CTA sublabel' ),
+				'objects' => array( 'global' => array( 'label' => 'Homepage hero', 'source_language' => self::sanitize_language( $hero['source_language'] ?? 'de' ), 'values' => array( 'kicker' => $hero['kicker'] ?? '', 'title' => $hero['title'] ?? '', 'subtitle' => $hero['description'] ?? '', 'primary_button_label' => $hero['primary_button_label'] ?? '', 'secondary_button_label' => $hero['secondary_button_label'] ?? '', 'route_cta_label' => $hero['route_cta_label'] ?? '', 'route_cta_sublabel' => $hero['route_cta_sublabel'] ?? '' ) ) ),
 			);
 		}
 
