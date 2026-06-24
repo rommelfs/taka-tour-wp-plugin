@@ -1312,6 +1312,9 @@ class TAKA_Platform_Data {
 				'map_y' => self::nullable_meta( $post->ID, 'map_y' ),
 				'route_map_label' => (string) get_post_meta( $post->ID, '_taka_route_map_label', true ),
 				'map_label' => (string) get_post_meta( $post->ID, '_taka_map_label', true ),
+				'route_map_label_placement' => (string) get_post_meta( $post->ID, '_taka_route_map_label_placement', true ),
+				'route_map_label_dx' => self::nullable_meta( $post->ID, 'route_map_label_dx' ),
+				'route_map_label_dy' => self::nullable_meta( $post->ID, 'route_map_label_dy' ),
 				'timezone' => (string) get_post_meta( $post->ID, '_taka_timezone', true ) ?: self::timezone_for_country( $country_code ?: $country ),
 				'currency' => self::normalize_event_option_value( 'currency', get_post_meta( $post->ID, '_taka_currency', true ) ?: self::currency_for_country( $country_code ?: $country ) ),
 				'website' => (string) get_post_meta( $post->ID, '_taka_website', true ),
@@ -1374,6 +1377,9 @@ class TAKA_Platform_Data {
 				'map_y' => self::nullable_meta( $post->ID, 'map_y' ),
 				'route_map_label' => (string) get_post_meta( $post->ID, '_taka_route_map_label', true ),
 				'map_label' => (string) get_post_meta( $post->ID, '_taka_map_label', true ),
+				'route_map_label_placement' => (string) get_post_meta( $post->ID, '_taka_route_map_label_placement', true ),
+				'route_map_label_dx' => self::nullable_meta( $post->ID, 'route_map_label_dx' ),
+				'route_map_label_dy' => self::nullable_meta( $post->ID, 'route_map_label_dy' ),
 				'tour_order' => self::nullable_meta( $post->ID, 'tour_order' ),
 				'route_order' => self::nullable_meta( $post->ID, 'route_order' ),
 				'city' => (string) get_post_meta( $post->ID, '_taka_city', true ),
@@ -1455,7 +1461,7 @@ class TAKA_Platform_Data {
 	/** Normalize config venues. */
 	private static function normalize_config_venues( $venues ) {
 		$items = array();
-		foreach ( $venues as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['source_language'] = $item['source_language'] ?? self::platform_fallback_language(); $item['text_translations'] = self::normalize_object_text_translations( $item['text_translations'] ?? array(), self::translatable_text_fields( 'venue' ) ); $item['flag'] = $item['flag'] ?? ''; $item['route_map_x'] = $item['route_map_x'] ?? ( $item['map_x'] ?? null ); $item['route_map_y'] = $item['route_map_y'] ?? ( $item['map_y'] ?? null ); $item['route_map_label'] = $item['route_map_label'] ?? ( $item['map_label'] ?? '' ); $item['image_id'] = $item['image_id'] ?? 0; $item['image_url'] = $item['image_url'] ?? ( $item['image'] ?? '' ); $item['parking_image_id'] = $item['parking_image_id'] ?? 0; $item['parking_image_url'] = $item['parking_image_url'] ?? ''; $item['gallery_image_ids'] = $item['gallery_image_ids'] ?? array(); $items[ (string) $id ] = $item; }
+		foreach ( $venues as $id => $item ) { $item['id'] = (string) $id; $item['config_id'] = (string) $id; $item['source_language'] = $item['source_language'] ?? self::platform_fallback_language(); $item['text_translations'] = self::normalize_object_text_translations( $item['text_translations'] ?? array(), self::translatable_text_fields( 'venue' ) ); $item['flag'] = $item['flag'] ?? ''; $item['route_map_x'] = $item['route_map_x'] ?? ( $item['map_x'] ?? null ); $item['route_map_y'] = $item['route_map_y'] ?? ( $item['map_y'] ?? null ); $item['route_map_label'] = $item['route_map_label'] ?? ( $item['map_label'] ?? '' ); $item['route_map_label_placement'] = $item['route_map_label_placement'] ?? ''; $item['route_map_label_dx'] = $item['route_map_label_dx'] ?? 0; $item['route_map_label_dy'] = $item['route_map_label_dy'] ?? 0; $item['image_id'] = $item['image_id'] ?? 0; $item['image_url'] = $item['image_url'] ?? ( $item['image'] ?? '' ); $item['parking_image_id'] = $item['parking_image_id'] ?? 0; $item['parking_image_url'] = $item['parking_image_url'] ?? ''; $item['gallery_image_ids'] = $item['gallery_image_ids'] ?? array(); $items[ (string) $id ] = $item; }
 		return $items;
 	}
 
@@ -1481,6 +1487,9 @@ class TAKA_Platform_Data {
 			$event['route_map_x'] = $event['route_map_x'] ?? ( $event['map_x'] ?? null );
 			$event['route_map_y'] = $event['route_map_y'] ?? ( $event['map_y'] ?? null );
 			$event['route_map_label'] = $event['route_map_label'] ?? ( $event['map_label'] ?? '' );
+			$event['route_map_label_placement'] = $event['route_map_label_placement'] ?? '';
+			$event['route_map_label_dx'] = $event['route_map_label_dx'] ?? 0;
+			$event['route_map_label_dy'] = $event['route_map_label_dy'] ?? 0;
 			$event['tour_order'] = $event['tour_order'] ?? null;
 			$event['route_order'] = $event['route_order'] ?? null;
 			$event['image_id'] = $event['image_id'] ?? 0;
@@ -2434,12 +2443,13 @@ class TAKA_Platform_Data {
 				'coordinate_source' => (string) ( $point['coordinate_source'] ?? ( null !== $manual_x || null !== $manual_y ? 'event_or_venue' : 'auto' ) ),
 				'label' => $label,
 				'label_source' => (string) ( $point['label_source'] ?? 'event' ),
+				'label_placement' => self::hero_route_label_placement( $event, $x, $y, $index, $point ),
 				'sort_key' => self::hero_route_sort_key( $event ),
 				'index' => $index,
 			);
 		}
 
-		return $stations;
+		return self::space_hero_route_label_clusters( $stations );
 	}
 
 	/** Diagnostics rows for the Admin -> Diagnostics route map section. */
@@ -2456,6 +2466,9 @@ class TAKA_Platform_Data {
 					'coordinate_source' => $station['coordinate_source'] ?? '',
 					'final_map_label' => $station['label'] ?? '',
 					'label_source' => $station['label_source'] ?? '',
+					'label_placement' => $station['label_placement']['side'] ?? '',
+					'label_placement_source' => $station['label_placement']['source'] ?? '',
+					'label_dx_dy' => ( $station['label_placement']['dx'] ?? 0 ) . ', ' . ( $station['label_placement']['dy'] ?? 0 ),
 					'sort_key' => $station['sort_key'] ?? '',
 				);
 			},
@@ -2577,6 +2590,14 @@ class TAKA_Platform_Data {
 		$y = self::map_coordinate( $event['route_map_y'] ?? ( $event['map_y'] ?? null ) );
 		$venue_x = is_array( $venue ) ? self::map_coordinate( $venue['route_map_x'] ?? ( $venue['map_x'] ?? null ) ) : null;
 		$venue_y = is_array( $venue ) ? self::map_coordinate( $venue['route_map_y'] ?? ( $venue['map_y'] ?? null ) ) : null;
+		$label_placement = self::route_map_label_side( $event['route_map_label_placement'] ?? '' );
+		$label_dx = self::route_map_label_offset( $event['route_map_label_dx'] ?? 0 );
+		$label_dy = self::route_map_label_offset( $event['route_map_label_dy'] ?? 0 );
+		if ( '' === $label_placement && is_array( $venue ) ) {
+			$label_placement = self::route_map_label_side( $venue['route_map_label_placement'] ?? '' );
+			$label_dx = self::route_map_label_offset( $venue['route_map_label_dx'] ?? 0 );
+			$label_dy = self::route_map_label_offset( $venue['route_map_label_dy'] ?? 0 );
+		}
 		$coordinate_source = null !== $x || null !== $y ? 'event' : 'auto';
 		if ( null === $x && null !== $venue_x ) { $x = $venue_x; }
 		if ( null === $y && null !== $venue_y ) { $y = $venue_y; }
@@ -2595,7 +2616,79 @@ class TAKA_Platform_Data {
 			$label_source = '' !== $label ? 'legacy_venue_map_label' : $label_source;
 		}
 
-		return array( 'x' => $x, 'y' => $y, 'label' => $label, 'label_source' => $label_source, 'coordinate_source' => $coordinate_source );
+		return array( 'x' => $x, 'y' => $y, 'label' => $label, 'label_source' => $label_source, 'coordinate_source' => $coordinate_source, 'label_placement' => $label_placement, 'label_dx' => $label_dx, 'label_dy' => $label_dy );
+	}
+
+	/** Resolve label placement for the abstract hero route map canvas. */
+	private static function hero_route_label_placement( $event, $x, $y, $index, $point = array() ) {
+		$manual_side = self::route_map_label_side( $point['label_placement'] ?? '' );
+		if ( '' !== $manual_side ) {
+			return array(
+				'side' => $manual_side,
+				'dx' => self::route_map_label_offset( $point['label_dx'] ?? 0 ),
+				'dy' => self::route_map_label_offset( $point['label_dy'] ?? 0 ),
+				'source' => 'manual',
+			);
+		}
+
+		if ( $y < 20 ) {
+			return array( 'side' => 'bottom', 'dx' => 0, 'dy' => 0, 'source' => 'auto' );
+		}
+		if ( $y > 82 ) {
+			return array( 'side' => 'top', 'dx' => 0, 'dy' => 0, 'source' => 'auto' );
+		}
+		if ( $x > 62 ) {
+			return array( 'side' => 'left', 'dx' => 0, 'dy' => 0, 'source' => 'auto' );
+		}
+		if ( $x < 38 ) {
+			return array( 'side' => 'right', 'dx' => 0, 'dy' => 0, 'source' => 'auto' );
+		}
+		return array( 'side' => 0 === $index % 2 ? 'right' : 'left', 'dx' => 0, 'dy' => 0, 'source' => 'auto' );
+	}
+
+	/**
+	 * Nudge automatically placed labels when stations are visually dense.
+	 *
+	 * Manual dx/dy settings are left untouched. This keeps the default route map
+	 * readable in tight geographic clusters without hardcoding station IDs.
+	 */
+	private static function space_hero_route_label_clusters( $stations ) {
+		foreach ( $stations as $index => &$station ) {
+			$placement = is_array( $station['label_placement'] ?? null ) ? $station['label_placement'] : array();
+			if ( 'manual' === (string) ( $placement['source'] ?? '' ) ) {
+				continue;
+			}
+			$nearby = 0;
+			foreach ( $stations as $previous_index => $previous ) {
+				if ( $previous_index >= $index ) {
+					break;
+				}
+				$previous_placement = is_array( $previous['label_placement'] ?? null ) ? $previous['label_placement'] : array();
+				if ( ( $previous_placement['side'] ?? '' ) !== ( $placement['side'] ?? '' ) ) {
+					continue;
+				}
+				if ( abs( (float) ( $previous['x'] ?? 0 ) - (float) ( $station['x'] ?? 0 ) ) <= 16 && abs( (float) ( $previous['y'] ?? 0 ) - (float) ( $station['y'] ?? 0 ) ) <= 10 ) {
+					$nearby++;
+				}
+			}
+			if ( $nearby > 0 ) {
+				$direction = 'top' === (string) ( $placement['side'] ?? '' ) ? -1 : 1;
+				$placement['dy'] = self::route_map_label_offset( (float) ( $placement['dy'] ?? 0 ) + $direction * min( 10, $nearby * 5 ) );
+				$placement['source'] = 'auto_cluster';
+				$station['label_placement'] = $placement;
+			}
+		}
+		unset( $station );
+		return $stations;
+	}
+
+	private static function route_map_label_side( $value ) {
+		$value = sanitize_key( (string) $value );
+		return in_array( $value, array( 'top', 'right', 'bottom', 'left' ), true ) ? $value : '';
+	}
+
+	private static function route_map_label_offset( $value ) {
+		return is_numeric( $value ) ? max( -20, min( 20, (float) $value ) ) : 0;
 	}
 
 	private static function map_coordinate( $value ) {
