@@ -22,18 +22,16 @@ foreach ( $stops as $position => &$stop ) {
 }
 unset( $stop );
 
-$format_route_point = static fn( $stop ) => round( $stop['marker_x'], 2 ) . ',' . round( $stop['marker_y'], 2 );
-$route_points = array_map( $format_route_point, $stops );
-$line_points = count( $route_points ) > 1 ? implode( ' ', $route_points ) : '';
-// Match the mobile canvas aspect ratio so SVG route points align with marker percentages.
-$mobile_route_aspect_ratio = 0.74;
-$mobile_route_vertical_offset = ( 100 - ( 100 * $mobile_route_aspect_ratio ) ) / 2;
-$format_mobile_route_point = static function ( $x, $y ) use ( $mobile_route_aspect_ratio, $mobile_route_vertical_offset ) {
-	$mobile_y = ( $y - $mobile_route_vertical_offset ) / $mobile_route_aspect_ratio;
-	return round( $x, 2 ) . ',' . round( $mobile_y, 2 );
+$route_has_points = count( $stops ) > 1;
+// Match the tall map canvas aspect ratio so SVG route points align with marker percentages.
+$route_aspect_ratio = 0.74;
+$route_vertical_offset = ( 100 - ( 100 * $route_aspect_ratio ) ) / 2;
+$format_route_point = static function ( $x, $y ) use ( $route_aspect_ratio, $route_vertical_offset ) {
+	$route_y = ( $y - $route_vertical_offset ) / $route_aspect_ratio;
+	return round( $x, 2 ) . ',' . round( $route_y, 2 );
 };
-$mobile_route_points = array_map( static fn( $stop ) => $format_mobile_route_point( $stop['marker_x'], $stop['marker_y'] ), $stops );
-$mobile_line_points = count( $mobile_route_points ) > 1 ? implode( ' ', $mobile_route_points ) : '';
+$route_points = array_map( static fn( $stop ) => $format_route_point( $stop['marker_x'], $stop['marker_y'] ), $stops );
+$line_points = $route_has_points ? implode( ' ', $route_points ) : '';
 
 if ( count( $stops ) > 1 ) {
 	$last_index = count( $stops ) - 1;
@@ -44,11 +42,11 @@ if ( count( $stops ) > 1 ) {
 	$route_length = sqrt( ( $route_dx * $route_dx ) + ( $route_dy * $route_dy ) );
 
 	if ( $route_length > 0 ) {
-		$mobile_extension = 7.0;
-		$mobile_edge_padding = 2.5;
-		$tail_x = max( $mobile_edge_padding, min( 100 - $mobile_edge_padding, $last_stop['marker_x'] + ( $route_dx / $route_length * $mobile_extension ) ) );
-		$tail_y = max( $mobile_edge_padding, min( 100 - $mobile_edge_padding, $last_stop['marker_y'] + ( $route_dy / $route_length * $mobile_extension ) ) );
-		$mobile_line_points .= ' ' . $format_mobile_route_point( $tail_x, $tail_y );
+		$route_extension = 7.0;
+		$route_edge_padding = 2.5;
+		$tail_x = max( $route_edge_padding, min( 100 - $route_edge_padding, $last_stop['marker_x'] + ( $route_dx / $route_length * $route_extension ) ) );
+		$tail_y = max( $route_edge_padding, min( 100 - $route_edge_padding, $last_stop['marker_y'] + ( $route_dy / $route_length * $route_extension ) ) );
+		$line_points .= ' ' . $format_route_point( $tail_x, $tail_y );
 	}
 }
 ?>
@@ -59,8 +57,7 @@ if ( count( $stops ) > 1 ) {
 				<path class="taka-hero-route-map__silhouette" d="M64 9 C75 12 82 23 79 34 C88 42 85 56 74 59 C70 70 58 75 48 70 C39 78 25 73 24 61 C13 55 14 39 25 34 C28 23 40 19 48 24 C51 14 57 9 64 9 Z" />
 				<path class="taka-hero-route-map__silhouette taka-hero-route-map__silhouette--south" d="M50 67 C60 66 69 72 70 82 C63 88 49 88 42 80 C39 74 43 69 50 67 Z" />
 				<?php if ( '' !== $line_points ) : ?>
-					<polyline class="taka-hero-route-map__line taka-hero-route-map__line--desktop" points="<?php echo esc_attr( $line_points ); ?>" />
-					<polyline class="taka-hero-route-map__line taka-hero-route-map__line--mobile" points="<?php echo esc_attr( $mobile_line_points ); ?>" />
+					<polyline class="taka-hero-route-map__line" points="<?php echo esc_attr( $line_points ); ?>" />
 				<?php endif; ?>
 			</svg>
 			<?php foreach ( $stops as $stop ) : ?>
@@ -71,12 +68,12 @@ if ( count( $stops ) > 1 ) {
 				$country = trim( (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ) );
 				$flag = trim( (string) ( $event['hero_flag'] ?? '' ) );
 				$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
-				$label_class = 'taka-hero-route-map__label taka-hero-route-map__label--anchor-' . $stop['label_anchor'] . ' taka-hero-route-map__label--mobile-anchor-' . $stop['label_mobile_anchor'];
+				$label_class = 'taka-hero-route-map__label taka-hero-route-map__label--anchor-' . $stop['label_mobile_anchor'] . ' taka-hero-route-map__label--mobile-anchor-' . $stop['label_mobile_anchor'];
 				?>
 				<a class="taka-hero-route-map__marker" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['marker_x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['marker_y'] ); ?>%;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 					<span class="taka-hero-route-map__pin" aria-hidden="true"></span>
 				</a>
-				<a class="<?php echo esc_attr( $label_class ); ?>" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['label_x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['label_y'] ); ?>%;--taka-route-label-mobile-x:<?php echo esc_attr( (string) $stop['label_mobile_x'] ); ?>%;--taka-route-label-mobile-y:<?php echo esc_attr( (string) $stop['label_mobile_y'] ); ?>%;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
+				<a class="<?php echo esc_attr( $label_class ); ?>" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['label_mobile_x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['label_mobile_y'] ); ?>%;--taka-route-label-mobile-x:<?php echo esc_attr( (string) $stop['label_mobile_x'] ); ?>%;--taka-route-label-mobile-y:<?php echo esc_attr( (string) $stop['label_mobile_y'] ); ?>%;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 					<?php if ( '' !== $flag ) : ?><span class="taka-hero-location-flag" aria-hidden="true"><?php echo esc_html( $flag ); ?></span><?php endif; ?><span class="taka-hero-route-map__label-text"><?php echo esc_html( $stop['label'] ); ?></span>
 				</a>
 			<?php endforeach; ?>
