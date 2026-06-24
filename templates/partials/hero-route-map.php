@@ -8,24 +8,12 @@ defined( 'ABSPATH' ) || exit;
 $stops = is_array( $stations ?? null ) ? array_values( $stations ) : TAKA_Platform_Data::hero_route_map_stations( null, $events ?? null );
 if ( empty( $stops ) ) { return; }
 
-$label_gap = 8.5;
-$last_label_y = 7;
 foreach ( $stops as $position => &$stop ) {
-	$preferred_y = max( 8, min( 92, (float) $stop['y'] ) );
-	$label_y = max( $preferred_y, $last_label_y + $label_gap );
-	$remaining = count( $stops ) - $position - 1;
-	$max_y = 92 - ( $remaining * $label_gap );
-	$label_y = min( $label_y, $max_y );
-	$last_label_y = $label_y;
-	$stop['label_y'] = max( 8, min( 92, $label_y ) );
-	$stop['label_offset'] = $stop['label_y'] - (float) $stop['y'];
-	if ( $stop['x'] > 64 ) {
-		$stop['label_side'] = 'left';
-	} elseif ( $stop['x'] < 36 ) {
-		$stop['label_side'] = 'right';
-	} else {
-		$stop['label_side'] = 0 === $position % 2 ? 'right' : 'left';
-	}
+	$placement = is_array( $stop['label_placement'] ?? null ) ? $stop['label_placement'] : array();
+	$side = sanitize_key( $placement['side'] ?? '' );
+	$stop['label_side'] = in_array( $side, array( 'top', 'right', 'bottom', 'left' ), true ) ? $side : ( (float) ( $stop['x'] ?? 0 ) > 60 ? 'left' : 'right' );
+	$stop['label_dx'] = is_numeric( $placement['dx'] ?? null ) ? (float) $placement['dx'] : 0;
+	$stop['label_dy'] = is_numeric( $placement['dy'] ?? null ) ? (float) $placement['dy'] : 0;
 }
 unset( $stop );
 
@@ -50,9 +38,10 @@ $line_points = count( $stops ) > 1 ? implode( ' ', array_map( static fn( $stop )
 				$flag = trim( (string) ( $event['hero_flag'] ?? '' ) );
 				$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
 				$stop_class = 'taka-hero-route-map__stop taka-hero-route-map__stop--' . $stop['label_side'];
-				$label_offset = round( (float) $stop['label_offset'] * 0.2, 2 ) . 'rem';
+				$label_dx = round( (float) ( $stop['label_dx'] ?? 0 ) * 0.16, 2 ) . 'rem';
+				$label_dy = round( (float) ( $stop['label_dy'] ?? 0 ) * 0.16, 2 ) . 'rem';
 				?>
-				<a class="<?php echo esc_attr( $stop_class ); ?>" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['y'] ); ?>%;--taka-route-label-offset:<?php echo esc_attr( $label_offset ); ?>;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
+				<a class="<?php echo esc_attr( $stop_class ); ?>" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['y'] ); ?>%;--taka-route-label-dx:<?php echo esc_attr( $label_dx ); ?>;--taka-route-label-dy:<?php echo esc_attr( $label_dy ); ?>;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 					<span class="taka-hero-route-map__pin" aria-hidden="true"></span>
 					<span class="taka-hero-route-map__label"><?php if ( '' !== $flag ) : ?><span class="taka-hero-location-flag" aria-hidden="true"><?php echo esc_html( $flag ); ?></span><?php endif; ?><span class="taka-hero-route-map__label-text"><?php echo esc_html( $stop['label'] ); ?></span></span>
 				</a>
