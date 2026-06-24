@@ -31,6 +31,7 @@ require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/class-manual-translation-
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/interface-ticket-provider.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-pretix-provider.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-ticket-provider-registry.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Rendering/class-tour-map-label-layout.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Data/class-repository.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/ImportExport/class-translation-packages.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Integrations/EventsManager/interface-event-export-provider.php';

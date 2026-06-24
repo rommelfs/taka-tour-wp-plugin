@@ -19,8 +19,15 @@ foreach ( $stops as $position => &$stop ) {
 	if ( '' === $stop['label_width'] ) { $stop['label_width'] = '11rem'; }
 	$stop['label_mobile_x'] = is_numeric( $stop['label_mobile_x'] ?? null ) ? (float) $stop['label_mobile_x'] : $stop['label_x'];
 	$stop['label_mobile_y'] = is_numeric( $stop['label_mobile_y'] ?? null ) ? (float) $stop['label_mobile_y'] : $stop['label_y'];
+	$mobile_anchor = sanitize_key( $stop['label_mobile_anchor'] ?? '' );
+	$stop['label_mobile_anchor'] = in_array( $mobile_anchor, array( 'left', 'right', 'center' ), true ) ? $mobile_anchor : $stop['label_anchor'];
 	$stop['label_mobile_width'] = trim( (string) ( $stop['label_mobile_width'] ?? '' ) );
-	if ( '' === $stop['label_mobile_width'] ) { $stop['label_mobile_width'] = 'min(9rem, 43vw)'; }
+	if ( '' === $stop['label_mobile_width'] ) { $stop['label_mobile_width'] = '36%'; }
+	foreach ( array( 'leader_x1', 'leader_y1', 'leader_x2', 'leader_y2' ) as $key ) {
+		$stop[ $key ] = is_numeric( $stop[ $key ] ?? null ) ? (float) $stop[ $key ] : ( 'leader_x1' === $key || 'leader_x2' === $key ? $stop['marker_x'] : $stop['marker_y'] );
+		$mobile_key = str_replace( 'leader_', 'leader_mobile_', $key );
+		$stop[ $mobile_key ] = is_numeric( $stop[ $mobile_key ] ?? null ) ? (float) $stop[ $mobile_key ] : $stop[ $key ];
+	}
 }
 unset( $stop );
 
@@ -37,7 +44,10 @@ $line_points = count( $stops ) > 1 ? implode( ' ', array_map( static fn( $stop )
 				<?php endif; ?>
 				<?php foreach ( $stops as $stop ) : ?>
 					<?php if ( ! empty( $stop['leader_line'] ) ) : ?>
-						<line class="taka-hero-route-map__leader" x1="<?php echo esc_attr( (string) round( $stop['marker_x'], 2 ) ); ?>" y1="<?php echo esc_attr( (string) round( $stop['marker_y'], 2 ) ); ?>" x2="<?php echo esc_attr( (string) round( $stop['label_x'], 2 ) ); ?>" y2="<?php echo esc_attr( (string) round( $stop['label_y'], 2 ) ); ?>" />
+						<line class="taka-hero-route-map__leader taka-hero-route-map__leader--desktop" x1="<?php echo esc_attr( (string) round( $stop['leader_x1'], 2 ) ); ?>" y1="<?php echo esc_attr( (string) round( $stop['leader_y1'], 2 ) ); ?>" x2="<?php echo esc_attr( (string) round( $stop['leader_x2'], 2 ) ); ?>" y2="<?php echo esc_attr( (string) round( $stop['leader_y2'], 2 ) ); ?>" />
+					<?php endif; ?>
+					<?php if ( ! empty( $stop['leader_line_mobile'] ) ) : ?>
+						<line class="taka-hero-route-map__leader taka-hero-route-map__leader--mobile" x1="<?php echo esc_attr( (string) round( $stop['leader_mobile_x1'], 2 ) ); ?>" y1="<?php echo esc_attr( (string) round( $stop['leader_mobile_y1'], 2 ) ); ?>" x2="<?php echo esc_attr( (string) round( $stop['leader_mobile_x2'], 2 ) ); ?>" y2="<?php echo esc_attr( (string) round( $stop['leader_mobile_y2'], 2 ) ); ?>" />
 					<?php endif; ?>
 				<?php endforeach; ?>
 			</svg>
@@ -49,7 +59,7 @@ $line_points = count( $stops ) > 1 ? implode( ' ', array_map( static fn( $stop )
 				$country = trim( (string) ( $event['country_label'] ?? ( $event['country'] ?? '' ) ) );
 				$flag = trim( (string) ( $event['hero_flag'] ?? '' ) );
 				$aria_label = sprintf( taka_tour_translate( 'hero.show_tickets_for', 'Show tickets for %s' ), trim( $stop['label'] . ( '' !== $country ? ', ' . $country : '' ) ) );
-				$label_class = 'taka-hero-route-map__label taka-hero-route-map__label--anchor-' . $stop['label_anchor'];
+				$label_class = 'taka-hero-route-map__label taka-hero-route-map__label--anchor-' . $stop['label_anchor'] . ' taka-hero-route-map__label--mobile-anchor-' . $stop['label_mobile_anchor'];
 				?>
 				<a class="taka-hero-route-map__marker" href="<?php echo esc_url( $share_url ); ?>" data-taka-ticket-tab="<?php echo esc_attr( $tab_key ); ?>" style="left:<?php echo esc_attr( (string) $stop['marker_x'] ); ?>%;top:<?php echo esc_attr( (string) $stop['marker_y'] ); ?>%;" aria-label="<?php echo esc_attr( $aria_label ); ?>">
 					<span class="taka-hero-route-map__pin" aria-hidden="true"></span>

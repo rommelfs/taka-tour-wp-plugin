@@ -30,6 +30,7 @@ includes/
   I18n/           static translation loading and manual translation service
   ImportExport/   Translation Package workflow
   Integrations/   export and integration providers
+  Rendering/      frontend rendering helpers
   Support/        shared helper functions
   Tickets/        ticket provider interface and registry
 templates/        frontend template partials
@@ -335,13 +336,14 @@ flowchart LR
     C --> G[Ticket Provider Registry]
     C --> H[Content Reference Resolver]
     C --> I[Media Resolver]
+    C --> L[Rendering Helpers]
     B --> J[Templates]
     J --> K[Frontend HTML]
 ```
 
 Current public shortcodes include backwards-compatible TAKA Tour names and generic TAKA Platform aliases. All aliases call the same rendering logic.
 
-Templates should stay presentation-focused. Data lookups, translation resolution and provider decisions belong in the repository or service layer.
+Templates should stay presentation-focused. Data lookups, translation resolution and provider decisions belong in the repository or service layer. Geometry-heavy presentation decisions, such as automatic route-map label placement, live in focused Rendering helpers so they can be reused and tested without adding layout heuristics to templates.
 
 ## Import / Export
 
