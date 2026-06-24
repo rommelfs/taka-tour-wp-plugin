@@ -1774,6 +1774,37 @@ class TAKA_Platform_Data {
 			'text_position'          => 'left',
 			'vertical_alignment'     => 'center',
 			'location_display_mode'  => 'route_map_with_list',
+			'route_cta_enabled'      => '1',
+			'route_cta_label'        => self::default_route_cta_labels(),
+			'route_cta_sublabel'     => self::default_route_cta_sublabels(),
+			'route_cta_target'       => '#become-a-host',
+			'route_cta_context'      => '2027',
+		);
+	}
+
+	/** Default route CTA labels for the virtual final tour-map station. */
+	private static function default_route_cta_labels() {
+		return array(
+			'de' => 'Dein Dojo?',
+			'en' => 'Your Dojo?',
+			'fr' => 'Ton Dojo ?',
+			'nl' => 'Jouw Dojo?',
+			'lb' => 'Däin Dojo?',
+			'fi' => 'Sinun Dojosi?',
+			'ja' => 'あなたの道場？',
+		);
+	}
+
+	/** Default route CTA sublabels for the virtual final tour-map station. */
+	private static function default_route_cta_sublabels() {
+		return array(
+			'de' => 'Host werden',
+			'en' => 'Become a host',
+			'fr' => 'Devenir hôte',
+			'nl' => 'Host worden',
+			'lb' => 'Host ginn',
+			'fi' => 'Ryhdy isännäksi',
+			'ja' => 'ホストになる',
 		);
 	}
 
@@ -1795,8 +1826,30 @@ class TAKA_Platform_Data {
 		}
 		$merged['primary_button_target'] = '#tickets';
 		$merged['location_display_mode'] = self::normalize_hero_location_display_mode( $merged['location_display_mode'] ?? 'route_map_with_list' );
+		$merged['route_cta_enabled'] = ! empty( $merged['route_cta_enabled'] ) ? '1' : '0';
+		$merged['route_cta_target'] = trim( (string) ( $merged['route_cta_target'] ?? '#become-a-host' ) ) ?: '#become-a-host';
+		$merged['route_cta_context'] = sanitize_text_field( $merged['route_cta_context'] ?? '2027' );
 		$merged['image'] = self::resolve_attachment_url( absint( $merged['image_id'] ?? 0 ), 'large', (string) ( $merged['image_url'] ?? '' ) );
 		return $merged;
+	}
+
+	/** Resolve the configurable virtual route CTA station for the current language. */
+	private static function hero_route_cta_settings( $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		$hero = self::get_hero_settings( false );
+		$source_language = in_array( $hero['source_language'] ?? '', self::content_section_languages(), true ) ? sanitize_key( $hero['source_language'] ) : self::platform_fallback_language();
+		$label = self::resolve_dynamic_text( $hero['route_cta_label'] ?? self::default_route_cta_labels(), $lang, $source_language );
+		$sublabel = self::resolve_dynamic_text( $hero['route_cta_sublabel'] ?? self::default_route_cta_sublabels(), $lang, $source_language );
+		$target = trim( (string) ( $hero['route_cta_target'] ?? '#become-a-host' ) );
+		return array(
+			'enabled' => ! empty( $hero['route_cta_enabled'] ) ? '1' : '0',
+			'id' => 'become-host',
+			'type' => 'cta',
+			'label' => '' !== trim( (string) $label ) ? (string) $label : self::resolve_dynamic_text( self::default_route_cta_labels(), $lang, $source_language ),
+			'sublabel' => '' !== trim( (string) $sublabel ) ? (string) $sublabel : self::resolve_dynamic_text( self::default_route_cta_sublabels(), $lang, $source_language ),
+			'target' => '' !== $target ? $target : '#become-a-host',
+			'context' => sanitize_text_field( $hero['route_cta_context'] ?? '2027' ),
+		);
 	}
 
 	public static function normalize_hero_location_display_mode( $mode ) {
@@ -1854,6 +1907,7 @@ class TAKA_Platform_Data {
 		$host_organizer = self::get_organizer( 'kleiner-wald' );
 		$sponsor_venue  = self::get_venue( 'kanso-konz' );
 		$host_logo      = $host_organizer['logo'] ?? ( $images['kleiner_wald_logo'] ?? '' );
+		$host_email     = self::first_organizer_email( $host_organizer ) ?: 'info@kleiner-wald.de';
 
 		return array(
 			'sensei'   => self::normalize_content_section( array( 'key' => 'sensei', 'visible' => '1', 'sort_order' => 10, 'kicker' => taka_tour_translate( 'sections.sensei.kicker', 'Sensei' ), 'title' => taka_tour_translate( 'sections.sensei.headline', 'Takafumi Nakayama' ), 'subtitle' => '', 'body' => taka_tour_translate( 'sections.sensei.text', 'Präzision, Ruhe und Bewegungsqualität aus der okinawanischen Tradition.' ), 'image_id' => 0, 'image_url' => $images['taka_portrait'] ?? '', 'secondary_image_id' => 0, 'secondary_image_url' => '', 'gallery_image_ids' => array(), 'gallery_image_urls' => array(), 'layout' => 'image_right', 'background_style' => 'paper', 'button_url' => '', 'button_label' => '', 'css_class' => '', 'image_fit' => 'contain', 'image_position' => 'center center' ) ),
@@ -1862,6 +1916,85 @@ class TAKA_Platform_Data {
 			'community'=> self::normalize_content_section( array( 'key' => 'community', 'visible' => '1', 'sort_order' => 30, 'kicker' => taka_tour_translate( 'sections.community.kicker', 'Community' ), 'title' => taka_tour_translate( 'sections.community.headline', 'Gemeinsam trainieren' ), 'subtitle' => '', 'body' => taka_tour_translate( 'sections.community.text', 'Ein europäisches Treffen für ernsthaftes Training und respektvollen Austausch.' ), 'image_id' => 0, 'image_url' => $images['community_group'] ?? '', 'secondary_image_id' => 0, 'secondary_image_url' => '', 'gallery_image_ids' => array(), 'gallery_image_urls' => array(), 'layout' => 'full_background', 'background_style' => 'wash', 'button_url' => '', 'button_label' => '', 'css_class' => '', 'image_fit' => 'cover', 'image_position' => 'center center' ) ),
 			'host'     => self::normalize_content_section( array( 'key' => 'host', 'visible' => '1', 'sort_order' => 40, 'kicker' => taka_tour_translate( 'sections.host.kicker', 'Host' ), 'title' => taka_tour_translate( 'sections.host.headline', '5 Jahre Kleiner Wald Dojo' ), 'subtitle' => '', 'body' => '', 'image_id' => 0, 'image_url' => $host_logo, 'secondary_image_id' => 0, 'secondary_image_url' => '', 'gallery_image_ids' => array(), 'gallery_image_urls' => array(), 'layout' => 'image_right', 'background_style' => 'paper', 'button_url' => $host_organizer['website'] ?? '', 'button_label' => $host_organizer['name'] ?? '' ) ),
 			'sponsor'  => self::normalize_content_section( array( 'key' => 'sponsor', 'visible' => '1', 'sort_order' => 50, 'kicker' => taka_tour_translate( 'sections.sponsor.kicker', 'Sponsor' ), 'title' => taka_tour_translate( 'sections.sponsor.headline', 'kanso' ), 'subtitle' => '', 'body' => taka_tour_translate( 'sections.sponsor.text', 'Zentrum für Körper, Geist und Seele in Konz.' ), 'image_id' => 0, 'image_url' => $images['sponsor_logo'] ?? '', 'secondary_image_id' => 0, 'secondary_image_url' => '', 'gallery_image_ids' => array(), 'gallery_image_urls' => array(), 'layout' => 'feature_card', 'background_style' => 'plain', 'button_url' => $sponsor_venue['website'] ?? 'https://kan.so', 'button_label' => taka_tour_translate( 'sections.sponsor.link_text', 'kan.so' ) ) ),
+			'become-a-host' => self::normalize_content_section(
+				array(
+					'key' => 'become-a-host',
+					'visible' => '1',
+					'sort_order' => 60,
+					'source_language' => 'de',
+					'translations' => array(
+						'de' => array(
+							'kicker' => 'Zukünftige Gastgeber',
+							'title' => 'Dein Dojo als TAKA-Tour-Station?',
+							'subtitle' => '',
+							'body' => 'Wenn du als Dojo-Inhaber oder Organisator ein zukünftiges Seminar mit Takafumi Nakayama Sensei ausrichten möchtest, melde dich gerne. Die Route 2026 ist möglicherweise bereits geplant, aber zukünftige Touren ab 2027 können wir gemeinsam besprechen.',
+							'button_label' => 'Interesse anmelden',
+							'button_url' => 'mailto:' . $host_email,
+						),
+						'en' => array(
+							'kicker' => 'Future hosts',
+							'title' => 'Your Dojo as a TAKA Tour stop?',
+							'subtitle' => '',
+							'body' => 'If you are a Dojo owner or organizer and would like to host a future seminar with Takafumi Nakayama Sensei, get in touch. The 2026 route may already be planned, but future tours from 2027 onward can be discussed.',
+							'button_label' => 'Register interest',
+							'button_url' => 'mailto:' . $host_email,
+						),
+						'fr' => array(
+							'kicker' => 'Futurs hôtes',
+							'title' => 'Ton Dojo comme étape de la TAKA Tour ?',
+							'subtitle' => '',
+							'body' => 'Si tu es propriétaire de Dojo ou organisateur et souhaites accueillir un futur séminaire avec Takafumi Nakayama Sensei, contacte-nous. Le parcours 2026 est peut-être déjà planifié, mais les futures tournées à partir de 2027 peuvent être discutées.',
+							'button_label' => 'Manifester ton intérêt',
+							'button_url' => 'mailto:' . $host_email,
+						),
+						'nl' => array(
+							'kicker' => 'Toekomstige hosts',
+							'title' => 'Jouw Dojo als halte van de TAKA Tour?',
+							'subtitle' => '',
+							'body' => 'Ben je Dojo-eigenaar of organisator en wil je in de toekomst een seminar met Takafumi Nakayama Sensei hosten? Neem contact op. De route voor 2026 is mogelijk al gepland, maar toekomstige tours vanaf 2027 kunnen we bespreken.',
+							'button_label' => 'Interesse melden',
+							'button_url' => 'mailto:' . $host_email,
+						),
+						'lb' => array(
+							'kicker' => 'Zukünfteg Hosten',
+							'title' => 'Däin Dojo als TAKA-Tour-Statioun?',
+							'subtitle' => '',
+							'body' => 'Bass du Dojo-Besëtzer oder Organisateur a wëlls an Zukunft e Seminar mam Takafumi Nakayama Sensei organiséieren? Mell dech gär. D’Route 2026 ass eventuell schonn geplangt, mee zukünfteg Touren ab 2027 kënne mir zesumme beschwätzen.',
+							'button_label' => 'Interessi umellen',
+							'button_url' => 'mailto:' . $host_email,
+						),
+						'fi' => array(
+							'kicker' => 'Tulevat isännät',
+							'title' => 'Sinun Dojosi TAKA Tourin pysäkiksi?',
+							'subtitle' => '',
+							'body' => 'Jos olet Dojon omistaja tai järjestäjä ja haluaisit isännöidä tulevan seminaarin Takafumi Nakayama Sensein kanssa, ota yhteyttä. Vuoden 2026 reitti voi olla jo suunniteltu, mutta tulevista kiertueista vuodesta 2027 alkaen voidaan keskustella.',
+							'button_label' => 'Ilmoita kiinnostuksesta',
+							'button_url' => 'mailto:' . $host_email,
+						),
+						'ja' => array(
+							'kicker' => '今後のホスト',
+							'title' => 'あなたの道場をTAKA Tourの開催地に？',
+							'subtitle' => '',
+							'body' => 'Dojoの責任者または主催者として、Takafumi Nakayama Sensei の今後のセミナー開催に関心があればご連絡ください。2026年のルートはすでに計画済みの場合がありますが、2027年以降のツアーについて相談できます。',
+							'button_label' => '関心を登録する',
+							'button_url' => 'mailto:' . $host_email,
+						),
+					),
+					'image_id' => 0,
+					'image_url' => '',
+					'secondary_image_id' => 0,
+					'secondary_image_url' => '',
+					'gallery_image_ids' => array(),
+					'gallery_image_urls' => array(),
+					'layout' => 'text_only',
+					'background_style' => 'paper',
+					'button_url' => 'mailto:' . $host_email,
+					'button_label' => 'Interesse anmelden',
+					'css_class' => 'taka-content-section--host-cta',
+					'image_fit' => 'contain',
+					'image_position' => 'center center',
+				)
+			),
 		);
 	}
 
@@ -2479,7 +2612,88 @@ class TAKA_Platform_Data {
 			);
 		}
 
+		$cta = self::hero_route_cta_settings( $lang );
+		if ( '1' === (string) ( $cta['enabled'] ?? '0' ) && '' !== trim( (string) ( $cta['label'] ?? '' ) ) ) {
+			$slot = self::hero_route_map_cta_slot( $stations );
+			$label = trim( (string) ( $cta['label'] ?? '' ) );
+			$sublabel = trim( (string) ( $cta['sublabel'] ?? '' ) );
+			$layout_label = trim( $label . ( '' !== $sublabel ? ' ' . $sublabel : '' ) );
+			$route_index = count( $stations ) + 1;
+			$stations[] = array(
+				'type' => 'cta',
+				'id' => (string) ( $cta['id'] ?? 'become-host' ),
+				'event' => array(),
+				'event_id' => (string) ( $cta['id'] ?? 'become-host' ),
+				'event_title' => $label,
+				'route_index' => $route_index,
+				'location_name' => $label,
+				'country' => '',
+				'date_label' => '',
+				'event_start_date' => '',
+				'event_start_time' => '',
+				'start_datetime' => '',
+				'tour_order' => null,
+				'marker_x' => $slot['marker_x'],
+				'marker_y' => $slot['marker_y'],
+				'x' => $slot['marker_x'],
+				'y' => $slot['marker_y'],
+				'coordinate_source' => (string) ( $slot['coordinate_source'] ?? 'virtual_cta' ),
+				'label' => $layout_label,
+				'display_label' => $layout_label,
+				'primary_label' => $label,
+				'sublabel' => $sublabel,
+				'short_label' => $layout_label,
+				'label_source' => 'route_cta',
+				'label_manual_x' => null,
+				'label_manual_y' => null,
+				'label_manual_anchor' => '',
+				'label_manual_width' => '',
+				'leader_line_preference' => false,
+				'target_url' => (string) ( $cta['target'] ?? '#become-a-host' ),
+				'confirmed' => false,
+				'context' => (string) ( $cta['context'] ?? '' ),
+				'sort_key' => 'virtual_cta;route_index=' . $route_index,
+				'index' => $route_index - 1,
+			);
+		}
+
 		return TAKA_Platform_Tour_Map_Label_Layout::compute( $stations );
+	}
+
+	/** Position the virtual route CTA after the final real route station without changing real event slots. */
+	private static function hero_route_map_cta_slot( $stations ) {
+		$stations = array_values( is_array( $stations ) ? $stations : array() );
+		if ( empty( $stations ) ) {
+			return array( 'marker_x' => 50.0, 'marker_y' => 90.0, 'coordinate_source' => 'virtual_cta:auto' );
+		}
+
+		$last = end( $stations );
+		$prev = $stations[ max( 0, count( $stations ) - 2 ) ];
+		$last_x = self::map_coordinate( $last['marker_x'] ?? ( $last['x'] ?? null ) );
+		$last_y = self::map_coordinate( $last['marker_y'] ?? ( $last['y'] ?? null ) );
+		$prev_x = self::map_coordinate( $prev['marker_x'] ?? ( $prev['x'] ?? null ) );
+		$prev_y = self::map_coordinate( $prev['marker_y'] ?? ( $prev['y'] ?? null ) );
+		$last_x = null !== $last_x ? $last_x : 50.0;
+		$last_y = null !== $last_y ? $last_y : 84.0;
+		$prev_x = null !== $prev_x ? $prev_x : $last_x;
+		$prev_y = null !== $prev_y ? $prev_y : max( 10.0, $last_y - 8.0 );
+		$dx = $last_x - $prev_x;
+		$dy = $last_y - $prev_y;
+		$length = sqrt( ( $dx * $dx ) + ( $dy * $dy ) );
+		if ( $length <= 0.0 ) {
+			$length = 1.0;
+			$dx = 0.0;
+			$dy = 1.0;
+		}
+
+		$x = $last_x + ( $dx / $length * 5.5 );
+		$y = max( $last_y + 3.0, $last_y + max( .35, abs( $dy / $length ) ) * 4.5, 86.5 );
+
+		return array(
+			'marker_x' => max( 18.0, min( 82.0, $x ) ),
+			'marker_y' => max( 12.0, min( 87.0, $y ) ),
+			'coordinate_source' => 'virtual_cta:after_final_station',
+		);
 	}
 
 	/** Build reusable visual slots and sort them from north/top to south/bottom. */
@@ -2538,6 +2752,7 @@ class TAKA_Platform_Data {
 			static function ( $station ) {
 				return array(
 					'route_index' => $station['route_index'] ?? '',
+					'station_type' => $station['type'] ?? 'event',
 					'event_id' => $station['event_id'] ?? '',
 					'event_title' => $station['event_title'] ?? '',
 					'location_name' => $station['location_name'] ?? '',

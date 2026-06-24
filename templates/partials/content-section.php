@@ -39,7 +39,7 @@ $style = ' style="' . esc_attr( implode( ';', $style_parts ) ) . '"';
 <?php if ( function_exists( 'current_user_can' ) && current_user_can( 'manage_options' ) ) : ?>
 	<!-- TAKA section source: key=<?php echo esc_html( $key ); ?> content_source=<?php echo esc_html( (string) ( $section['content_source'] ?? 'inline' ) ); ?> reference_block=<?php echo esc_html( (string) ( $section['content_reference']['block_id'] ?? '' ) ); ?> attachment_id=<?php echo esc_html( (string) absint( $section['image_id'] ?? 0 ) ); ?> url=<?php echo esc_url( $image ); ?> fit=<?php echo esc_html( $fit ); ?> position=<?php echo esc_html( $position ); ?> -->
 <?php endif; ?>
-<section class="taka-section taka-content-section taka-content-section--<?php echo esc_attr( $key ); ?> taka-content-section--<?php echo esc_attr( $layout ); ?> taka-content-section--bg-<?php echo esc_attr( $bg ); ?> <?php echo esc_attr( $custom ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+<section id="<?php echo esc_attr( $key ); ?>" class="taka-section taka-content-section taka-content-section--<?php echo esc_attr( $key ); ?> taka-content-section--<?php echo esc_attr( $layout ); ?> taka-content-section--bg-<?php echo esc_attr( $bg ); ?> <?php echo esc_attr( $custom ); ?>"<?php echo $style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
 	<div class="taka-content-section__inner">
 		<div class="taka-content-section__text">
 			<?php if ( '' !== trim( (string) ( $section['kicker'] ?? '' ) ) ) : ?>

@@ -297,6 +297,18 @@ body.admin-bar {
 	transition: transform .16s ease, box-shadow .16s ease;
 }
 
+.taka-hero-route-map__marker--cta .taka-hero-route-map__pin {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-style: dashed;
+	background: rgba(199, 163, 92, .22);
+	box-shadow: 0 0 0 .28rem rgba(199, 163, 92, .14), 0 .35rem .85rem rgba(0, 0, 0, .4);
+	color: #ffffff;
+	font-size: .72rem;
+	line-height: 1;
+}
+
 .taka-hero-route-map__label {
 	position: absolute;
 	z-index: 6;
@@ -321,6 +333,12 @@ body.admin-bar {
 	text-decoration: none;
 	transition: background .16s ease, border-color .16s ease, box-shadow .16s ease;
 	white-space: nowrap;
+}
+
+.taka-hero-route-map__label--cta {
+	border-style: dashed;
+	border-color: rgba(199, 163, 92, .58);
+	background: rgba(22, 20, 18, .72);
 }
 
 .taka-hero-route-map__label::before {
@@ -353,6 +371,14 @@ body.admin-bar {
 	min-width: max-content;
 	overflow: visible;
 	text-overflow: clip;
+	white-space: nowrap;
+}
+
+.taka-hero-route-map__label-sublabel {
+	min-width: max-content;
+	color: rgba(255, 255, 255, .72);
+	font-size: .86em;
+	font-weight: 700;
 	white-space: nowrap;
 }
 
@@ -437,6 +463,11 @@ body.admin-bar {
 		box-shadow: 0 0 0 .18rem rgba(188, 0, 45, .2), 0 .25rem .6rem rgba(0, 0, 0, .42);
 	}
 
+	.taka-hero-route-map__marker--cta .taka-hero-route-map__pin {
+		box-shadow: 0 0 0 .18rem rgba(199, 163, 92, .14), 0 .25rem .6rem rgba(0, 0, 0, .38);
+		font-size: .58rem;
+	}
+
 	.taka-hero-route-map__label {
 		top: var(--taka-route-label-mobile-y) !important;
 		left: var(--taka-route-label-mobile-x) !important;
@@ -474,6 +505,10 @@ body.admin-bar {
 		white-space: nowrap;
 	}
 
+	.taka-hero-route-map__label-sublabel {
+		font-size: .84em;
+	}
+
 	.taka-card-actions {
 		margin-top: 1rem;
 	}
@@ -497,6 +532,10 @@ body.admin-bar {
 
 .taka-seminars {
 	padding-top: 0;
+}
+
+.taka-content-section--become-a-host .taka-content-section__inner {
+	max-width: 56rem;
 }
 
 .taka-card-grid {
