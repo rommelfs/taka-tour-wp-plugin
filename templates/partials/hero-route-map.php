@@ -25,7 +25,15 @@ unset( $stop );
 $format_route_point = static fn( $stop ) => round( $stop['marker_x'], 2 ) . ',' . round( $stop['marker_y'], 2 );
 $route_points = array_map( $format_route_point, $stops );
 $line_points = count( $route_points ) > 1 ? implode( ' ', $route_points ) : '';
-$mobile_line_points = $line_points;
+// Match the mobile canvas aspect ratio so SVG route points align with marker percentages.
+$mobile_route_aspect_ratio = 0.74;
+$mobile_route_vertical_offset = ( 100 - ( 100 * $mobile_route_aspect_ratio ) ) / 2;
+$format_mobile_route_point = static function ( $x, $y ) use ( $mobile_route_aspect_ratio, $mobile_route_vertical_offset ) {
+	$mobile_y = ( $y - $mobile_route_vertical_offset ) / $mobile_route_aspect_ratio;
+	return round( $x, 2 ) . ',' . round( $mobile_y, 2 );
+};
+$mobile_route_points = array_map( static fn( $stop ) => $format_mobile_route_point( $stop['marker_x'], $stop['marker_y'] ), $stops );
+$mobile_line_points = count( $mobile_route_points ) > 1 ? implode( ' ', $mobile_route_points ) : '';
 
 if ( count( $stops ) > 1 ) {
 	$last_index = count( $stops ) - 1;
@@ -40,7 +48,7 @@ if ( count( $stops ) > 1 ) {
 		$mobile_edge_padding = 2.5;
 		$tail_x = max( $mobile_edge_padding, min( 100 - $mobile_edge_padding, $last_stop['marker_x'] + ( $route_dx / $route_length * $mobile_extension ) ) );
 		$tail_y = max( $mobile_edge_padding, min( 100 - $mobile_edge_padding, $last_stop['marker_y'] + ( $route_dy / $route_length * $mobile_extension ) ) );
-		$mobile_line_points .= ' ' . round( $tail_x, 2 ) . ',' . round( $tail_y, 2 );
+		$mobile_line_points .= ' ' . $format_mobile_route_point( $tail_x, $tail_y );
 	}
 }
 ?>
