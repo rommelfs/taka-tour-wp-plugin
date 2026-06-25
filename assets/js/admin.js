@@ -208,7 +208,7 @@ document.addEventListener('click', function (event) {
     panel.classList.toggle('is-source-language', isSource);
     if (help) {
       help.textContent = isSource && mode === 'editable'
-        ? (i18n.editableSourcePanelHelp || 'This tab is the source text for this item.')
+        ? (i18n.editableSourcePanelHelp || 'This tab contains the original text for this item.')
         : (isSource ? (i18n.sourcePanelHelp || '') : (i18n.translationPanelHelp || ''));
     }
     updateFieldLabels(panel, isSource);
