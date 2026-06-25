@@ -234,8 +234,8 @@ class TAKA_Platform_Admin {
 				'translationTextLabel' => __( '%s — Translation', 'taka-platform' ),
 				'languageTranslationLabel' => __( '%s translation', 'taka-platform' ),
 				'sourceLanguageHelp' => __( 'Source language: %s. Enter the original text here; translations are managed separately.', 'taka-platform' ),
-				'sourcePanelHelp' => __( 'This is the source language. Edit the source text field instead of entering a translation here.', 'taka-platform' ),
-				'editableSourcePanelHelp' => __( 'This tab is the source text for this item.', 'taka-platform' ),
+				'sourcePanelHelp' => __( 'This is the source language. Edit the original text here. Translations are entered in the other language tabs.', 'taka-platform' ),
+				'editableSourcePanelHelp' => __( 'This is the source language. Edit the original text here. Translations are entered in the other language tabs.', 'taka-platform' ),
 				'translationPanelHelp' => __( 'Translate the source text into this language.', 'taka-platform' ),
 				'thisIsSourceLanguage' => __( 'This is the source language.', 'taka-platform' ),
 				'editSourceColumn' => __( 'Edit the source label column.', 'taka-platform' ),
@@ -1267,7 +1267,7 @@ class TAKA_Platform_Admin {
 					<label class="taka-content-section-tabs__tab" for="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>" data-taka-language-tab data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>" data-language-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $is_source_language ? sprintf( __( '%s source', 'taka-platform' ), $label ) : $label ); ?></label>
 					<div class="taka-content-section-tabs__panel" data-taka-language-panel data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>">
 						<?php if ( $is_source_language ) : ?>
-							<p class="description" data-taka-source-panel-help><?php echo esc_html__( 'This tab is the source text for this section.', 'taka-platform' ); ?></p>
+							<p class="description" data-taka-source-panel-help><?php echo esc_html__( 'This is the source language. Edit the original text here. Translations are entered in the other language tabs.', 'taka-platform' ); ?></p>
 						<?php else : ?>
 							<p class="description" data-taka-source-panel-help><?php echo esc_html__( 'Translate the source text into this language.', 'taka-platform' ); ?></p>
 						<?php endif; ?>
@@ -2421,7 +2421,7 @@ class TAKA_Platform_Admin {
 						<input class="taka-content-section-tabs__radio" type="radio" name="<?php echo esc_attr( $tab_group ); ?>" id="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>" <?php checked( $lang, $source_language ); ?>>
 						<label class="taka-content-section-tabs__tab" for="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>" data-taka-language-tab data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>" data-language-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $is_source_language ? sprintf( __( '%s source', 'taka-platform' ), $label ) : $label ); ?></label>
 						<div class="taka-content-section-tabs__panel" data-taka-language-panel data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>">
-							<p class="description" data-taka-source-panel-help><?php echo esc_html( $is_source_language ? __( 'This tab is the source text for this item.', 'taka-platform' ) : __( 'Translate the source text into this language.', 'taka-platform' ) ); ?></p>
+							<p class="description" data-taka-source-panel-help><?php echo esc_html( $is_source_language ? __( 'This is the source language. Edit the original text here. Translations are entered in the other language tabs.', 'taka-platform' ) : __( 'Translate the source text into this language.', 'taka-platform' ) ); ?></p>
 							<?php foreach ( $fields as $field => $field_label ) : ?>
 								<?php $name = $prefix . '[override_translations][' . $lang . '][' . $field . ']'; ?>
 								<?php $value = $translations[ $lang ][ $field ] ?? ''; ?>
@@ -2619,9 +2619,9 @@ class TAKA_Platform_Admin {
 		$languages = self::content_section_language_labels();
 		$default_tab_language = isset( $languages[ $source_language ] ) ? $source_language : TAKA_Platform_Data::platform_fallback_language();
 		?>
-		<div class="taka-content-section-translations" data-taka-content-section-translations data-taka-source-aware data-source-language="<?php echo esc_attr( $default_tab_language ); ?>" data-source-mode="disabled-source" data-default-lang="<?php echo esc_attr( $default_tab_language ); ?>">
+		<div class="taka-content-section-translations" data-taka-content-section-translations data-taka-source-aware data-source-language="<?php echo esc_attr( $default_tab_language ); ?>" data-source-mode="editable" data-default-lang="<?php echo esc_attr( $default_tab_language ); ?>">
 			<h3><?php echo esc_html__( 'Text translations', 'taka-platform' ); ?></h3>
-			<p class="description"><?php echo esc_html__( 'The source text is stored in the explicitly labelled source fields above. Fill translations only for other languages here.', 'taka-platform' ); ?></p>
+			<p class="description"><?php echo esc_html__( 'Edit original text in the source-language tab. Other tabs hold translations.', 'taka-platform' ); ?></p>
 			<div class="taka-content-section-tabs">
 				<?php $tab_group = 'taka_object_text_' . $object_type . '_' . $post_id; ?>
 				<?php foreach ( $languages as $lang => $label ) : ?>
@@ -2630,7 +2630,7 @@ class TAKA_Platform_Admin {
 					<label class="taka-content-section-tabs__tab" for="<?php echo esc_attr( $tab_group . '_' . $lang ); ?>" data-taka-language-tab data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>" data-language-label="<?php echo esc_attr( $label ); ?>"><?php echo esc_html( $is_source_language ? sprintf( __( '%s source', 'taka-platform' ), $label ) : $label ); ?></label>
 					<div class="taka-content-section-tabs__panel" data-taka-language-panel data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>">
 						<?php if ( $is_source_language ) : ?>
-							<p class="description" data-taka-source-panel-help><?php echo esc_html__( 'This is the source language. Edit the source text fields above instead of entering a translation here.', 'taka-platform' ); ?></p>
+							<p class="description" data-taka-source-panel-help><?php echo esc_html__( 'This is the source language. Edit the original text here. Translations are entered in the other language tabs.', 'taka-platform' ); ?></p>
 						<?php else : ?>
 							<p class="description" data-taka-source-panel-help><?php echo esc_html__( 'Translate the source text into this language.', 'taka-platform' ); ?></p>
 						<?php endif; ?>
@@ -2649,19 +2649,19 @@ class TAKA_Platform_Admin {
 		<?php
 	}
 
-	private static function render_object_translation_textareas( $post_id, $lang, $fields, $translations, $source_values, $disabled = false ) {
+	private static function render_object_translation_textareas( $post_id, $lang, $fields, $translations, $source_values, $is_source_language = false ) {
 		foreach ( $fields as $field => $field_label ) :
-			$value = $translations[ $field ][ $lang ] ?? '';
 			$placeholder = $source_values[ $field ] ?? self::meta( $post_id, 'description' === $field ? 'short_description' : $field );
+			$value = $is_source_language ? $placeholder : ( $translations[ $field ][ $lang ] ?? '' );
 			$name = 'taka_platform_text_translations[' . $field . '][' . $lang . ']';
-			$display_value = $disabled && '' === (string) $value ? (string) $placeholder : (string) $value;
+			$display_value = (string) $value;
 			?>
 			<p class="taka-content-section-tabs__field">
-				<label><strong data-taka-language-field-label data-source-label="<?php echo esc_attr( self::source_text_label( $field_label ) ); ?>" data-translation-label="<?php echo esc_attr( self::translation_text_label( $field_label ) ); ?>"><?php echo esc_html( $disabled ? self::source_text_label( $field_label ) : self::translation_text_label( $field_label ) ); ?></strong><br>
-					<?php if ( $disabled ) : ?>
-						<input type="hidden" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( (string) $value ); ?>" data-taka-source-hidden>
+				<label><strong data-taka-language-field-label data-source-label="<?php echo esc_attr( self::source_text_label( $field_label ) ); ?>" data-translation-label="<?php echo esc_attr( self::translation_text_label( $field_label ) ); ?>"><?php echo esc_html( $is_source_language ? self::source_text_label( $field_label ) : self::translation_text_label( $field_label ) ); ?></strong><br>
+					<?php if ( $is_source_language ) : ?>
+						<input type="hidden" name="taka_platform_text_source_previous[<?php echo esc_attr( $field ); ?>][<?php echo esc_attr( $lang ); ?>]" value="<?php echo esc_attr( $display_value ); ?>">
 					<?php endif; ?>
-					<textarea class="large-text" rows="3" name="<?php echo esc_attr( $name ); ?>" placeholder="<?php echo esc_attr( (string) $placeholder ); ?>" data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>" data-taka-source-disable-when-source="1" <?php disabled( $disabled ); ?>><?php echo esc_textarea( $display_value ); ?></textarea>
+					<textarea class="large-text" rows="3" name="<?php echo esc_attr( $name ); ?>" placeholder="<?php echo esc_attr( (string) $placeholder ); ?>" data-taka-i18n-lang="<?php echo esc_attr( $lang ); ?>"><?php echo esc_textarea( $display_value ); ?></textarea>
 				</label>
 			</p>
 			<?php
@@ -2672,9 +2672,81 @@ class TAKA_Platform_Admin {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) { return; }
 		if ( ! isset( $_POST[ self::NONCE ] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST[ self::NONCE ] ) ), self::NONCE ) || ! current_user_can( 'edit_post', $post_id ) ) { return; }
 		$fields = TAKA_Platform_Data::translatable_text_fields( $object_type );
-		update_post_meta( $post_id, '_taka_source_language', TAKA_Platform_Translation_Packages::sanitize_language( wp_unslash( $_POST['_taka_source_language'] ?? 'de' ) ) );
+		$old_source_language = TAKA_Platform_Translation_Packages::sanitize_language( get_post_meta( $post_id, '_taka_source_language', true ) ?: 'de' );
+		$source_language = TAKA_Platform_Translation_Packages::sanitize_language( wp_unslash( $_POST['_taka_source_language'] ?? 'de' ) );
+		update_post_meta( $post_id, '_taka_source_language', $source_language );
 		$posted = isset( $_POST['taka_platform_text_translations'] ) && is_array( $_POST['taka_platform_text_translations'] ) ? wp_unslash( $_POST['taka_platform_text_translations'] ) : array();
+		$previous = isset( $_POST['taka_platform_text_source_previous'] ) && is_array( $_POST['taka_platform_text_source_previous'] ) ? wp_unslash( $_POST['taka_platform_text_source_previous'] ) : array();
+		self::save_object_source_text_from_translations( $post_id, $object_type, $fields, $posted, $previous, $source_language, $old_source_language );
 		update_post_meta( $post_id, '_taka_text_translations', TAKA_Platform_Data::normalize_object_text_translations( $posted, $fields ) );
+	}
+
+	private static function save_object_source_text_from_translations( $post_id, $object_type, $fields, $posted, $previous, $source_language, $old_source_language ) {
+		foreach ( array_keys( $fields ) as $field ) {
+			if ( ! isset( $posted[ $field ][ $source_language ] ) ) { continue; }
+			$value = (string) $posted[ $field ][ $source_language ];
+			$previous_value = isset( $previous[ $field ][ $source_language ] ) ? (string) $previous[ $field ][ $source_language ] : null;
+			$source_language_changed = $source_language !== $old_source_language;
+			if ( ! $source_language_changed && null !== $previous_value && $value === $previous_value ) {
+				continue;
+			}
+			if ( $source_language_changed && '' === trim( $value ) ) {
+				continue;
+			}
+			self::update_object_source_text_field( $post_id, $object_type, $field, $value );
+		}
+	}
+
+	private static function update_object_source_text_field( $post_id, $object_type, $field, $value ) {
+		$post_content_fields = array(
+			'organizer' => array( 'description' => true ),
+			'content_block' => array( 'body' => true ),
+		);
+		if ( ! empty( $post_content_fields[ $object_type ][ $field ] ) ) {
+			self::update_post_content_source_text( $post_id, $object_type, wp_kses_post( $value ) );
+			return;
+		}
+
+		$meta_fields = array(
+			'event' => array(
+				'description' => 'short_description',
+				'subtitle' => 'subtitle',
+				'long_description' => 'long_description',
+				'ticket_card_text' => 'ticket_card_text',
+				'ticket_tab_label' => 'ticket_tab_label',
+				'accessibility' => 'accessibility',
+				'notes' => 'notes',
+				'parking' => 'parking',
+			),
+			'venue' => array(
+				'parking' => 'parking',
+				'accessibility' => 'accessibility',
+				'notes' => 'notes',
+			),
+			'content_block' => array(
+				'kicker' => 'kicker',
+				'title' => 'block_title',
+				'subtitle' => 'subtitle',
+				'button_label' => 'button_label',
+				'button_url' => 'button_url',
+			),
+		);
+		if ( empty( $meta_fields[ $object_type ][ $field ] ) ) { return; }
+		$meta_field = $meta_fields[ $object_type ][ $field ];
+		$clean = 'button_url' === $field ? esc_url_raw( $value ) : ( in_array( $field, array( 'subtitle', 'ticket_tab_label', 'kicker', 'title', 'button_label' ), true ) ? sanitize_text_field( $value ) : sanitize_textarea_field( $value ) );
+		update_post_meta( $post_id, '_taka_' . $meta_field, $clean );
+	}
+
+	private static function update_post_content_source_text( $post_id, $object_type, $content ) {
+		$post_type = get_post_type( $post_id );
+		$callbacks = array(
+			'organizer' => 'save_organizer',
+			'content_block' => 'save_content_block',
+		);
+		if ( empty( $callbacks[ $object_type ] ) || ! $post_type ) { return; }
+		remove_action( 'save_post_' . $post_type, array( __CLASS__, $callbacks[ $object_type ] ) );
+		wp_update_post( array( 'ID' => $post_id, 'post_content' => $content ) );
+		add_action( 'save_post_' . $post_type, array( __CLASS__, $callbacks[ $object_type ] ) );
 	}
 
 	private static function sanitize_dynamic_text( $value, $textarea = false ) {
