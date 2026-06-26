@@ -745,16 +745,19 @@
 .taka-ticket-meta-row--organizer dd {
 	align-items: center;
 	display: flex;
-	gap: .55rem;
+	gap: .75rem;
 }
 
 .taka-ticket-meta-row--organizer img {
 	background: #fff;
-	border-radius: .4rem;
-	max-height: 34px;
-	max-width: 86px;
+	border: 1px solid rgba(17,17,17,.06);
+	border-radius: .55rem;
+	flex: 0 0 auto;
+	height: 54px;
+	max-width: 112px;
 	object-fit: contain;
-	padding: .18rem;
+	padding: .28rem;
+	width: 54px;
 }
 
 .taka-ticket-quick-links {
@@ -1419,30 +1422,33 @@
 /* v1.4.7 event organizer relationship display */
 .taka-ticket-organizer-list {
 	display: grid;
-	gap: .55rem;
-	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: .75rem;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 	width: 100%;
 }
 
 .taka-ticket-organizer-list__item {
 	align-items: center;
 	display: grid;
-	gap: .65rem;
+	gap: .78rem;
 	grid-template-columns: auto minmax(0, 1fr);
+	min-width: 0;
 }
 
 .taka-ticket-organizer-list__item img {
 	background: #fff;
-	border-radius: .45rem;
-	max-height: 42px;
-	max-width: 92px;
+	border: 1px solid rgba(17,17,17,.06);
+	border-radius: .55rem;
+	height: 54px;
+	max-width: 112px;
 	object-fit: contain;
-	padding: .2rem;
+	padding: .28rem;
+	width: 54px;
 }
 
 .taka-ticket-organizer-list__content {
 	display: grid;
-	gap: .08rem;
+	gap: .14rem;
 	min-width: 0;
 }
 
@@ -1456,9 +1462,52 @@
 	text-transform: uppercase;
 }
 
+.taka-ticket-organizer-list__name,
+.taka-ticket-organizer-list__name.taka-ticket-meta-link {
+	color: #111;
+	display: inline-flex;
+	font-size: 1.02rem;
+	font-weight: 850;
+	gap: .28rem;
+	line-height: 1.18;
+	max-width: 100%;
+	min-width: 0;
+	text-align: left;
+}
+
+.taka-ticket-organizer-list__name.taka-ticket-meta-link {
+	align-items: center;
+	justify-content: flex-start;
+	width: fit-content;
+}
+
+.taka-ticket-organizer-list__name span[aria-hidden="true"] {
+	color: #BC002D;
+	font-size: .84em;
+	line-height: 1;
+	margin-left: .06rem;
+}
+
 @media (max-width: 720px) {
 	.taka-ticket-organizer-list {
 		grid-template-columns: 1fr;
+	}
+
+	.taka-ticket-meta-row--organizer dd {
+		align-items: flex-start;
+		gap: .7rem;
+	}
+
+	.taka-ticket-meta-row--organizer img,
+	.taka-ticket-organizer-list__item img {
+		height: 48px;
+		max-width: 104px;
+		width: 48px;
+	}
+
+	.taka-ticket-organizer-list__name,
+	.taka-ticket-organizer-list__name.taka-ticket-meta-link {
+		font-size: .98rem;
 	}
 
 	.taka-ticket-event-panel__header {
