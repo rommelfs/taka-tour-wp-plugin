@@ -2056,9 +2056,6 @@ class TAKA_Platform_Admin {
 		self::media_field( $post->ID, 'parking_image_id', __( 'Parking/arrival photo', 'taka-platform' ), false, __( 'Select parking photo', 'taka-platform' ) );
 		self::url( $post->ID, 'parking_image_url', __( 'Fallback parking photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
-		self::textarea_source( $post->ID, 'parking', __( 'Parking notes', 'taka-platform' ) );
-		self::textarea_source( $post->ID, 'accessibility', __( 'Accessibility', 'taka-platform' ) );
-		self::textarea_source( $post->ID, 'notes', __( 'Special notes', 'taka-platform' ) );
 		self::render_object_text_translation_fields( $post->ID, 'venue' );
 	}
 
@@ -2066,7 +2063,6 @@ class TAKA_Platform_Admin {
 	public static function render_event_meta_box( $post ) {
 		self::nonce();
 		self::render_object_source_language_field( $post->ID );
-		self::text_source( $post->ID, 'subtitle', __( 'Subtitle', 'taka-platform' ) );
 		foreach ( array( 'route_map_x' => 'Route marker X (0–100)', 'route_map_y' => 'Route marker Y (0–100)', 'route_map_label' => 'Route map label', 'route_map_label_x' => 'Route label X (0–100)', 'route_map_label_y' => 'Route label Y (0–100)' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::route_map_label_anchor_field( $post->ID );
 		foreach ( array( 'route_map_label_width' => 'Route label width', 'tour_order' => 'Tour order', 'city' => 'City', 'doors_open' => 'Doors open' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
@@ -2092,15 +2088,10 @@ class TAKA_Platform_Admin {
 		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-platform' ), false, __( 'Select group photo', 'taka-platform' ) );
 		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-platform' ) );
 		self::render_event_video_fields( $post->ID );
-		self::textarea_with_description_source( $post->ID, 'short_description', __( 'Seminar description', 'taka-platform' ), __( 'Canonical text shown on the public ticket page under “Seminar description”.', 'taka-platform' ) );
 		self::render_content_reference_fields( 'content_reference_event_description', get_post_meta( $post->ID, '_taka_content_reference_event_description', true ), 'event_description', __( 'Reusable seminar description block', 'taka-platform' ), get_post_meta( $post->ID, '_taka_source_language', true ) ?: 'de' );
-		self::text_source( $post->ID, 'ticket_tab_label', __( 'Ticket tab label', 'taka-platform' ) );
 		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ), array( 'long_description', 'ticket_card_text' ) );
 		self::render_event_booking_information_fields( $post->ID );
-		self::textarea_source( $post->ID, 'accessibility', __( 'Accessibility notes', 'taka-platform' ) );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
-		self::textarea_source( $post->ID, 'notes', __( 'Notes', 'taka-platform' ) );
-		self::textarea_source( $post->ID, 'parking', __( 'Parking notes', 'taka-platform' ) );
 		self::render_event_advanced_unused_fields( $post->ID );
 	}
 
@@ -2150,7 +2141,7 @@ class TAKA_Platform_Admin {
 		}
 		return (string) ( $post->post_content ?? '' );
 	}
-	public static function save_venue( $post_id ) { self::save_access_fields( $post_id ); self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'route_map_label_x', 'route_map_label_y', 'route_map_label_anchor', 'route_map_label_width', 'route_map_leader_line', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids', 'parking', 'accessibility', 'notes' ) ); self::save_object_country_meta( $post_id, true ); self::save_object_text_translations( $post_id, 'venue' ); }
+	public static function save_venue( $post_id ) { self::save_access_fields( $post_id ); self::save( $post_id, array( 'street', 'postal_code', 'city', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'route_map_label_x', 'route_map_label_y', 'route_map_label_anchor', 'route_map_label_width', 'route_map_leader_line', 'timezone', 'lat', 'lng', 'website', 'image_id', 'image_url', 'parking_image_id', 'parking_image_url', 'gallery_image_ids' ) ); self::save_object_country_meta( $post_id, true ); self::save_object_text_translations( $post_id, 'venue' ); }
 	public static function save_content_block( $post_id ) {
 		self::save_access_fields( $post_id );
 		self::save( $post_id, array( 'block_slug', 'block_type', 'category', 'enabled', 'kicker', 'block_title', 'subtitle', 'button_label', 'button_url', 'image_id', 'image_url', 'gallery_image_ids', 'gallery_image_urls', 'notes' ) );
@@ -2197,7 +2188,7 @@ class TAKA_Platform_Admin {
 				$posted_relationships = TAKA_Platform_Data::normalize_event_organizer_relationships( get_post_meta( $post_id, '_taka_event_organizers', true ), $existing );
 			}
 		}
-		self::save( $post_id, array( 'subtitle', 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'route_map_label_x', 'route_map_label_y', 'route_map_label_anchor', 'route_map_label_width', 'route_map_leader_line', 'tour_order', 'city', 'doors_open', 'timezone', 'currency', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'short_description', 'long_description', 'ticket_card_text', 'ticket_tab_label', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'accessibility', 'sort_order', 'notes', 'parking' ) );
+		self::save( $post_id, array( 'country', 'country_code', 'flag', 'route_map_x', 'route_map_y', 'route_map_label', 'route_map_label_x', 'route_map_label_y', 'route_map_label_anchor', 'route_map_label_width', 'route_map_leader_line', 'tour_order', 'city', 'doors_open', 'timezone', 'currency', 'format', 'audience', 'level', 'ticket_provider', 'ticket_status', 'photo_credit', 'languages', 'organizer_id', 'venue_id', 'venue_ids', 'ticket_shop_url', 'image_id', 'image_url', 'group_image_id', 'group_image_url', 'gallery_image_ids', 'booking_info_override', 'booking_info_enabled', 'booking_info_title', 'booking_info_intro', 'booking_info_group_booking', 'booking_info_multi_event_discount', 'booking_info_contact_email', 'booking_info_booking_process', 'booking_info_payment_methods', 'booking_info_cancellation_policy', 'booking_info_additional_notes', 'sort_order' ) );
 		self::save_content_reference_meta( $post_id, 'content_reference_event_description', 'event_description' );
 		self::save_object_text_translations( $post_id, 'event' );
 		self::save_event_organizer_relationships( $post_id, $posted_relationships );
@@ -2930,8 +2921,6 @@ class TAKA_Platform_Admin {
 		<details class="taka-event-advanced-fields">
 			<summary><strong><?php echo esc_html__( 'Advanced / currently unused', 'taka-platform' ); ?></strong></summary>
 			<p class="description"><?php echo esc_html__( 'These fields are saved for compatibility but are not currently shown in the public ticket detail layout.', 'taka-platform' ); ?></p>
-			<?php self::textarea_source( $post_id, 'long_description', __( 'Long description', 'taka-platform' ) ); ?>
-			<?php self::textarea_source( $post_id, 'ticket_card_text', __( 'Ticket card text', 'taka-platform' ) ); ?>
 			<?php self::media_field( $post_id, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) ); ?>
 			<?php self::text( $post_id, 'photo_credit', __( 'Photo credit', 'taka-platform' ) ); ?>
 		</details>
