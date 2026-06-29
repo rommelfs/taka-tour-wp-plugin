@@ -603,6 +603,28 @@ body.admin-bar {
 	font-weight: 800;
 }
 
+.taka-ticket-status--info p {
+	color: #111111;
+	font-size: .95rem;
+	font-weight: 700;
+	line-height: 1.45;
+	margin: .45rem 0 0;
+}
+
+.taka-ticket-status__note {
+	color: #4f4f4f;
+	font-weight: 600;
+}
+
+.taka-ticket-status__details {
+	color: #111111;
+	font-size: .92rem;
+	font-weight: 700;
+	line-height: 1.45;
+	margin: .5rem 0 0;
+	padding-left: 1.1rem;
+}
+
 .taka-seminar-pretix {
 	display: block;
 	margin-top: 2rem;

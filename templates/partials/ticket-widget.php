@@ -10,11 +10,33 @@ $seminar   = is_array( $seminar ?? null ) ? $seminar : array();
 $drawers   = is_array( $seminar['info_drawers'] ?? null ) ? $seminar['info_drawers'] : array();
 $show_actions = isset( $show_actions ) ? (bool) $show_actions : true;
 $event_key = sanitize_html_class( (string) ( $seminar['slug'] ?? $seminar['id'] ?? md5( $event_url ) ) );
+$ticket_card = ! empty( $seminar ) ? TAKA_Platform_Data::ticket_information_card( $seminar ) : array();
+$direct_url = empty( $ticket_card ) && ! empty( $seminar ) ? TAKA_Platform_Data::ticket_direct_url( $seminar ) : '';
 ?>
 <div class="taka-ticket-widget" data-taka-ticket-widget>
-	<?php if ( '' !== $event_url ) : ?>
+	<?php if ( ! empty( $ticket_card ) ) : ?>
+		<div class="taka-ticket-status taka-ticket-status--boxed taka-ticket-status--info taka-ticket-status--<?php echo esc_attr( sanitize_html_class( (string) ( $ticket_card['mode'] ?? 'notice' ) ) ); ?>">
+			<span><?php echo esc_html( taka_tour_translate( 'event.ticket_status', 'Ticket status' ) ); ?></span>
+			<strong><?php echo esc_html( $ticket_card['title'] ?? '' ); ?></strong>
+			<?php if ( '' !== trim( (string) ( $ticket_card['body'] ?? '' ) ) ) : ?>
+				<p><?php echo esc_html( $ticket_card['body'] ); ?></p>
+			<?php endif; ?>
+			<?php if ( ! empty( $ticket_card['details'] ) && is_array( $ticket_card['details'] ) ) : ?>
+				<ul class="taka-ticket-status__details">
+					<?php foreach ( $ticket_card['details'] as $detail ) : ?>
+						<li><?php echo esc_html( $detail ); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+			<?php if ( '' !== trim( (string) ( $ticket_card['note'] ?? '' ) ) ) : ?>
+				<p class="taka-ticket-status__note"><?php echo esc_html( $ticket_card['note'] ); ?></p>
+			<?php endif; ?>
+		</div>
+	<?php elseif ( '' !== $event_url ) : ?>
 		<?php echo taka_tour_render_template( 'partials/pretix-widget.php', array( 'event' => $event_url, 'label' => $label ?? ( $seminar['title'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<a class="taka-ticket-direct-link" href="<?php echo esc_url( $event_url ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.ticketshop_direct', 'Ticketshop direkt öffnen' ) ); ?></a>
+	<?php elseif ( '' !== $direct_url ) : ?>
+		<a class="taka-ticket-direct-link taka-ticket-direct-link--external" href="<?php echo esc_url( $direct_url ); ?>" rel="noopener noreferrer"><?php echo esc_html( taka_tour_translate( 'event.ticketshop_direct', 'Open ticket shop' ) ); ?></a>
 	<?php else : ?>
 		<div class="taka-ticket-status taka-ticket-status--boxed">
 			<span><?php echo esc_html( taka_tour_translate( 'event.ticket_status', 'Ticket status' ) ); ?></span>

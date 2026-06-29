@@ -27,8 +27,11 @@ class TAKA_Platform_CSV_Provider implements TAKA_Platform_Event_Export_Provider_
 			'venue_city',
 			'venue_country',
 			'organizers',
+			'ticket_mode',
 			'ticket_provider',
 			'ticket_url',
+			'ticket_door_price',
+			'ticket_door_note',
 			'event_url',
 			'image_url',
 		);
