@@ -1357,7 +1357,7 @@ class TAKA_Platform_Admin {
 			<div class="wrap">
 				<h1><?php echo esc_html__( 'TAKA Platform Settings', 'taka-platform' ); ?></h1>
 				<p><?php echo esc_html__( 'The plugin uses WordPress events as the primary source and config/tour-events.php as seed, fallback and backup format.', 'taka-platform' ); ?></p>
-				<h2><?php echo esc_html__( 'Organizer dashboard', 'taka-platform' ); ?></h2>
+				<?php self::admin_section_open( __( 'General', 'taka-platform' ), __( 'General backend and editor workflow settings.', 'taka-platform' ) ); ?>
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 					<input type="hidden" name="action" value="taka_platform_save_dashboard_settings">
 					<?php wp_nonce_field( TAKA_Platform_Organizer_Dashboard::DASHBOARD_PAGE_OPTION, self::NONCE ); ?>
@@ -1366,7 +1366,8 @@ class TAKA_Platform_Admin {
 					</tbody></table>
 					<?php submit_button( __( 'Save dashboard settings', 'taka-platform' ) ); ?>
 				</form>
-				<h2><?php echo esc_html__( 'Hero section', 'taka-platform' ); ?></h2>
+				<?php self::admin_section_close(); ?>
+				<?php self::admin_section_open( __( 'Homepage hero', 'taka-platform' ), __( 'Visible hero copy, media and presentation settings for the homepage.', 'taka-platform' ) ); ?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="taka_platform_save_hero">
 				<?php wp_nonce_field( TAKA_Platform_Data::HERO_OPTION, self::NONCE ); ?>
@@ -1386,16 +1387,32 @@ class TAKA_Platform_Admin {
 					<?php self::settings_text_row( 'hero[text_box_max_width]', __( 'Text box max width', 'taka-platform' ), $hero['text_box_max_width'] ?? '620px' ); ?>
 					<?php self::settings_select_row( 'hero[text_position]', __( 'Hero text position', 'taka-platform' ), $hero['text_position'] ?? 'left', $positions ); ?>
 					<?php self::settings_select_row( 'hero[vertical_alignment]', __( 'Hero vertical alignment', 'taka-platform' ), $hero['vertical_alignment'] ?? 'center', $verticals ); ?>
-					<?php self::settings_select_row( 'hero[location_display_mode]', __( 'Hero location display mode', 'taka-platform' ), $hero['location_display_mode'] ?? 'route_map_with_list', $location_modes ); ?>
-					<tr><th scope="row"><?php echo esc_html__( 'Route CTA station', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="hero[route_cta_enabled]" value="1" <?php checked( (string) ( $hero['route_cta_enabled'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show final “become a host” station on the route map', 'taka-platform' ); ?></label></td></tr>
-					<?php self::settings_multilingual_text_row( 'hero[route_cta_label]', __( 'Route CTA label', 'taka-platform' ), $hero['route_cta_label'] ?? '', $hero['source_language'] ?? 'de' ); ?>
-					<?php self::settings_multilingual_text_row( 'hero[route_cta_sublabel]', __( 'Route CTA sublabel', 'taka-platform' ), $hero['route_cta_sublabel'] ?? '', $hero['source_language'] ?? 'de' ); ?>
-					<?php self::settings_text_row( 'hero[route_cta_target]', __( 'Route CTA target', 'taka-platform' ), $hero['route_cta_target'] ?? '#become-a-host' ); ?>
-					<?php self::settings_text_row( 'hero[route_cta_context]', __( 'Route CTA context / year', 'taka-platform' ), $hero['route_cta_context'] ?? '2027' ); ?>
+					<tr>
+						<th scope="row"><?php echo esc_html__( 'Route map', 'taka-platform' ); ?></th>
+						<td>
+							<details class="taka-admin-subsection">
+								<summary><strong><?php echo esc_html__( 'Route map display and CTA station', 'taka-platform' ); ?></strong></summary>
+								<p class="description"><?php echo esc_html__( 'Advanced homepage route-map settings. These control how the tour map is displayed and whether the final future-host CTA station appears.', 'taka-platform' ); ?></p>
+								<p><label><strong><?php echo esc_html__( 'Hero location display mode', 'taka-platform' ); ?></strong><br>
+									<select name="hero[location_display_mode]">
+										<?php foreach ( $location_modes as $value => $label ) : ?>
+											<option value="<?php echo esc_attr( $value ); ?>" <?php selected( (string) ( $hero['location_display_mode'] ?? 'route_map_with_list' ), (string) $value ); ?>><?php echo esc_html( $label ); ?></option>
+										<?php endforeach; ?>
+									</select>
+								</label></p>
+								<p><label><input type="checkbox" name="hero[route_cta_enabled]" value="1" <?php checked( (string) ( $hero['route_cta_enabled'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show final “become a host” station on the route map', 'taka-platform' ); ?></label></p>
+								<?php self::settings_multilingual_text_control( 'hero[route_cta_label]', __( 'Route CTA label', 'taka-platform' ), $hero['route_cta_label'] ?? '', $hero['source_language'] ?? 'de' ); ?>
+								<?php self::settings_multilingual_text_control( 'hero[route_cta_sublabel]', __( 'Route CTA sublabel', 'taka-platform' ), $hero['route_cta_sublabel'] ?? '', $hero['source_language'] ?? 'de' ); ?>
+								<p><label><strong><?php echo esc_html__( 'Route CTA target', 'taka-platform' ); ?></strong><br><input class="regular-text" type="text" name="hero[route_cta_target]" value="<?php echo esc_attr( (string) ( $hero['route_cta_target'] ?? '#become-a-host' ) ); ?>"></label></p>
+								<p><label><strong><?php echo esc_html__( 'Route CTA context / year', 'taka-platform' ); ?></strong><br><input class="regular-text" type="text" name="hero[route_cta_context]" value="<?php echo esc_attr( (string) ( $hero['route_cta_context'] ?? '2027' ) ); ?>"></label></p>
+							</details>
+						</td>
+					</tr>
 				</tbody></table>
 				<?php submit_button( __( 'Save hero settings', 'taka-platform' ) ); ?>
 			</form>
-			<h2><?php echo esc_html__( 'Ticket section', 'taka-platform' ); ?></h2>
+			<?php self::admin_section_close(); ?>
+			<?php self::admin_section_open( __( 'Tickets & booking', 'taka-platform' ), __( 'Homepage ticket section and global booking-information defaults.', 'taka-platform' ) ); ?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="taka_platform_save_ticket_section">
 				<?php wp_nonce_field( TAKA_Platform_Data::TICKETS_OPTION, self::NONCE ); ?>
@@ -1408,9 +1425,7 @@ class TAKA_Platform_Admin {
 				</tbody></table>
 				<?php submit_button( __( 'Save ticket section', 'taka-platform' ) ); ?>
 			</form>
-			<h2><?php echo esc_html__( 'Option lists', 'taka-platform' ); ?></h2>
-			<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=taka-platform-option-lists' ) ); ?>"><?php echo esc_html__( 'Open option lists', 'taka-platform' ); ?></a></p>
-			<h2><?php echo esc_html__( 'Booking Information', 'taka-platform' ); ?></h2>
+			<?php self::admin_section_open( __( 'Booking Information', 'taka-platform' ), __( 'Default multilingual booking guidance shown near ticket widgets.', 'taka-platform' ) ); ?>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="taka_platform_save_booking_information">
 				<?php wp_nonce_field( TAKA_Platform_Data::BOOKING_OPTION, self::NONCE ); ?>
@@ -1429,6 +1444,11 @@ class TAKA_Platform_Admin {
 				</tbody></table>
 				<?php submit_button( __( 'Save booking information', 'taka-platform' ) ); ?>
 			</form>
+			<?php self::admin_section_close(); ?>
+			<?php self::admin_section_close(); ?>
+			<?php self::admin_section_open( __( 'Languages & option lists', 'taka-platform' ), __( 'Configure reusable options and website translation vocabularies.', 'taka-platform' ), false ); ?>
+			<p><a class="button" href="<?php echo esc_url( admin_url( 'admin.php?page=taka-platform-option-lists' ) ); ?>"><?php echo esc_html__( 'Open option lists', 'taka-platform' ); ?></a></p>
+			<?php self::admin_section_close(); ?>
 		</div>
 		<?php
 	}
@@ -1479,22 +1499,45 @@ class TAKA_Platform_Admin {
 		?>
 		<div class="postbox taka-content-section-editor" style="padding:1rem;max-width:1080px;" data-taka-content-section-editor data-taka-source-language-scope>
 			<h2><?php echo esc_html( $label ); ?></h2>
-			<table class="form-table" role="presentation"><tbody>
-				<?php self::settings_text_row( 'sections[' . $key . '][key]', __( 'Internal key / slug', 'taka-platform' ), $section['key'] ?? $key ); ?>
-				<tr><th scope="row"><?php echo esc_html__( 'Enabled', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( (string) ( $section['visible'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show section', 'taka-platform' ); ?></label><?php if ( ! $is_new ) : ?><br><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][delete]" value="1"> <?php echo esc_html__( 'Delete section', 'taka-platform' ); ?></label><?php endif; ?></td></tr>
-				<?php self::settings_select_row( 'sections[' . $key . '][source_language]', __( 'Original content language', 'taka-platform' ), $section['source_language'] ?? 'de', TAKA_Platform_Translation_Packages::language_labels(), array( 'data-taka-source-language-select' => '1' ) ); ?>
-				<?php self::settings_text_row( 'sections[' . $key . '][sort_order]', __( 'Sort order', 'taka-platform' ), $section['sort_order'] ?? 0 ); ?>
-				<tr class="taka-content-section-translations-row"><th scope="row"><?php echo esc_html__( 'Original text and website translations', 'taka-platform' ); ?></th><td><?php self::render_content_section_translation_tabs( $key, $translations, $section['source_language'] ?? 'de' ); ?></td></tr>
-				<tr><th scope="row"><?php echo esc_html__( 'Reusable content', 'taka-platform' ); ?></th><td><?php self::render_content_section_reference_fields( $key, $section['content_reference'] ?? array(), $section['source_language'] ?? 'de' ); ?></td></tr>
-				<?php self::settings_media_row( 'sections[' . $key . '][image_id]', 'sections[' . $key . '][image_url]', 'taka_section_' . $key . '_image', __( 'Main image', 'taka-platform' ), absint( $section['image_id'] ?? 0 ), (string) ( $section['image_url'] ?? '' ) ); ?>
-				<?php self::settings_media_row( 'sections[' . $key . '][secondary_image_id]', 'sections[' . $key . '][secondary_image_url]', 'taka_section_' . $key . '_secondary_image', __( 'Secondary image', 'taka-platform' ), absint( $section['secondary_image_id'] ?? 0 ), (string) ( $section['secondary_image_url'] ?? '' ) ); ?>
-				<?php self::settings_media_row( 'sections[' . $key . '][gallery_image_ids]', 'sections[' . $key . '][gallery_image_urls]', 'taka_section_' . $key . '_gallery', __( 'Gallery', 'taka-platform' ), $section['gallery_image_ids'] ?? array(), implode( "\n", (array) ( $section['gallery_image_urls'] ?? array() ) ), true ); ?>
-				<?php self::settings_select_row( 'sections[' . $key . '][layout]', __( 'Layout', 'taka-platform' ), $section['layout'] ?? 'text_only', $layouts ); ?>
-				<?php self::settings_select_row( 'sections[' . $key . '][background_style]', __( 'Background style', 'taka-platform' ), $section['background_style'] ?? 'plain', $backgrounds ); ?>
-				<?php self::settings_select_row( 'sections[' . $key . '][image_fit]', __( 'Image fit', 'taka-platform' ), $section['image_fit'] ?? 'contain', $fits ); ?>
-				<?php self::settings_select_row( 'sections[' . $key . '][image_position]', __( 'Image focus / position', 'taka-platform' ), $section['image_position'] ?? 'center center', $positions ); ?>
-				<?php self::settings_text_row( 'sections[' . $key . '][css_class]', __( 'CSS modifier/class', 'taka-platform' ), $section['css_class'] ?? '' ); ?>
-			</tbody></table>
+			<?php self::admin_section_open( __( 'General', 'taka-platform' ), __( 'Section identity, visibility and ordering.', 'taka-platform' ) ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<?php self::settings_text_row( 'sections[' . $key . '][key]', __( 'Internal key / slug', 'taka-platform' ), $section['key'] ?? $key ); ?>
+					<tr><th scope="row"><?php echo esc_html__( 'Enabled', 'taka-platform' ); ?></th><td><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][visible]" value="1" <?php checked( (string) ( $section['visible'] ?? '1' ), '1' ); ?>> <?php echo esc_html__( 'Show section', 'taka-platform' ); ?></label><?php if ( ! $is_new ) : ?><br><label><input type="checkbox" name="sections[<?php echo esc_attr( $key ); ?>][delete]" value="1"> <?php echo esc_html__( 'Delete section', 'taka-platform' ); ?></label><?php endif; ?></td></tr>
+					<?php self::settings_select_row( 'sections[' . $key . '][source_language]', __( 'Original content language', 'taka-platform' ), $section['source_language'] ?? 'de', TAKA_Platform_Translation_Packages::language_labels(), array( 'data-taka-source-language-select' => '1' ) ); ?>
+					<?php self::settings_text_row( 'sections[' . $key . '][sort_order]', __( 'Sort order', 'taka-platform' ), $section['sort_order'] ?? 0 ); ?>
+				</tbody></table>
+			<?php self::admin_section_close(); ?>
+
+			<?php self::admin_section_open( __( 'Original text & website translations', 'taka-platform' ), __( 'Editorial copy for this section in the original language and translated website languages.', 'taka-platform' ) ); ?>
+				<?php self::render_content_section_translation_tabs( $key, $translations, $section['source_language'] ?? 'de' ); ?>
+			<?php self::admin_section_close(); ?>
+
+			<?php self::admin_section_open( __( 'Reusable content', 'taka-platform' ), __( 'Optional reusable content block reference and local overrides.', 'taka-platform' ), false ); ?>
+				<?php self::render_content_section_reference_fields( $key, $section['content_reference'] ?? array(), $section['source_language'] ?? 'de' ); ?>
+			<?php self::admin_section_close(); ?>
+
+			<?php self::admin_section_open( __( 'Media', 'taka-platform' ), __( 'Images and galleries used by this homepage section.', 'taka-platform' ), false ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<?php self::settings_media_row( 'sections[' . $key . '][image_id]', 'sections[' . $key . '][image_url]', 'taka_section_' . $key . '_image', __( 'Main image', 'taka-platform' ), absint( $section['image_id'] ?? 0 ), (string) ( $section['image_url'] ?? '' ) ); ?>
+					<?php self::settings_media_row( 'sections[' . $key . '][secondary_image_id]', 'sections[' . $key . '][secondary_image_url]', 'taka_section_' . $key . '_secondary_image', __( 'Secondary image', 'taka-platform' ), absint( $section['secondary_image_id'] ?? 0 ), (string) ( $section['secondary_image_url'] ?? '' ) ); ?>
+					<?php self::settings_media_row( 'sections[' . $key . '][gallery_image_ids]', 'sections[' . $key . '][gallery_image_urls]', 'taka_section_' . $key . '_gallery', __( 'Gallery', 'taka-platform' ), $section['gallery_image_ids'] ?? array(), implode( "\n", (array) ( $section['gallery_image_urls'] ?? array() ) ), true ); ?>
+				</tbody></table>
+			<?php self::admin_section_close(); ?>
+
+			<?php self::admin_section_open( __( 'Layout & presentation', 'taka-platform' ), __( 'Visual layout settings for this frontend section.', 'taka-platform' ), false ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<?php self::settings_select_row( 'sections[' . $key . '][layout]', __( 'Layout', 'taka-platform' ), $section['layout'] ?? 'text_only', $layouts ); ?>
+					<?php self::settings_select_row( 'sections[' . $key . '][background_style]', __( 'Background style', 'taka-platform' ), $section['background_style'] ?? 'plain', $backgrounds ); ?>
+					<?php self::settings_select_row( 'sections[' . $key . '][image_fit]', __( 'Image fit', 'taka-platform' ), $section['image_fit'] ?? 'contain', $fits ); ?>
+					<?php self::settings_select_row( 'sections[' . $key . '][image_position]', __( 'Image focus / position', 'taka-platform' ), $section['image_position'] ?? 'center center', $positions ); ?>
+				</tbody></table>
+			<?php self::admin_section_close(); ?>
+
+			<?php self::admin_section_open( __( 'Advanced', 'taka-platform' ), __( 'Technical styling hooks for custom frontend presentation.', 'taka-platform' ), false ); ?>
+				<table class="form-table" role="presentation"><tbody>
+					<?php self::settings_text_row( 'sections[' . $key . '][css_class]', __( 'CSS modifier/class', 'taka-platform' ), $section['css_class'] ?? '' ); ?>
+				</tbody></table>
+			<?php self::admin_section_close(); ?>
 		</div>
 		<?php
 	}
@@ -2022,82 +2065,139 @@ class TAKA_Platform_Admin {
 	/** Organizer meta. */
 	public static function render_organizer_meta_box( $post ) {
 		self::nonce();
-		self::render_object_source_language_field( $post->ID );
+		self::admin_section_open( __( 'Basic information', 'taka-platform' ), __( 'Core organizer identity used on event pages and organizer cards.', 'taka-platform' ) );
 		self::text( $post->ID, 'legal_name', __( 'Legal name', 'taka-platform' ) );
 		self::url( $post->ID, 'website', __( 'Website', 'taka-platform' ) );
 		self::event_option_select( $post->ID, 'country', __( 'Country', 'taka-platform' ), __( 'organizer', 'taka-platform' ) );
 		self::render_derived_country_fields( $post->ID, false );
+		self::checkbox( $post->ID, 'active', __( 'Active', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Logo / media', 'taka-platform' ), __( 'Organizer images used in frontend organizer presentation.', 'taka-platform' ) );
 		self::media_field( $post->ID, 'logo_id', __( 'Logo', 'taka-platform' ), false, __( 'Select logo', 'taka-platform' ) );
 		self::url( $post->ID, 'logo_url', __( 'Fallback logo URL', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Contact details', 'taka-platform' ), __( 'Administrative and public contact channels for this organizer.', 'taka-platform' ) );
 		self::textarea( $post->ID, 'emails', __( 'Email addresses (one per line)', 'taka-platform' ) );
 		self::textarea( $post->ID, 'contact_persons', __( 'Contact persons (one per line)', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Social links', 'taka-platform' ), __( 'Optional public social channels.', 'taka-platform' ), false );
 		self::text( $post->ID, 'instagram', __( 'Instagram', 'taka-platform' ) );
 		self::text( $post->ID, 'facebook', __( 'Facebook', 'taka-platform' ) );
 		self::text( $post->ID, 'youtube', __( 'YouTube', 'taka-platform' ) );
-		self::checkbox( $post->ID, 'active', __( 'Active', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Source language & translations', 'taka-platform' ), __( 'Edit the original organizer text and its website translations.', 'taka-platform' ) );
+		self::render_object_source_language_field( $post->ID );
 		self::render_object_text_translation_fields( $post->ID, 'organizer', array( 'description' => self::organizer_description_source_text( $post ) ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Co-organizers', 'taka-platform' ), __( 'Partner organizers shown together with this organizer where configured.', 'taka-platform' ), false );
 		self::render_co_organizers( $post->ID );
+		self::admin_section_close();
 	}
 
 	/** Venue meta. */
 	public static function render_venue_meta_box( $post ) {
 		self::nonce();
-		self::render_object_source_language_field( $post->ID );
+		self::admin_section_open( __( 'Address', 'taka-platform' ), __( 'Core venue address and country data.', 'taka-platform' ) );
 		foreach ( array( 'street' => 'Street', 'postal_code' => 'Postal code', 'city' => 'City' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
 		self::event_option_select( $post->ID, 'country', __( 'Country', 'taka-platform' ), __( 'venue', 'taka-platform' ) );
 		self::render_derived_country_fields( $post->ID );
-		foreach ( array( 'route_map_x' => 'Route marker X (0–100)', 'route_map_y' => 'Route marker Y (0–100)', 'route_map_label' => 'Route map label', 'route_map_label_x' => 'Route label X (0–100)', 'route_map_label_y' => 'Route label Y (0–100)' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
-		self::route_map_label_anchor_field( $post->ID );
-		foreach ( array( 'route_map_label_width' => 'Route label width', 'timezone' => 'Timezone override', 'lat' => 'Geo lat', 'lng' => 'Geo lng' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
-		self::checkbox_with_hidden( $post->ID, 'route_map_leader_line', __( 'Show route label leader line', 'taka-platform' ) );
 		self::url( $post->ID, 'website', __( 'Website', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Source language & translations', 'taka-platform' ), __( 'Edit venue notes in the original content language and add website translations.', 'taka-platform' ) );
+		self::render_object_source_language_field( $post->ID );
+		self::render_object_text_translation_fields( $post->ID, 'venue' );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Images', 'taka-platform' ), __( 'Venue, arrival and gallery media shown on frontend pages.', 'taka-platform' ), false );
 		self::media_field( $post->ID, 'image_id', __( 'Venue photo', 'taka-platform' ), false, __( 'Select venue photo', 'taka-platform' ) );
 		self::url( $post->ID, 'image_url', __( 'Fallback venue photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'parking_image_id', __( 'Parking/arrival photo', 'taka-platform' ), false, __( 'Select parking photo', 'taka-platform' ) );
 		self::url( $post->ID, 'parking_image_url', __( 'Fallback parking photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
-		self::render_object_text_translation_fields( $post->ID, 'venue' );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Map / geodata', 'taka-platform' ), __( 'Optional route-map and geodata overrides. Leave blank to let the platform use automatic defaults where possible.', 'taka-platform' ), false );
+		foreach ( array( 'route_map_x' => 'Route marker X (0–100)', 'route_map_y' => 'Route marker Y (0–100)', 'route_map_label' => 'Route map label', 'route_map_label_x' => 'Route label X (0–100)', 'route_map_label_y' => 'Route label Y (0–100)' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		self::route_map_label_anchor_field( $post->ID );
+		foreach ( array( 'route_map_label_width' => 'Route label width', 'timezone' => 'Timezone override', 'lat' => 'Geo lat', 'lng' => 'Geo lng' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		self::checkbox_with_hidden( $post->ID, 'route_map_leader_line', __( 'Show route label leader line', 'taka-platform' ) );
+		self::admin_section_close();
 	}
 
 	/** Event meta. */
 	public static function render_event_meta_box( $post ) {
 		self::nonce();
-		self::render_object_source_language_field( $post->ID );
-		foreach ( array( 'route_map_x' => 'Route marker X (0–100)', 'route_map_y' => 'Route marker Y (0–100)', 'route_map_label' => 'Route map label', 'route_map_label_x' => 'Route label X (0–100)', 'route_map_label_y' => 'Route label Y (0–100)' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
-		self::route_map_label_anchor_field( $post->ID );
-		foreach ( array( 'route_map_label_width' => 'Route label width', 'tour_order' => 'Tour order', 'city' => 'City', 'doors_open' => 'Doors open' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
-		self::checkbox_with_hidden( $post->ID, 'route_map_leader_line', __( 'Show route label leader line', 'taka-platform' ) );
+		self::admin_section_open( __( 'Main event information', 'taka-platform' ), __( 'Core event classification and location data used across listings and detail pages.', 'taka-platform' ) );
 		self::event_option_select( $post->ID, 'country', __( 'Country', 'taka-platform' ) );
 		self::render_derived_country_fields( $post->ID );
+		self::text( $post->ID, 'city', __( 'City', 'taka-platform' ) );
 		self::text( $post->ID, 'timezone', __( 'Timezone override', 'taka-platform' ) );
-		self::event_option_select( $post->ID, 'currency', __( 'Currency override', 'taka-platform' ) );
 		self::event_option_select( $post->ID, 'format', __( 'Format', 'taka-platform' ) );
 		self::event_option_select( $post->ID, 'audience', __( 'Audience', 'taka-platform' ) );
 		self::event_option_select( $post->ID, 'level', __( 'Level', 'taka-platform' ) );
-		self::event_option_select( $post->ID, 'ticket_provider', __( 'Ticket provider', 'taka-platform' ) );
-		self::event_option_select( $post->ID, 'ticket_status', __( 'Ticket status', 'taka-platform' ) );
 		self::language_multiselect( $post->ID, 'languages', __( 'Spoken / teaching languages', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Dates & schedule', 'taka-platform' ), __( 'Program items are grouped by date on the frontend schedule.', 'taka-platform' ) );
+		self::text( $post->ID, 'doors_open', __( 'Doors open', 'taka-platform' ) );
 		self::render_event_program_fields( $post->ID );
-		self::organizer_relation( $post->ID, 'organizer_id', __( 'Primary organizer', 'taka-platform' ) );
-		self::render_event_organizer_relationship_fields( $post->ID );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Venue / location', 'taka-platform' ), __( 'Connect this event to one or more venues.', 'taka-platform' ) );
 		self::relation( $post->ID, 'venue_id', __( 'Primary venue', 'taka-platform' ), TAKA_PLATFORM_CPT_VENUE );
 		self::text( $post->ID, 'venue_ids', __( 'Additional venue IDs, comma-separated', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Organizer / co-organizers', 'taka-platform' ), __( 'Assign event hosts and co-hosts with visible roles.', 'taka-platform' ) );
+		self::organizer_relation( $post->ID, 'organizer_id', __( 'Primary organizer', 'taka-platform' ) );
+		self::render_event_organizer_relationship_fields( $post->ID );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Website text translations', 'taka-platform' ), __( 'Edit the original public event text and its website translations.', 'taka-platform' ) );
+		self::render_object_source_language_field( $post->ID );
+		self::render_content_reference_fields( 'content_reference_event_description', get_post_meta( $post->ID, '_taka_content_reference_event_description', true ), 'event_description', __( 'Reusable seminar description block', 'taka-platform' ), get_post_meta( $post->ID, '_taka_source_language', true ) ?: 'de' );
+		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ), array( 'long_description', 'ticket_card_text' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Tickets & booking', 'taka-platform' ), __( 'Ticket provider, ticket state and optional event-specific booking text.', 'taka-platform' ) );
+		self::event_option_select( $post->ID, 'currency', __( 'Currency override', 'taka-platform' ) );
+		self::event_option_select( $post->ID, 'ticket_provider', __( 'Ticket provider', 'taka-platform' ) );
+		self::event_option_select( $post->ID, 'ticket_status', __( 'Ticket status', 'taka-platform' ) );
 		self::url( $post->ID, 'ticket_shop_url', __( 'Ticket shop URL', 'taka-platform' ) );
+		self::render_event_booking_information_fields( $post->ID );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Media & promo videos', 'taka-platform' ), __( 'Event imagery and optional video content shown on frontend event pages.', 'taka-platform' ), false );
 		self::media_field( $post->ID, 'image_id', __( 'Event action photo', 'taka-platform' ), false, __( 'Select action photo', 'taka-platform' ) );
 		self::url( $post->ID, 'image_url', __( 'Fallback action photo URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'group_image_id', __( 'Past group photo', 'taka-platform' ), false, __( 'Select group photo', 'taka-platform' ) );
 		self::url( $post->ID, 'group_image_url', __( 'Fallback group photo URL', 'taka-platform' ) );
 		self::render_event_video_fields( $post->ID );
-		self::render_content_reference_fields( 'content_reference_event_description', get_post_meta( $post->ID, '_taka_content_reference_event_description', true ), 'event_description', __( 'Reusable seminar description block', 'taka-platform' ), get_post_meta( $post->ID, '_taka_source_language', true ) ?: 'de' );
-		self::render_object_text_translation_fields( $post->ID, 'event', array( 'description' => (string) self::meta( $post->ID, 'short_description' ) ?: $post->post_content ), array( 'long_description', 'ticket_card_text' ) );
-		self::render_event_booking_information_fields( $post->ID );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Route map settings', 'taka-platform' ), __( 'Optional tour-map marker and label overrides. These are advanced visual controls and do not define chronological event order.', 'taka-platform' ), false );
+		foreach ( array( 'route_map_x' => 'Route marker X (0–100)', 'route_map_y' => 'Route marker Y (0–100)', 'route_map_label' => 'Route map label', 'route_map_label_x' => 'Route label X (0–100)', 'route_map_label_y' => 'Route label Y (0–100)' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		self::route_map_label_anchor_field( $post->ID );
+		foreach ( array( 'route_map_label_width' => 'Route label width', 'tour_order' => 'Tour order' ) as $key => $label ) { self::text( $post->ID, $key, __( $label, 'taka-platform' ) ); }
+		self::checkbox_with_hidden( $post->ID, 'route_map_leader_line', __( 'Show route label leader line', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Advanced / currently unused fields', 'taka-platform' ), __( 'Compatibility fields retained for older data and integrations.', 'taka-platform' ), false );
 		self::number( $post->ID, 'sort_order', __( 'Sort order', 'taka-platform' ) );
 		self::render_event_advanced_unused_fields( $post->ID );
+		self::admin_section_close();
 	}
 
 	/** Reusable Content Block editor fields. */
 	public static function render_content_block_meta_box( $post ) {
 		self::nonce();
+		self::admin_section_open( __( 'Basic information', 'taka-platform' ), __( 'Reusable block identity and rendering behavior.', 'taka-platform' ) );
 		self::render_object_source_language_field( $post->ID );
 		self::render_main_editor_source_text_notice( __( 'Body', 'taka-platform' ) );
 		self::text( $post->ID, 'block_slug', __( 'Slug', 'taka-platform' ) );
@@ -2105,16 +2205,28 @@ class TAKA_Platform_Admin {
 		self::text( $post->ID, 'category', __( 'Category', 'taka-platform' ) );
 		echo '<input type="hidden" name="_taka_enabled" value="0">';
 		self::checkbox( $post->ID, 'enabled', __( 'Enabled', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Source text fields', 'taka-platform' ), __( 'Original text values for this reusable block.', 'taka-platform' ) );
 		self::text_source( $post->ID, 'kicker', __( 'Kicker', 'taka-platform' ) );
 		self::text_source( $post->ID, 'block_title', __( 'Content title', 'taka-platform' ) );
 		self::text_source( $post->ID, 'subtitle', __( 'Subtitle', 'taka-platform' ) );
 		self::text_source( $post->ID, 'button_label', __( 'Button label', 'taka-platform' ) );
 		self::url_source( $post->ID, 'button_url', __( 'Button URL', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Media', 'taka-platform' ), __( 'Images and galleries used when this block is rendered.', 'taka-platform' ), false );
 		self::media_field( $post->ID, 'image_id', __( 'Image', 'taka-platform' ), false, __( 'Select image', 'taka-platform' ) );
 		self::url( $post->ID, 'image_url', __( 'Fallback image URL', 'taka-platform' ) );
 		self::media_field( $post->ID, 'gallery_image_ids', __( 'Gallery images', 'taka-platform' ), true, __( 'Select gallery images', 'taka-platform' ) );
 		self::textarea( $post->ID, 'gallery_image_urls', __( 'Fallback gallery image URLs', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Advanced', 'taka-platform' ), __( 'Internal notes for editors. Not shown on the frontend.', 'taka-platform' ), false );
 		self::textarea( $post->ID, 'notes', __( 'Admin notes', 'taka-platform' ) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Website text translations', 'taka-platform' ), __( 'Website translations for this reusable block.', 'taka-platform' ) );
 		self::render_object_text_translation_fields( $post->ID, 'content_block', array(
 			'kicker' => (string) self::meta( $post->ID, 'kicker' ),
 			'title' => (string) self::meta( $post->ID, 'block_title' ),
@@ -2123,7 +2235,11 @@ class TAKA_Platform_Admin {
 			'button_label' => (string) self::meta( $post->ID, 'button_label' ),
 			'button_url' => (string) self::meta( $post->ID, 'button_url' ),
 		) );
+		self::admin_section_close();
+
+		self::admin_section_open( __( 'Usage', 'taka-platform' ), __( 'Where this block is currently referenced.', 'taka-platform' ), false );
 		self::render_content_block_used_by( $post->ID );
+		self::admin_section_close();
 	}
 
 	public static function save_organizer( $post_id ) {
@@ -2646,6 +2762,16 @@ class TAKA_Platform_Admin {
 
 	private static function nonce() { wp_nonce_field( self::NONCE, self::NONCE ); }
 	private static function meta( $post_id, $field ) { return get_post_meta( $post_id, '_taka_' . $field, true ); }
+	private static function admin_section_open( $title, $description = '', $open = true, $class = '' ) {
+		$classes = trim( 'taka-admin-section ' . $class );
+		echo '<details class="' . esc_attr( $classes ) . '"' . ( $open ? ' open' : '' ) . '>';
+		echo '<summary><span class="taka-admin-section__title">' . esc_html( $title ) . '</span></summary>';
+		if ( '' !== trim( (string) $description ) ) {
+			echo '<p class="description taka-admin-section__description">' . esc_html( $description ) . '</p>';
+		}
+		echo '<div class="taka-admin-section__body">';
+	}
+	private static function admin_section_close() { echo '</div></details>'; }
 	private static function field( $label, $html ) { echo '<p><label><strong>' . esc_html( $label ) . '</strong><br>' . $html . '</label></p>'; }
 	private static function source_text_label( $label ) { return sprintf( __( '%s — Original text', 'taka-platform' ), $label ); }
 	private static function translation_text_label( $label ) { return sprintf( __( '%s — Website translation', 'taka-platform' ), $label ); }
@@ -3161,6 +3287,32 @@ class TAKA_Platform_Admin {
 	}
 	private static function settings_multilingual_text_row( $name, $label, $value, $source_language = 'de' ) { self::settings_multilingual_row( $name, $label, $value, false, $source_language ); }
 	private static function settings_multilingual_textarea_row( $name, $label, $value, $source_language = 'de' ) { self::settings_multilingual_row( $name, $label, $value, true, $source_language ); }
+	private static function settings_multilingual_text_control( $name, $label, $value, $source_language = 'de' ) { self::settings_multilingual_control( $name, $label, $value, false, $source_language ); }
+	private static function settings_multilingual_textarea_control( $name, $label, $value, $source_language = 'de' ) { self::settings_multilingual_control( $name, $label, $value, true, $source_language ); }
+	private static function settings_multilingual_control( $name, $label, $value, $textarea = false, $source_language = 'de' ) {
+		$source_language = TAKA_Platform_Translation_Packages::sanitize_language( $source_language );
+		echo '<div class="taka-settings-multilingual-control" data-taka-source-aware data-source-language="' . esc_attr( $source_language ) . '">';
+		echo '<p><strong>' . esc_html( $label ) . '</strong></p>';
+		foreach ( TAKA_Platform_Translation_Packages::language_labels() as $lang => $language_label ) {
+			$is_source_language = $lang === $source_language;
+			$field_name = $name . '[' . $lang . ']';
+			$field_value = is_array( $value ) ? ( $value[ $lang ] ?? '' ) : ( $is_source_language ? $value : '' );
+			$field_label = $is_source_language ? self::source_text_label( $language_label ) : sprintf( __( '%s website translation', 'taka-platform' ), $language_label );
+			echo '<p data-taka-language-field-row data-taka-i18n-lang="' . esc_attr( $lang ) . '"><label><span data-taka-language-field-label data-source-label="' . esc_attr( self::source_text_label( $language_label ) ) . '" data-translation-label="' . esc_attr( sprintf( __( '%s website translation', 'taka-platform' ), $language_label ) ) . '">' . esc_html( $field_label ) . '</span><br>';
+			if ( $textarea ) {
+				echo '<textarea class="large-text" rows="3" name="' . esc_attr( $field_name ) . '" data-taka-i18n-lang="' . esc_attr( $lang ) . '">' . esc_textarea( (string) $field_value ) . '</textarea>';
+			} else {
+				echo '<input class="regular-text" type="text" name="' . esc_attr( $field_name ) . '" value="' . esc_attr( (string) $field_value ) . '" data-taka-i18n-lang="' . esc_attr( $lang ) . '">';
+			}
+			echo '</label>';
+			if ( $is_source_language ) {
+				echo '<span class="description" data-taka-source-inline-note> ' . esc_html__( 'This is the original content language.', 'taka-platform' ) . '</span>';
+			}
+			echo '</p>';
+		}
+		echo '<p class="description">' . esc_html__( 'Only the original-language field stores original text. All other fields are website translations.', 'taka-platform' ) . '</p>';
+		echo '</div>';
+	}
 	private static function settings_multilingual_row( $name, $label, $value, $textarea = false, $source_language = 'de' ) {
 		$source_language = TAKA_Platform_Translation_Packages::sanitize_language( $source_language );
 		echo '<tr data-taka-source-aware data-source-language="' . esc_attr( $source_language ) . '"><th scope="row"><label>' . esc_html( $label ) . '</label></th><td>';

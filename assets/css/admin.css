@@ -1,5 +1,74 @@
 /* TAKA Platform admin-specific styles live here as the admin UI evolves. */
 
+.taka-admin-section {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	margin: 0 0 14px;
+}
+
+.taka-admin-section > summary {
+	align-items: center;
+	cursor: pointer;
+	display: flex;
+	gap: 8px;
+	padding: 12px 14px;
+}
+
+.taka-admin-section > summary:hover {
+	background: #f6f7f7;
+}
+
+.taka-admin-section__title {
+	color: #1d2327;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.taka-admin-section__description {
+	margin: -4px 14px 10px;
+}
+
+.taka-admin-section__body {
+	border-top: 1px solid #f0f0f1;
+	padding: 2px 14px 14px;
+}
+
+.taka-admin-section__body > :last-child {
+	margin-bottom: 0;
+}
+
+.taka-admin-subsection {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	max-width: 880px;
+	padding: 10px 12px;
+}
+
+.taka-admin-subsection > summary {
+	cursor: pointer;
+	margin: -10px -12px 0;
+	padding: 10px 12px;
+}
+
+.taka-admin-subsection[open] > summary {
+	border-bottom: 1px solid #dcdcde;
+	margin-bottom: 10px;
+}
+
+.taka-settings-multilingual-control {
+	border-top: 1px solid #dcdcde;
+	margin-top: 12px;
+	padding-top: 8px;
+}
+
+.taka-settings-multilingual-control input.regular-text,
+.taka-settings-multilingual-control textarea.large-text {
+	max-width: 100%;
+	width: 100%;
+}
+
 .taka-content-section-translations {
 	max-width: 880px;
 }
