@@ -32,6 +32,150 @@ document.addEventListener('click', function (event) {
   }
 });
 
+(function () {
+  var storagePrefix = 'taka-platform:admin-section';
+  var suppressedStorageSections = [];
+
+  function storageAvailable() {
+    try {
+      return !!window.localStorage;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function screenKey() {
+    var bodyClass = document.body ? document.body.className : '';
+    var postType = bodyClass.match(/\bpost-type-([a-z0-9_-]+)/);
+    var adminPage = bodyClass.match(/\b(?:toplevel_page|taka-platform_page|settings_page|admin_page)-([a-z0-9_-]+)/);
+
+    if (postType) {
+      return 'post-type-' + postType[1];
+    }
+
+    if (adminPage) {
+      return adminPage[0];
+    }
+
+    return window.location.pathname;
+  }
+
+  function storageKey(section, index) {
+    var key = section.getAttribute('data-taka-admin-section-key') || 'section';
+    return storagePrefix + ':' + screenKey() + ':' + key + ':' + index;
+  }
+
+  function readStoredState(key) {
+    if (!storageAvailable()) {
+      return null;
+    }
+
+    try {
+      return window.localStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function writeStoredState(key, value) {
+    if (!storageAvailable()) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(key, value);
+    } catch (error) {
+      return;
+    }
+  }
+
+  function shouldSkipField(field) {
+    return field.disabled
+      || field.type === 'hidden'
+      || field.type === 'button'
+      || field.type === 'submit'
+      || field.type === 'reset';
+  }
+
+  function sectionNeedsAttention(section) {
+    var attentionSelector = '.notice-error, .error, .form-invalid, .is-error, [aria-invalid="true"]';
+    var fields = section.querySelectorAll('input, select, textarea');
+    var index;
+
+    if (section.querySelector(attentionSelector)) {
+      return true;
+    }
+
+    for (index = 0; index < fields.length; index++) {
+      if (shouldSkipField(fields[index])) {
+        continue;
+      }
+
+      if (fields[index].willValidate && fields[index].validity && !fields[index].validity.valid) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function suppressNextStoredToggle(section) {
+    suppressedStorageSections.push(section);
+    window.setTimeout(function () {
+      var index = suppressedStorageSections.indexOf(section);
+      if (index !== -1) {
+        suppressedStorageSections.splice(index, 1);
+      }
+    }, 100);
+  }
+
+  function openWithoutStoring(section) {
+    if (section.open) {
+      return;
+    }
+
+    suppressNextStoredToggle(section);
+    section.open = true;
+  }
+
+  function isStorageSuppressed(section) {
+    return suppressedStorageSections.indexOf(section) !== -1;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var sections = Array.prototype.slice.call(document.querySelectorAll('[data-taka-admin-section]'));
+
+    sections.forEach(function (section, index) {
+      var key = storageKey(section, index);
+      var storedState = readStoredState(key);
+
+      if (sectionNeedsAttention(section)) {
+        openWithoutStoring(section);
+      } else if (storedState === 'open') {
+        section.open = true;
+      } else if (storedState === 'closed') {
+        section.open = false;
+      }
+
+      section.addEventListener('toggle', function () {
+        if (isStorageSuppressed(section)) {
+          return;
+        }
+
+        writeStoredState(key, section.open ? 'open' : 'closed');
+      });
+    });
+  });
+
+  document.addEventListener('invalid', function (event) {
+    var section = event.target.closest('[data-taka-admin-section]');
+
+    if (section) {
+      openWithoutStoring(section);
+    }
+  }, true);
+})();
+
 document.addEventListener('click', function (event) {
   var addProgram = event.target.closest('[data-taka-program-add]');
   var removeProgram = event.target.closest('[data-taka-program-remove]');
