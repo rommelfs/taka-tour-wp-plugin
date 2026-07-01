@@ -18,6 +18,8 @@ define( 'TAKA_PLATFORM_CPT_ORGANIZER', 'taka_organizer' );
 define( 'TAKA_PLATFORM_CPT_VENUE', 'taka_venue' );
 define( 'TAKA_PLATFORM_CPT_CONTENT_BLOCK', 'taka_content_block' );
 define( 'TAKA_PLATFORM_CPT_TOUR_PLANNING', 'taka_tour_plan' );
+define( 'TAKA_PLATFORM_CPT_PERSON', 'taka_person' );
+define( 'TAKA_PLATFORM_CPT_REGISTRATION', 'taka_registration' );
 define( 'TAKA_PLATFORM_CPT_TICKET_ORDER', 'taka_ticket_order' );
 define( 'TAKA_PLATFORM_CPT_TICKET_PROMOTION', 'taka_ticket_promo' );
 define( 'TAKA_PLATFORM_CPT_TICKETING_PRODUCT', 'taka_ticket_product' );
@@ -32,6 +34,11 @@ require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Support/helpers.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/class-i18n.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/interface-translation-service.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/I18n/class-manual-translation-service.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/People/class-person.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/People/class-person-repository.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/People/class-registration.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/People/class-registration-repository.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/People/class-people-module.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/interface-ticket-provider.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-pretix-provider.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Tickets/class-ticket-provider-registry.php';
@@ -76,8 +83,10 @@ register_activation_hook(
 	TAKA_PLATFORM_PLUGIN_FILE,
 	static function () {
 		TAKA_Platform_Admin::register_post_types();
+		TAKA_People_Module::register_post_types();
 		TAKA_Ticketing_Module::register_post_types();
 		TAKA_Platform_Admin::ensure_capabilities();
+		TAKA_People_Module::ensure_capabilities();
 		TAKA_Ticketing_Module::ensure_capabilities();
 		if ( function_exists( 'flush_rewrite_rules' ) ) {
 			flush_rewrite_rules();
@@ -110,6 +119,7 @@ add_action(
 	static function () {
 		TAKA_Platform_Events_Manager_Integration::init();
 		TAKA_Platform_Plugin::instance();
+		TAKA_People_Module::init();
 		TAKA_Ticketing_Module::init();
 		if ( is_admin() ) {
 			TAKA_Platform_Tour_Planning::init();

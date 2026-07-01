@@ -156,7 +156,27 @@ class TAKA_Ticketing_Order_Service {
 			return $saved;
 		}
 
-		TAKA_Ticketing_Email_Service::send_order_confirmation( $saved );
+		if ( class_exists( 'TAKA_People_Module' ) ) {
+			$people_synced = TAKA_People_Module::sync_order_people_and_registrations( $saved );
+			if ( $people_synced instanceof TAKA_Ticketing_Order ) {
+				$saved = $people_synced;
+			}
+		}
+
+		if ( TAKA_Ticketing_Email_Service::send_order_confirmation( $saved ) ) {
+			$data = $saved->to_array();
+			$data['timeline'][] = array( 'time' => current_time( 'mysql' ), 'label' => __( 'Confirmation email sent', 'taka-platform' ) );
+			$timeline_saved = TAKA_Ticketing_Module::order_repository()->save( new TAKA_Ticketing_Order( $data ) );
+			if ( ! is_wp_error( $timeline_saved ) ) {
+				$saved = $timeline_saved;
+			}
+			if ( class_exists( 'TAKA_People_Module' ) && $saved instanceof TAKA_Ticketing_Order ) {
+				$people_synced = TAKA_People_Module::sync_order_people_and_registrations( $saved );
+				if ( $people_synced instanceof TAKA_Ticketing_Order ) {
+					$saved = $people_synced;
+				}
+			}
+		}
 		TAKA_Ticketing_Email_Service::send_admin_notification( $saved );
 		return $saved;
 	}
@@ -170,8 +190,14 @@ class TAKA_Ticketing_Order_Service {
 		$data = $order->to_array();
 		$data['payment_status'] = 'paid';
 		$data['updated_at'] = current_time( 'mysql' );
-		$data['timeline'][] = array( 'time' => current_time( 'mysql' ), 'label' => __( 'Payment marked paid', 'taka-platform' ) );
+		$data['timeline'][] = array( 'time' => current_time( 'mysql' ), 'label' => __( 'Payment received', 'taka-platform' ) );
 		$saved = $repository->save( new TAKA_Ticketing_Order( $data ) );
+		if ( class_exists( 'TAKA_People_Module' ) && $saved instanceof TAKA_Ticketing_Order ) {
+			$people_synced = TAKA_People_Module::sync_order_people_and_registrations( $saved );
+			if ( $people_synced instanceof TAKA_Ticketing_Order ) {
+				$saved = $people_synced;
+			}
+		}
 		if ( ! is_wp_error( $saved ) ) {
 			TAKA_Ticketing_Email_Service::send_payment_confirmation( $saved );
 		}
@@ -189,7 +215,14 @@ class TAKA_Ticketing_Order_Service {
 		$data['payment_status'] = 'cancelled';
 		$data['updated_at'] = current_time( 'mysql' );
 		$data['timeline'][] = array( 'time' => current_time( 'mysql' ), 'label' => __( 'Order cancelled', 'taka-platform' ) );
-		return $repository->save( new TAKA_Ticketing_Order( $data ) );
+		$saved = $repository->save( new TAKA_Ticketing_Order( $data ) );
+		if ( class_exists( 'TAKA_People_Module' ) && $saved instanceof TAKA_Ticketing_Order ) {
+			$people_synced = TAKA_People_Module::sync_order_people_and_registrations( $saved );
+			if ( $people_synced instanceof TAKA_Ticketing_Order ) {
+				return $people_synced;
+			}
+		}
+		return $saved;
 	}
 
 	private static function product_line_items_from_post( $posted, $event_id, $lang ) {

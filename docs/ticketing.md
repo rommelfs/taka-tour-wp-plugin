@@ -132,6 +132,11 @@ The module reserves these capabilities:
 - `checkin_taka_participants`
 - `manage_taka_promotions`
 - `manage_taka_products`
+- `manage_taka_people`
+- `view_taka_people`
+- `edit_taka_people`
+- `view_taka_registrations`
+- `edit_taka_registrations`
 
 Administrators receive these capabilities. Later phases can assign subsets to ticketing managers, check-in staff or organizer-specific roles.
 
@@ -162,6 +167,25 @@ Phase 2 adds:
 - Mark paid, cancel and delete actions for privileged users.
 
 The checkout currently supports one participant per order. The order shape keeps participant data separate so later phases can add multiple participants without changing the provider contract.
+
+## Phase 4 Scope
+
+Phase 4 introduces Orders & People.
+
+The ticketing data model now separates durable community data from financial orders:
+
+- `Person`
+- `Registration`
+- `Order`
+- `Payment`
+
+People are private records managed under TAKA Platform -> People. A person can attend multiple events, place multiple orders, use vouchers, purchase products and later become an organizer, volunteer, speaker or certificate holder.
+
+Registrations connect a person to an event and order. Orders remain financial objects that reference buyer and participant people instead of treating participant data as anonymous order-only data.
+
+When a checkout order is submitted, TAKA searches existing People by email first and then by name plus country. If a match exists, that person is reused and enriched with newer non-empty seminar data. Otherwise, a private person record is created. Existing native ticketing orders are migrated gradually in the admin by creating missing people and registrations when a privileged user visits the backend.
+
+People and registrations are private post types, hidden from public queries and REST. Public event pages never render People data.
 
 ## Promotions And Benefits
 
@@ -214,6 +238,9 @@ Order data includes:
 - Public confirmation token
 - Event ID and event title
 - Ticket type ID and name
+- Buyer person ID
+- Participant person ID
+- Registration IDs
 - Buyer data
 - Participant data
 - Line items for tickets, products and promotion discounts
@@ -226,6 +253,18 @@ Order data includes:
 - Timeline entries
 
 The post type is private, hidden from public queries and not exposed through REST.
+
+## People Profiles
+
+The People admin profile stores:
+
+- Basic fields: first name, last name, email, phone and country
+- Seminar fields: dojo, association, style and rank
+- Preferences: dietary preference and allergies
+- Administration: notes, tags, GDPR consent and newsletter consent
+- System timestamps
+
+The profile view summarizes upcoming registrations, events attended, previous tours, products purchased, vouchers used and placeholders for future organizer and volunteer activity modules.
 
 ## Capacity
 

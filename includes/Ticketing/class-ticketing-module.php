@@ -1717,8 +1717,8 @@ class TAKA_Ticketing_Module {
 					<tr>
 						<td><a href="<?php echo esc_url( self::admin_url( array( 'order_id' => $order->get( 'id' ) ) ) ); ?>"><?php echo esc_html( $data['order_number'] ?? '' ); ?></a></td>
 						<td><?php echo esc_html( $data['created_at'] ?? '' ); ?></td>
-						<td><?php echo esc_html( trim( ( $buyer['first_name'] ?? '' ) . ' ' . ( $buyer['last_name'] ?? '' ) ) ); ?></td>
-						<td><?php echo esc_html( trim( ( $participant['first_name'] ?? '' ) . ' ' . ( $participant['last_name'] ?? '' ) ) ); ?></td>
+						<td><?php echo self::person_admin_link_or_text( $data['buyer_person_id'] ?? 0, trim( ( $buyer['first_name'] ?? '' ) . ' ' . ( $buyer['last_name'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
+						<td><?php echo self::person_admin_link_or_text( $data['participant_person_id'] ?? 0, trim( ( $participant['first_name'] ?? '' ) . ' ' . ( $participant['last_name'] ?? '' ) ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
 						<td><?php echo esc_html( $data['event_title'] ?? '' ); ?></td>
 						<td><?php echo esc_html( self::order_items_summary( $data ) ); ?></td>
 						<td><?php echo esc_html( $data['applied_voucher_code'] ?? '' ); ?></td>
@@ -1747,8 +1747,8 @@ class TAKA_Ticketing_Module {
 		<p><a href="<?php echo esc_url( self::admin_url() ); ?>">&larr; <?php echo esc_html__( 'Back to orders', 'taka-platform' ); ?></a></p>
 		<h2><?php echo esc_html( $data['order_number'] ?? '' ); ?></h2>
 		<div class="taka-ticketing-admin-detail">
-			<section><h3><?php echo esc_html__( 'Buyer', 'taka-platform' ); ?></h3><?php self::admin_person_details( $buyer ); ?></section>
-			<section><h3><?php echo esc_html__( 'Participant', 'taka-platform' ); ?></h3><?php self::admin_person_details( $participant ); ?></section>
+			<section><h3><?php echo esc_html__( 'Buyer', 'taka-platform' ); ?></h3><?php self::admin_person_reference( $data['buyer_person_id'] ?? 0, $buyer ); ?><?php self::admin_person_details( $buyer ); ?></section>
+			<section><h3><?php echo esc_html__( 'Participant', 'taka-platform' ); ?></h3><?php self::admin_person_reference( $data['participant_person_id'] ?? 0, $participant ); ?><?php self::admin_person_details( $participant ); ?></section>
 			<section><h3><?php echo esc_html__( 'Order', 'taka-platform' ); ?></h3>
 				<p><strong><?php echo esc_html__( 'Event', 'taka-platform' ); ?>:</strong> <?php echo esc_html( $data['event_title'] ?? '' ); ?></p>
 				<?php if ( '' !== trim( (string) ( $data['ticket_type_name'] ?? '' ) ) ) : ?><p><strong><?php echo esc_html__( 'Ticket', 'taka-platform' ); ?>:</strong> <?php echo esc_html( $data['ticket_type_name'] ?? '' ); ?></p><?php endif; ?>
@@ -1792,6 +1792,25 @@ class TAKA_Ticketing_Module {
 			}
 			echo '<p><strong>' . esc_html( ucwords( str_replace( '_', ' ', $key ) ) ) . ':</strong> ' . esc_html( $value ) . '</p>';
 		}
+	}
+
+	private static function admin_person_reference( $person_id, $person ) {
+		$label = trim( (string) ( $person['first_name'] ?? '' ) . ' ' . (string) ( $person['last_name'] ?? '' ) );
+		$link = self::person_admin_link_or_text( $person_id, $label );
+		if ( '' !== trim( wp_strip_all_tags( $link ) ) ) {
+			echo '<p><strong>' . esc_html__( 'Person profile', 'taka-platform' ) . ':</strong> ' . $link . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+	}
+
+	private static function person_admin_link_or_text( $person_id, $fallback ) {
+		$fallback = sanitize_text_field( $fallback );
+		if ( class_exists( 'TAKA_People_Module' ) && current_user_can( 'view_taka_people' ) ) {
+			$link = TAKA_People_Module::person_link( absint( $person_id ), $fallback );
+			if ( '' !== $link ) {
+				return $link;
+			}
+		}
+		return esc_html( $fallback );
 	}
 
 	public static function benefit_line( $benefit ) {
