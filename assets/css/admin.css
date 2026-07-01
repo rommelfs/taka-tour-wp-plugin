@@ -194,6 +194,57 @@
 	margin-top: 6px;
 }
 
+.taka-resource-metrics {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	margin: 16px 0;
+}
+
+.taka-resource-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 14px;
+}
+
+.taka-resource-card span {
+	color: #50575e;
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.taka-resource-card strong {
+	display: block;
+	font-size: 24px;
+	line-height: 1.2;
+	margin-top: 6px;
+}
+
+.taka-event-resource-requirements {
+	display: grid;
+	gap: 8px;
+}
+
+.taka-event-resource-row {
+	border-bottom: 1px solid #dcdcde;
+	display: grid;
+	gap: 6px;
+	padding-bottom: 8px;
+}
+
+.taka-event-resource-row:last-child {
+	border-bottom: 0;
+	padding-bottom: 0;
+}
+
+.taka-event-resource-row select,
+.taka-event-resource-row input {
+	width: 100%;
+}
+
 .taka-native-ticket-types {
 	display: grid;
 	gap: 12px;
