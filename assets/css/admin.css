@@ -1035,6 +1035,52 @@ body.taka-operations-volunteer-mode #wpbody-content {
 	gap: 8px;
 }
 
+.taka-documents-tabs {
+	margin: 16px 0;
+}
+
+.taka-documents-field {
+	display: grid;
+	gap: 4px;
+	margin-bottom: 10px;
+}
+
+.taka-documents-field span,
+.taka-documents-assignments legend {
+	font-weight: 600;
+}
+
+.taka-documents-field input,
+.taka-documents-field select,
+.taka-documents-field textarea {
+	max-width: 100%;
+	width: 100%;
+}
+
+.taka-documents-assignments {
+	border: 1px solid #dcdcde;
+	display: grid;
+	gap: 8px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	margin: 12px 0;
+	padding: 12px;
+}
+
+.taka-documents-assignments legend {
+	padding: 0 6px;
+}
+
+.taka-documents-search {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 16px 0;
+}
+
+.taka-documents-search input[type="search"] {
+	min-width: min(420px, 100%);
+}
+
 .taka-ticketing-admin-actions {
 	display: flex;
 	flex-wrap: wrap;

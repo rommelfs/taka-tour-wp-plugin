@@ -29,6 +29,9 @@ define( 'TAKA_PLATFORM_CPT_COMMUNICATION_MESSAGE', 'taka_comm_message' );
 define( 'TAKA_PLATFORM_CPT_FINANCE_EXPENSE', 'taka_fin_expense' );
 define( 'TAKA_PLATFORM_CPT_RESOURCE', 'taka_resource' );
 define( 'TAKA_PLATFORM_CPT_RESOURCE_MOVEMENT', 'taka_res_move' );
+define( 'TAKA_PLATFORM_CPT_DOCUMENT', 'taka_document' );
+define( 'TAKA_PLATFORM_CPT_KNOWLEDGE', 'taka_knowledge' );
+define( 'TAKA_PLATFORM_CPT_CERTIFICATE_TEMPLATE', 'taka_cert_tpl' );
 
 // Backward-compatible constants for existing TAKA Tour installations and templates.
 define( 'TAKA_TOUR_VERSION', TAKA_PLATFORM_VERSION );
@@ -70,6 +73,7 @@ require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Operations/class-event-operati
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Communication/class-communication-module.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Finance/class-finance-module.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Resources/class-resource-management-module.php';
+require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Documents/class-documents-module.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Rendering/class-tour-map-label-layout.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/Data/class-repository.php';
 require_once TAKA_PLATFORM_PLUGIN_DIR . 'includes/ImportExport/class-translation-packages.php';
@@ -99,6 +103,7 @@ register_activation_hook(
 		TAKA_Communication_Module::register_post_types();
 		TAKA_Finance_Module::register_post_types();
 		TAKA_Resource_Management_Module::register_post_types();
+		TAKA_Documents_Module::register_post_types();
 		TAKA_Platform_Admin::ensure_capabilities();
 		TAKA_People_Module::ensure_capabilities();
 		TAKA_Ticketing_Module::ensure_capabilities();
@@ -106,6 +111,7 @@ register_activation_hook(
 		TAKA_Communication_Module::ensure_capabilities();
 		TAKA_Finance_Module::ensure_capabilities();
 		TAKA_Resource_Management_Module::ensure_capabilities();
+		TAKA_Documents_Module::ensure_capabilities();
 		if ( function_exists( 'flush_rewrite_rules' ) ) {
 			flush_rewrite_rules();
 		}
@@ -144,6 +150,7 @@ add_action(
 			TAKA_Communication_Module::init();
 			TAKA_Finance_Module::init();
 			TAKA_Resource_Management_Module::init();
+			TAKA_Documents_Module::init();
 			TAKA_Platform_Tour_Planning::init();
 			TAKA_Platform_Admin::init();
 		}
