@@ -8,11 +8,13 @@ defined( 'ABSPATH' ) || exit;
 class TAKA_Ticketing_Module {
 	const MODE                 = 'native_taka_ticketing';
 	const BANK_TRANSFER_OPTION = 'taka_ticketing_bank_transfer_settings';
+	const SETTINGS_OPTION      = 'taka_native_ticketing_settings';
 	const PAYMENT_METHODS_META = '_taka_native_payment_methods';
 	const BANK_TRANSFER_META   = '_taka_native_bank_transfer_settings';
 	const PAY_AT_DOOR_INSTRUCTIONS_META = '_taka_native_pay_at_door_instructions';
 	const CHECKOUT_ACTION      = 'taka_ticketing_checkout';
 	const ADMIN_ACTION         = 'taka_ticketing_order_action';
+	const SETTINGS_ACTION      = 'taka_ticketing_save_settings';
 	const ADMIN_PAGE_SLUG      = 'taka-platform-ticketing';
 
 	private static $payment_providers = array();
@@ -28,6 +30,7 @@ class TAKA_Ticketing_Module {
 		add_action( 'admin_post_' . self::CHECKOUT_ACTION, array( __CLASS__, 'handle_checkout' ) );
 		add_action( 'admin_post_nopriv_' . self::CHECKOUT_ACTION, array( __CLASS__, 'handle_checkout' ) );
 		add_action( 'admin_post_' . self::ADMIN_ACTION, array( __CLASS__, 'handle_admin_order_action' ) );
+		add_action( 'admin_post_' . self::SETTINGS_ACTION, array( __CLASS__, 'handle_save_settings' ) );
 		add_filter( 'taka_platform_event_assistant_sections', array( __CLASS__, 'register_event_assistant_section' ) );
 	}
 
@@ -158,6 +161,87 @@ class TAKA_Ticketing_Module {
 	public static function event_bank_transfer_settings( $event_id ) {
 		$stored = get_post_meta( absint( $event_id ), self::BANK_TRANSFER_META, true );
 		return self::normalize_bank_transfer_settings( is_array( $stored ) ? $stored : array() );
+	}
+
+	public static function default_settings() {
+		return array(
+			'terms_url'         => '',
+			'privacy_url'       => function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '',
+			'terms_label'       => array(
+				'de' => 'Ich akzeptiere die {link}.',
+				'en' => 'I accept the {link}.',
+				'nl' => 'Ik ga akkoord met de {link}.',
+				'fr' => 'J’accepte les {link}.',
+				'lb' => 'Ech akzeptéieren d’{link}.',
+				'fi' => 'Hyväksyn {link}.',
+				'ja' => '{link}に同意します。',
+			),
+			'terms_link_text'   => array(
+				'de' => 'Buchungsbedingungen',
+				'en' => 'booking terms',
+				'nl' => 'boekingsvoorwaarden',
+				'fr' => 'conditions de réservation',
+				'lb' => 'Buchungsbedingungen',
+				'fi' => 'varausehdot',
+				'ja' => '予約条件',
+			),
+			'privacy_label'     => array(
+				'de' => 'Ich akzeptiere die {link}.',
+				'en' => 'I accept the {link}.',
+				'nl' => 'Ik ga akkoord met de {link}.',
+				'fr' => 'J’accepte la {link}.',
+				'lb' => 'Ech akzeptéieren d’{link}.',
+				'fi' => 'Hyväksyn {link}.',
+				'ja' => '{link}に同意します。',
+			),
+			'privacy_link_text' => array(
+				'de' => 'Datenschutzerklärung',
+				'en' => 'privacy notice',
+				'nl' => 'privacyverklaring',
+				'fr' => 'politique de confidentialité',
+				'lb' => 'Dateschutzerklärung',
+				'fi' => 'tietosuojailmoituksen',
+				'ja' => 'プライバシー通知',
+			),
+		);
+	}
+
+	public static function normalize_settings( $settings ) {
+		$settings = is_array( $settings ) ? $settings : array();
+		$defaults = self::default_settings();
+		return array(
+			'terms_url'         => esc_url_raw( $settings['terms_url'] ?? $defaults['terms_url'] ),
+			'privacy_url'       => esc_url_raw( $settings['privacy_url'] ?? $defaults['privacy_url'] ),
+			'terms_label'       => self::normalize_language_texts( $settings['terms_label'] ?? array(), $defaults['terms_label'] ),
+			'terms_link_text'   => self::normalize_language_texts( $settings['terms_link_text'] ?? array(), $defaults['terms_link_text'] ),
+			'privacy_label'     => self::normalize_language_texts( $settings['privacy_label'] ?? array(), $defaults['privacy_label'] ),
+			'privacy_link_text' => self::normalize_language_texts( $settings['privacy_link_text'] ?? array(), $defaults['privacy_link_text'] ),
+		);
+	}
+
+	public static function ticketing_settings() {
+		$stored = get_option( self::SETTINGS_OPTION, array() );
+		return self::normalize_settings( is_array( $stored ) ? $stored : array() );
+	}
+
+	private static function normalize_language_texts( $values, $defaults ) {
+		$values = is_array( $values ) ? $values : array();
+		$out = array();
+		foreach ( TAKA_Platform_Data::content_section_languages() as $lang ) {
+			$value = sanitize_text_field( $values[ $lang ] ?? ( $defaults[ $lang ] ?? '' ) );
+			$out[ $lang ] = '' !== trim( $value ) ? $value : sanitize_text_field( $defaults[ $lang ] ?? '' );
+		}
+		return $out;
+	}
+
+	private static function setting_text( $settings, $field, $lang = null ) {
+		$lang = $lang ?: taka_tour_current_language();
+		$values = is_array( $settings[ $field ] ?? null ) ? $settings[ $field ] : array();
+		return TAKA_Platform_Data::resolve_dynamic_text( $values, $lang, TAKA_Platform_Data::platform_fallback_language() );
+	}
+
+	public static function text( $key, $fallback, $lang = null ) {
+		return taka_tour_translate( $key, $fallback, $lang );
 	}
 
 	/** Save the shared native ticket type config when the Event editor posted it. */
@@ -358,6 +442,9 @@ class TAKA_Ticketing_Module {
 			return;
 		}
 		$form_id = 'taka-native-checkout-form-' . absint( $event_id );
+		$lang = taka_tour_current_language();
+		$settings = self::ticketing_settings();
+		$country_choices = array( '' => self::text( 'ticketing.select_country', 'Select country', $lang ) ) + TAKA_Platform_Data::option_list_choices( 'country', $lang );
 		$single_ticket = 1 === count( $ticket_types );
 		$event_title = (string) ( $event['title'] ?? get_the_title( $event_id ) );
 		?>
@@ -366,8 +453,9 @@ class TAKA_Ticketing_Module {
 			<input type="hidden" name="action" value="<?php echo esc_attr( self::CHECKOUT_ACTION ); ?>">
 			<input type="hidden" name="event_id" value="<?php echo esc_attr( (string) $event_id ); ?>">
 			<input type="hidden" name="redirect_to" value="<?php echo esc_url( self::current_url() ); ?>">
+			<input type="hidden" name="language" value="<?php echo esc_attr( $lang ); ?>">
 			<input type="hidden" name="taka_ticketing_nonce" value="<?php echo esc_attr( wp_create_nonce( self::CHECKOUT_ACTION ) ); ?>">
-			<label class="taka-native-checkout__honeypot"><?php echo esc_html__( 'Website', 'taka-platform' ); ?><input type="text" name="company_website" value="" tabindex="-1" autocomplete="off"></label>
+			<label class="taka-native-checkout__honeypot"><?php echo esc_html( self::text( 'ticketing.website', 'Website', $lang ) ); ?><input type="text" name="company_website" value="" tabindex="-1" autocomplete="off"></label>
 			<?php if ( ! empty( $errors ) ) : ?><div class="taka-native-checkout__errors" role="alert"><?php foreach ( $errors as $error ) : ?><p><?php echo esc_html( $error ); ?></p><?php endforeach; ?></div><?php endif; ?>
 			<ol class="taka-native-checkout__progress" aria-label="<?php echo esc_attr( taka_tour_translate( 'ticketing.booking_steps', 'Booking steps' ) ); ?>">
 				<li><?php echo esc_html( taka_tour_translate( 'ticketing.step_select_ticket', 'Select ticket' ) ); ?></li>
@@ -395,24 +483,26 @@ class TAKA_Ticketing_Module {
 					<?php self::frontend_input( 'buyer_first_name', taka_tour_translate( 'ticketing.first_name', 'First name' ), 'text', true ); ?>
 					<?php self::frontend_input( 'buyer_last_name', taka_tour_translate( 'ticketing.last_name', 'Last name' ), 'text', true ); ?>
 					<?php self::frontend_input( 'buyer_email', taka_tour_translate( 'ticketing.email', 'Email' ), 'email', true ); ?>
-					<?php self::frontend_input( 'buyer_country', taka_tour_translate( 'ticketing.country', 'Country' ), 'text', true ); ?>
+					<?php self::frontend_select( 'buyer_country', taka_tour_translate( 'ticketing.country', 'Country' ), $country_choices, true ); ?>
 					<?php self::frontend_input( 'buyer_phone', taka_tour_translate( 'ticketing.phone', 'Phone' ), 'text', false ); ?>
-					<?php self::frontend_input( 'buyer_company', taka_tour_translate( 'ticketing.company', 'Company' ), 'text', false ); ?>
 				</div>
 			</section>
 			<section class="taka-native-checkout__step">
 				<h4><?php echo esc_html( taka_tour_translate( 'ticketing.participant_information', 'Participant information' ) ); ?></h4>
 				<label class="taka-native-checkout__checkbox"><input type="checkbox" name="participant_is_buyer" value="1" checked data-taka-participant-self> <?php echo esc_html( taka_tour_translate( 'ticketing.participating_myself', 'I am participating myself.' ) ); ?></label>
-				<div class="taka-native-checkout__grid" data-taka-participant-fields>
+				<div class="taka-native-checkout__grid" data-taka-participant-identity-fields>
 					<?php self::frontend_input( 'participant_first_name', taka_tour_translate( 'ticketing.first_name', 'First name' ), 'text', false ); ?>
 					<?php self::frontend_input( 'participant_last_name', taka_tour_translate( 'ticketing.last_name', 'Last name' ), 'text', false ); ?>
 					<?php self::frontend_input( 'participant_email', taka_tour_translate( 'ticketing.email_optional', 'Email (optional)' ), 'email', false ); ?>
-					<?php self::frontend_input( 'participant_country', taka_tour_translate( 'ticketing.country', 'Country' ), 'text', false ); ?>
+					<?php self::frontend_select( 'participant_country', taka_tour_translate( 'ticketing.country', 'Country' ), $country_choices, false ); ?>
+				</div>
+				<div class="taka-native-checkout__grid" data-taka-participant-extra-fields>
 					<?php self::frontend_input( 'participant_dojo', taka_tour_translate( 'ticketing.dojo', 'Dojo / Club' ), 'text', false ); ?>
 					<?php self::frontend_input( 'participant_association', taka_tour_translate( 'ticketing.association', 'Association' ), 'text', false ); ?>
 					<?php self::frontend_input( 'participant_style', taka_tour_translate( 'ticketing.style', 'Style' ), 'text', false ); ?>
 					<?php self::frontend_input( 'participant_rank', taka_tour_translate( 'ticketing.rank', 'Rank / Belt' ), 'text', false ); ?>
-					<?php self::frontend_textarea( 'participant_dietary_notes', taka_tour_translate( 'ticketing.dietary_notes', 'Dietary notes' ) ); ?>
+					<?php self::frontend_select( 'participant_dietary_preference', taka_tour_translate( 'ticketing.dietary_preference', 'Dietary preference' ), self::dietary_choices( $lang ), false, array( 'data-taka-dietary-preference' => '1' ) ); ?>
+					<?php self::frontend_textarea( 'participant_dietary_notes', taka_tour_translate( 'ticketing.dietary_note', 'Dietary note' ), array( 'data-taka-dietary-note-field' => '1' ) ); ?>
 					<?php self::frontend_textarea( 'participant_allergies', taka_tour_translate( 'ticketing.allergies', 'Allergies' ) ); ?>
 					<?php self::frontend_textarea( 'participant_notes', taka_tour_translate( 'ticketing.notes', 'Notes' ) ); ?>
 				</div>
@@ -436,8 +526,8 @@ class TAKA_Ticketing_Module {
 					<div><dt><?php echo esc_html( taka_tour_translate( 'ticketing.payment_method', 'Payment method' ) ); ?></dt><dd data-taka-review-payment>-</dd></div>
 					<div><dt><?php echo esc_html( taka_tour_translate( 'ticketing.total', 'Total' ) ); ?></dt><dd data-taka-review-total>-</dd></div>
 				</dl>
-				<label class="taka-native-checkout__checkbox"><input type="checkbox" name="terms_accepted" value="1" required> <?php echo esc_html( taka_tour_translate( 'ticketing.accept_terms', 'I accept the booking terms.' ) ); ?></label>
-				<label class="taka-native-checkout__checkbox"><input type="checkbox" name="privacy_accepted" value="1" required> <?php echo esc_html( taka_tour_translate( 'ticketing.accept_privacy', 'I accept the privacy notice.' ) ); ?></label>
+				<?php self::frontend_consent_checkbox( 'terms_accepted', self::setting_text( $settings, 'terms_label', $lang ), self::setting_text( $settings, 'terms_link_text', $lang ), $settings['terms_url'] ?? '' ); ?>
+				<?php self::frontend_consent_checkbox( 'privacy_accepted', self::setting_text( $settings, 'privacy_label', $lang ), self::setting_text( $settings, 'privacy_link_text', $lang ), $settings['privacy_url'] ?? '' ); ?>
 				<button class="taka-native-checkout__submit" type="submit"><?php echo esc_html( taka_tour_translate( 'ticketing.submit_order', 'Submit Order' ) ); ?></button>
 			</section>
 		</form>
@@ -448,8 +538,57 @@ class TAKA_Ticketing_Module {
 		echo '<label><span>' . esc_html( $label ) . '</span><input type="' . esc_attr( $type ) . '" name="' . esc_attr( $name ) . '" ' . ( $required ? 'required' : '' ) . '></label>';
 	}
 
-	private static function frontend_textarea( $name, $label ) {
-		echo '<label class="taka-native-checkout__wide"><span>' . esc_html( $label ) . '</span><textarea name="' . esc_attr( $name ) . '" rows="2"></textarea></label>';
+	private static function frontend_select( $name, $label, $choices, $required, $attributes = array() ) {
+		echo '<label><span>' . esc_html( $label ) . '</span><select name="' . esc_attr( $name ) . '" ' . ( $required ? 'required' : '' ) . self::html_attributes( $attributes ) . '>';
+		foreach ( (array) $choices as $value => $choice_label ) {
+			echo '<option value="' . esc_attr( (string) $value ) . '">' . esc_html( (string) $choice_label ) . '</option>';
+		}
+		echo '</select></label>';
+	}
+
+	private static function frontend_textarea( $name, $label, $attributes = array() ) {
+		echo '<label class="taka-native-checkout__wide" ' . ( ! empty( $attributes['data-taka-dietary-note-field'] ) ? 'data-taka-dietary-note-wrap' : '' ) . '><span>' . esc_html( $label ) . '</span><textarea name="' . esc_attr( $name ) . '" rows="2"' . self::html_attributes( $attributes ) . '></textarea></label>';
+	}
+
+	private static function frontend_consent_checkbox( $name, $label, $link_text, $url ) {
+		echo '<label class="taka-native-checkout__checkbox taka-native-checkout__consent"><input type="checkbox" name="' . esc_attr( $name ) . '" value="1" required> <span>';
+		self::render_linked_label( $label, $link_text, $url );
+		echo '</span></label>';
+	}
+
+	private static function render_linked_label( $label, $link_text, $url ) {
+		$label = '' !== trim( (string) $label ) ? (string) $label : '{link}';
+		$link_text = '' !== trim( (string) $link_text ) ? (string) $link_text : $label;
+		$url = esc_url( $url );
+		$link_html = '' !== $url ? '<a href="' . $url . '" target="_blank" rel="noopener noreferrer">' . esc_html( $link_text ) . '</a>' : esc_html( $link_text );
+
+		if ( false !== strpos( $label, '{link}' ) ) {
+			$parts = explode( '{link}', $label );
+			echo esc_html( $parts[0] ) . $link_html . esc_html( $parts[1] ?? '' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			return;
+		}
+
+		echo esc_html( $label ) . ' ' . $link_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	private static function dietary_choices( $lang = null ) {
+		return array(
+			'none'       => self::text( 'ticketing.dietary_none', 'No dietary preference', $lang ),
+			'vegetarian' => self::text( 'ticketing.dietary_vegetarian', 'Vegetarian', $lang ),
+			'vegan'      => self::text( 'ticketing.dietary_vegan', 'Vegan', $lang ),
+			'other'      => self::text( 'ticketing.dietary_other', 'Other / note', $lang ),
+		);
+	}
+
+	private static function html_attributes( $attributes ) {
+		$out = '';
+		foreach ( (array) $attributes as $name => $value ) {
+			if ( '' === (string) $name ) {
+				continue;
+			}
+			$out .= ' ' . esc_attr( (string) $name ) . '="' . esc_attr( (string) $value ) . '"';
+		}
+		return $out;
 	}
 
 	public static function handle_checkout() {
@@ -461,7 +600,8 @@ class TAKA_Ticketing_Module {
 			exit;
 		}
 		if ( empty( $_POST['taka_ticketing_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['taka_ticketing_nonce'] ) ), self::CHECKOUT_ACTION ) ) {
-			self::redirect_with_errors( $redirect, array( __( 'Your booking session expired. Please try again.', 'taka-platform' ) ) );
+			$lang = sanitize_key( wp_unslash( $_POST['language'] ?? taka_tour_current_language() ) );
+			self::redirect_with_errors( $redirect, array( self::text( 'ticketing.error_session_expired', 'Your booking session expired. Please try again.', $lang ) ) );
 		}
 
 		$order = TAKA_Ticketing_Order_Service::create_order_from_post( wp_unslash( $_POST ) );
@@ -492,6 +632,17 @@ class TAKA_Ticketing_Module {
 		}
 
 		wp_safe_redirect( self::admin_url( array( 'order_id' => $order_id, 'updated' => '1' ) ) );
+		exit;
+	}
+
+	public static function handle_save_settings() {
+		if ( ! current_user_can( 'manage_taka_ticketing' ) ) {
+			wp_die( esc_html__( 'Insufficient permissions.', 'taka-platform' ) );
+		}
+		check_admin_referer( self::SETTINGS_ACTION, '_wpnonce' );
+		$settings = isset( $_POST['taka_ticketing_settings'] ) && is_array( $_POST['taka_ticketing_settings'] ) ? wp_unslash( $_POST['taka_ticketing_settings'] ) : array();
+		update_option( self::SETTINGS_OPTION, self::normalize_settings( $settings ), false );
+		wp_safe_redirect( self::admin_url( array( 'settings_updated' => '1' ) ) );
 		exit;
 	}
 
@@ -530,33 +681,38 @@ class TAKA_Ticketing_Module {
 
 	private static function render_order_confirmation( TAKA_Ticketing_Order $order ) {
 		$data = $order->to_array();
+		$lang = sanitize_key( $data['language'] ?? taka_tour_current_language() );
 		$provider = self::payment_provider( $data['payment_method'] ?? '' );
 		$instructions = $provider ? $provider->get_public_instructions( $order ) : array();
 		?>
 		<section class="taka-native-confirmation">
-			<h3><?php echo esc_html( taka_tour_translate( 'ticketing.registration_successful', 'Registration successful' ) ); ?></h3>
+			<h3><?php echo esc_html( self::text( 'ticketing.registration_received', 'Registration received', $lang ) ); ?></h3>
 			<dl>
-				<div><dt><?php echo esc_html( taka_tour_translate( 'ticketing.order_number', 'Order number' ) ); ?></dt><dd><?php echo esc_html( $data['order_number'] ?? '' ); ?></dd></div>
-				<div><dt><?php echo esc_html( taka_tour_translate( 'ticketing.payment_method', 'Payment method' ) ); ?></dt><dd><?php echo esc_html( self::payment_method_label( $data['payment_method'] ?? '' ) ); ?></dd></div>
-				<div><dt><?php echo esc_html( taka_tour_translate( 'ticketing.amount', 'Amount' ) ); ?></dt><dd><?php echo esc_html( self::format_money( $data['amount'] ?? '', $data['currency'] ?? 'EUR' ) ); ?></dd></div>
+				<div><dt><?php echo esc_html( self::text( 'ticketing.order_number', 'Order number', $lang ) ); ?></dt><dd><?php echo esc_html( $data['order_number'] ?? '' ); ?></dd></div>
+				<div><dt><?php echo esc_html( self::text( 'ticketing.event', 'Event', $lang ) ); ?></dt><dd><?php echo esc_html( $data['event_title'] ?? '' ); ?></dd></div>
+				<div><dt><?php echo esc_html( self::text( 'ticketing.ticket', 'Ticket', $lang ) ); ?></dt><dd><?php echo esc_html( $data['ticket_type_name'] ?? '' ); ?></dd></div>
+				<div><dt><?php echo esc_html( self::text( 'ticketing.amount', 'Amount', $lang ) ); ?></dt><dd><?php echo esc_html( self::format_money( $data['amount'] ?? '', $data['currency'] ?? 'EUR' ) ); ?></dd></div>
+				<div><dt><?php echo esc_html( self::text( 'ticketing.payment_method', 'Payment method', $lang ) ); ?></dt><dd><?php echo esc_html( self::payment_method_label( $data['payment_method'] ?? '', $lang ) ); ?></dd></div>
 			</dl>
+			<h4><?php echo esc_html( self::text( 'ticketing.next_steps', 'Next steps', $lang ) ); ?></h4>
 			<?php if ( 'bank_transfer' === (string) ( $data['payment_method'] ?? '' ) ) : ?>
 				<div class="taka-native-confirmation__instructions">
-					<h4><?php echo esc_html( taka_tour_translate( 'ticketing.bank_transfer_instructions', 'Bank transfer instructions' ) ); ?></h4>
+					<p><?php echo esc_html( self::text( 'ticketing.bank_transfer_next_steps', 'Please transfer the amount using the payment reference below.', $lang ) ); ?></p>
+					<h4><?php echo esc_html( self::text( 'ticketing.bank_transfer_instructions', 'Bank transfer instructions', $lang ) ); ?></h4>
 					<?php foreach ( array( 'account_holder' => 'Account holder', 'iban' => 'IBAN', 'bic' => 'BIC', 'bank_name' => 'Bank name', 'payment_reference' => 'Payment reference' ) as $field => $label ) : ?>
-						<?php if ( '' !== trim( (string) ( $instructions[ $field ] ?? '' ) ) ) : ?><p><strong><?php echo esc_html( taka_tour_translate( 'ticketing.' . $field, $label ) ); ?>:</strong> <?php echo esc_html( $instructions[ $field ] ); ?></p><?php endif; ?>
+						<?php if ( '' !== trim( (string) ( $instructions[ $field ] ?? '' ) ) ) : ?><p><strong><?php echo esc_html( self::text( 'ticketing.' . $field, $label, $lang ) ); ?>:</strong> <?php echo esc_html( $instructions[ $field ] ); ?></p><?php endif; ?>
 					<?php endforeach; ?>
 					<?php if ( '' !== trim( (string) ( $instructions['instructions'] ?? '' ) ) ) : ?><p><?php echo esc_html( $instructions['instructions'] ); ?></p><?php endif; ?>
 				</div>
 			<?php elseif ( 'pay_at_door' === (string) ( $data['payment_method'] ?? '' ) ) : ?>
 				<div class="taka-native-confirmation__instructions">
-					<p><?php echo esc_html( $instructions['message'] ?? taka_tour_translate( 'ticketing.pay_at_door_message', 'Please pay your admission at the registration desk before entering the seminar. Payment is required before participation.' ) ); ?></p>
+					<p><?php echo esc_html( $instructions['message'] ?? self::text( 'ticketing.pay_at_door_message', 'Please pay your admission at the registration desk before entering the seminar. Payment is required before participation.', $lang ) ); ?></p>
 					<?php if ( '' !== trim( (string) ( $instructions['instructions'] ?? '' ) ) ) : ?><p><?php echo esc_html( $instructions['instructions'] ); ?></p><?php endif; ?>
 				</div>
 			<?php endif; ?>
 			<div class="taka-native-confirmation__actions">
-				<button type="button" onclick="window.print()"><?php echo esc_html( taka_tour_translate( 'ticketing.print', 'Print' ) ); ?></button>
-				<button type="button" disabled><?php echo esc_html( taka_tour_translate( 'ticketing.download_pdf', 'Download PDF' ) ); ?></button>
+				<button type="button" onclick="window.print()"><?php echo esc_html( self::text( 'ticketing.print', 'Print', $lang ) ); ?></button>
+				<button type="button" disabled><?php echo esc_html( self::text( 'ticketing.download_pdf', 'Download PDF', $lang ) ); ?></button>
 			</div>
 		</section>
 		<?php
@@ -587,7 +743,7 @@ class TAKA_Ticketing_Module {
 		$available = 'active' === $status;
 		$reason = '';
 		if ( ! $available ) {
-			$reason = 'sold_out' === $status ? __( 'Sold out', 'taka-platform' ) : __( 'Unavailable', 'taka-platform' );
+			$reason = 'sold_out' === $status ? self::text( 'ticketing.sold_out', 'Sold out' ) : self::text( 'ticketing.unavailable', 'Unavailable' );
 		}
 
 		$now = current_time( 'timestamp' );
@@ -595,11 +751,11 @@ class TAKA_Ticketing_Module {
 		$end = self::sale_timestamp( $ticket_type['sale_end_date'] ?? '', $ticket_type['sale_end_time'] ?? '23:59' );
 		if ( $available && $start && $now < $start ) {
 			$available = false;
-			$reason = __( 'Sales have not started yet.', 'taka-platform' );
+			$reason = self::text( 'ticketing.sales_not_started', 'Sales have not started yet.' );
 		}
 		if ( $available && $end && $now > $end ) {
 			$available = false;
-			$reason = __( 'Sales have ended.', 'taka-platform' );
+			$reason = self::text( 'ticketing.sales_ended', 'Sales have ended.' );
 		}
 
 		$capacity = '' === trim( (string) ( $ticket_type['capacity'] ?? '' ) ) ? null : absint( $ticket_type['capacity'] );
@@ -607,7 +763,7 @@ class TAKA_Ticketing_Module {
 		$remaining = null === $capacity ? null : max( 0, $capacity - $reserved );
 		if ( $available && null !== $remaining && $remaining <= 0 ) {
 			$available = false;
-			$reason = __( 'Sold out', 'taka-platform' );
+			$reason = self::text( 'ticketing.sold_out', 'Sold out' );
 		}
 
 		return array( 'available' => $available, 'capacity' => $capacity, 'reserved' => $reserved, 'remaining' => $remaining, 'reason' => $reason );
@@ -641,10 +797,10 @@ class TAKA_Ticketing_Module {
 		return trim( ( 'EUR' === $currency ? '€' : $currency . ' ' ) . $amount );
 	}
 
-	public static function payment_method_label( $method ) {
+	public static function payment_method_label( $method, $lang = null ) {
 		$labels = array(
-			'bank_transfer' => __( 'Bank Transfer', 'taka-platform' ),
-			'pay_at_door'   => __( 'Pay at the Door', 'taka-platform' ),
+			'bank_transfer' => self::text( 'ticketing.payment_bank_transfer', 'Bank Transfer', $lang ),
+			'pay_at_door'   => self::text( 'ticketing.payment_pay_at_door', 'Pay at the Door', $lang ),
 		);
 		return $labels[ $method ] ?? sanitize_text_field( $method );
 	}
@@ -668,12 +824,61 @@ class TAKA_Ticketing_Module {
 
 		$order_id = absint( $_GET['order_id'] ?? 0 ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		echo '<div class="wrap taka-ticketing-admin"><h1>' . esc_html__( 'Ticketing', 'taka-platform' ) . '</h1>';
+		if ( ! empty( $_GET['settings_updated'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Ticketing settings saved.', 'taka-platform' ) . '</p></div>';
+		}
 		if ( $order_id ) {
 			self::render_order_detail( $order_id );
 		} else {
+			self::render_settings_box();
 			self::render_order_list();
 		}
 		echo '</div>';
+	}
+
+	private static function render_settings_box() {
+		if ( ! current_user_can( 'manage_taka_ticketing' ) ) {
+			return;
+		}
+		$settings = self::ticketing_settings();
+		$languages = TAKA_Platform_Data::content_section_languages();
+		?>
+		<div class="taka-ticketing-settings">
+			<h2><?php echo esc_html__( 'Booking form settings', 'taka-platform' ); ?></h2>
+			<p class="description"><?php echo esc_html__( 'Configure the legal links and localized checkbox labels used by native ticketing checkout.', 'taka-platform' ); ?></p>
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<input type="hidden" name="action" value="<?php echo esc_attr( self::SETTINGS_ACTION ); ?>">
+				<?php wp_nonce_field( self::SETTINGS_ACTION ); ?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><label for="taka-ticketing-terms-url"><?php echo esc_html__( 'Booking terms URL', 'taka-platform' ); ?></label></th>
+						<td><input id="taka-ticketing-terms-url" class="regular-text" type="url" name="taka_ticketing_settings[terms_url]" value="<?php echo esc_attr( $settings['terms_url'] ?? '' ); ?>"></td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="taka-ticketing-privacy-url"><?php echo esc_html__( 'Privacy notice URL', 'taka-platform' ); ?></label></th>
+						<td><input id="taka-ticketing-privacy-url" class="regular-text" type="url" name="taka_ticketing_settings[privacy_url]" value="<?php echo esc_attr( $settings['privacy_url'] ?? '' ); ?>"></td>
+					</tr>
+				</table>
+				<div class="taka-ticketing-settings__grid">
+					<?php self::render_localized_setting_inputs( $languages, 'terms_label', __( 'Booking terms checkbox label', 'taka-platform' ), $settings ); ?>
+					<?php self::render_localized_setting_inputs( $languages, 'terms_link_text', __( 'Booking terms link text', 'taka-platform' ), $settings ); ?>
+					<?php self::render_localized_setting_inputs( $languages, 'privacy_label', __( 'Privacy checkbox label', 'taka-platform' ), $settings ); ?>
+					<?php self::render_localized_setting_inputs( $languages, 'privacy_link_text', __( 'Privacy link text', 'taka-platform' ), $settings ); ?>
+				</div>
+				<p class="description"><?php echo esc_html__( 'Use {link} in checkbox labels where the configured link text should appear.', 'taka-platform' ); ?></p>
+				<?php submit_button( __( 'Save ticketing settings', 'taka-platform' ) ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	private static function render_localized_setting_inputs( $languages, $field, $title, $settings ) {
+		echo '<section class="taka-ticketing-settings__panel"><h3>' . esc_html( $title ) . '</h3>';
+		foreach ( $languages as $lang ) {
+			$value = (string) ( $settings[ $field ][ $lang ] ?? '' );
+			echo '<label><span>' . esc_html( strtoupper( $lang ) ) . '</span><input class="regular-text" type="text" name="' . esc_attr( 'taka_ticketing_settings[' . $field . '][' . $lang . ']' ) . '" value="' . esc_attr( $value ) . '"></label>';
+		}
+		echo '</section>';
 	}
 
 	private static function render_order_list() {

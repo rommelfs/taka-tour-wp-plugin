@@ -86,6 +86,7 @@
 }
 
 .taka-native-checkout input,
+.taka-native-checkout select,
 .taka-native-checkout textarea {
 	border: 1px solid rgba(17, 17, 17, .22);
 	border-radius: .5rem;
@@ -101,6 +102,13 @@
 	display: grid;
 	gap: .6rem;
 	grid-template-columns: auto minmax(0, 1fr);
+}
+
+.taka-native-checkout__consent a {
+	color: #BC002D;
+	font-weight: 850;
+	text-decoration: underline;
+	text-underline-offset: .16em;
 }
 
 .taka-native-ticket-option {

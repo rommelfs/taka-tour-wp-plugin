@@ -2006,6 +2006,9 @@ class TAKA_Platform_Admin {
 		if ( isset( $data['private_tour_planning'] ) && ! is_array( $data['private_tour_planning'] ) ) {
 			return new WP_Error( 'taka_tour_invalid_planning_config', __( 'Private tour planning import data must be an array.', 'taka-platform' ) );
 		}
+		if ( isset( $data['ticketing'] ) && ! is_array( $data['ticketing'] ) ) {
+			return new WP_Error( 'taka_tour_invalid_ticketing_config', __( 'Ticketing import data must be an object.', 'taka-platform' ) );
+		}
 		return $data;
 	}
 
@@ -2041,6 +2044,9 @@ class TAKA_Platform_Admin {
 				$existing_sections[ $key ]['key'] = $key;
 			}
 			update_option( TAKA_Platform_Data::SECTIONS_OPTION, $existing_sections, false );
+		}
+		if ( class_exists( 'TAKA_Ticketing_Module' ) && ! empty( $config['ticketing'] ) && is_array( $config['ticketing'] ) && ! $dry_run ) {
+			update_option( TAKA_Ticketing_Module::SETTINGS_OPTION, TAKA_Ticketing_Module::normalize_settings( $config['ticketing'] ), false );
 		}
 		if ( class_exists( 'TAKA_Platform_Tour_Planning' ) && ! empty( $config['private_tour_planning'] ) ) {
 			TAKA_Platform_Tour_Planning::import_items( $config['private_tour_planning'], $mode, $dry_run, $summary['tour_planning'] );

@@ -21,11 +21,12 @@ class TAKA_Ticketing_Pay_At_Door_Provider implements TAKA_Ticketing_Payment_Prov
 	public function get_public_instructions( $order ) {
 		$order_data = is_object( $order ) && method_exists( $order, 'to_array' ) ? $order->to_array() : (array) $order;
 		$event_id = absint( $order_data['event_id'] ?? 0 );
+		$lang = sanitize_key( (string) ( $order_data['language'] ?? '' ) );
 		$instructions = $event_id ? (string) get_post_meta( $event_id, TAKA_Ticketing_Module::PAY_AT_DOOR_INSTRUCTIONS_META, true ) : '';
 
 		return array(
 			'instructions' => sanitize_textarea_field( $instructions ),
-			'message'      => __( 'Please pay your admission at the registration desk before entering the seminar. Payment is required before participation.', 'taka-platform' ),
+			'message'      => TAKA_Ticketing_Module::text( 'ticketing.pay_at_door_message', 'Please pay your admission at the registration desk before entering the seminar. Payment is required before participation.', $lang ),
 		);
 	}
 

@@ -10,18 +10,21 @@ class TAKA_Ticketing_Email_Service {
 		$data = $order->to_array();
 		$buyer = is_array( $data['buyer'] ?? null ) ? $data['buyer'] : array();
 		$email = sanitize_email( $buyer['email'] ?? '' );
+		$lang = self::order_language( $data );
 		if ( '' === $email ) {
 			return false;
 		}
 
 		return wp_mail(
 			$email,
-			sprintf( __( 'Your registration %s', 'taka-platform' ), $data['order_number'] ?? '' ),
-			self::order_message( $order, false )
+			sprintf( self::label( 'ticketing.email_subject_registration', 'Your registration %s', $lang ), $data['order_number'] ?? '' ),
+			self::order_message( $order, false, $lang )
 		);
 	}
 
 	public static function send_admin_notification( TAKA_Ticketing_Order $order ) {
+		$data = $order->to_array();
+		$lang = self::order_language( $data );
 		$email = get_option( 'admin_email' );
 		if ( '' === sanitize_email( $email ) ) {
 			return false;
@@ -29,8 +32,8 @@ class TAKA_Ticketing_Email_Service {
 
 		return wp_mail(
 			$email,
-			sprintf( __( 'New ticket order %s', 'taka-platform' ), $order->get( 'order_number', '' ) ),
-			self::order_message( $order, true )
+			sprintf( self::label( 'ticketing.email_subject_admin', 'New ticket order %s', $lang ), $order->get( 'order_number', '' ) ),
+			self::order_message( $order, true, $lang )
 		);
 	}
 
@@ -38,27 +41,28 @@ class TAKA_Ticketing_Email_Service {
 		$data = $order->to_array();
 		$buyer = is_array( $data['buyer'] ?? null ) ? $data['buyer'] : array();
 		$email = sanitize_email( $buyer['email'] ?? '' );
+		$lang = self::order_language( $data );
 		if ( '' === $email ) {
 			return false;
 		}
 
 		return wp_mail(
 			$email,
-			sprintf( __( 'Payment received for %s', 'taka-platform' ), $data['order_number'] ?? '' ),
+			sprintf( self::label( 'ticketing.email_subject_payment', 'Payment received for %s', $lang ), $data['order_number'] ?? '' ),
 			sprintf(
 				"%s\n\n%s: %s\n%s: %s\n%s: %s",
-				__( 'Thank you. Your payment has been marked as received.', 'taka-platform' ),
-				__( 'Order number', 'taka-platform' ),
+				self::label( 'ticketing.email_payment_received', 'Thank you. Your payment has been marked as received.', $lang ),
+				self::label( 'ticketing.order_number', 'Order number', $lang ),
 				$data['order_number'] ?? '',
-				__( 'Event', 'taka-platform' ),
+				self::label( 'ticketing.event', 'Event', $lang ),
 				$data['event_title'] ?? '',
-				__( 'Amount', 'taka-platform' ),
+				self::label( 'ticketing.amount', 'Amount', $lang ),
 				TAKA_Ticketing_Module::format_money( $data['amount'] ?? '', $data['currency'] ?? 'EUR' )
 			)
 		);
 	}
 
-	private static function order_message( TAKA_Ticketing_Order $order, $admin ) {
+	private static function order_message( TAKA_Ticketing_Order $order, $admin, $lang ) {
 		$data = $order->to_array();
 		$buyer = is_array( $data['buyer'] ?? null ) ? $data['buyer'] : array();
 		$participant = is_array( $data['participant'] ?? null ) ? $data['participant'] : array();
@@ -66,24 +70,24 @@ class TAKA_Ticketing_Email_Service {
 		$instructions = $provider ? $provider->get_public_instructions( $order ) : array();
 
 		$lines = array(
-			$admin ? __( 'A new ticket order has been received.', 'taka-platform' ) : __( 'Your registration has been received.', 'taka-platform' ),
+			$admin ? self::label( 'ticketing.email_intro_admin', 'A new ticket order has been received.', $lang ) : self::label( 'ticketing.email_intro_buyer', 'Your registration has been received.', $lang ),
 			'',
-			__( 'Order number', 'taka-platform' ) . ': ' . ( $data['order_number'] ?? '' ),
-			__( 'Event', 'taka-platform' ) . ': ' . ( $data['event_title'] ?? '' ),
-			__( 'Ticket', 'taka-platform' ) . ': ' . ( $data['ticket_type_name'] ?? '' ),
-			__( 'Buyer', 'taka-platform' ) . ': ' . trim( ( $buyer['first_name'] ?? '' ) . ' ' . ( $buyer['last_name'] ?? '' ) ) . ' <' . ( $buyer['email'] ?? '' ) . '>',
-			__( 'Participant', 'taka-platform' ) . ': ' . trim( ( $participant['first_name'] ?? '' ) . ' ' . ( $participant['last_name'] ?? '' ) ),
-			__( 'Payment method', 'taka-platform' ) . ': ' . TAKA_Ticketing_Module::payment_method_label( $data['payment_method'] ?? '' ),
-			__( 'Amount', 'taka-platform' ) . ': ' . TAKA_Ticketing_Module::format_money( $data['amount'] ?? '', $data['currency'] ?? 'EUR' ),
-			__( 'Payment status', 'taka-platform' ) . ': ' . ( $data['payment_status'] ?? 'pending' ),
+			self::label( 'ticketing.order_number', 'Order number', $lang ) . ': ' . ( $data['order_number'] ?? '' ),
+			self::label( 'ticketing.event', 'Event', $lang ) . ': ' . ( $data['event_title'] ?? '' ),
+			self::label( 'ticketing.ticket', 'Ticket', $lang ) . ': ' . ( $data['ticket_type_name'] ?? '' ),
+			self::label( 'ticketing.buyer', 'Buyer', $lang ) . ': ' . self::person_line( $buyer, $lang, true ),
+			self::label( 'ticketing.participant', 'Participant', $lang ) . ': ' . self::person_line( $participant, $lang, false ),
+			self::label( 'ticketing.payment_method', 'Payment method', $lang ) . ': ' . TAKA_Ticketing_Module::payment_method_label( $data['payment_method'] ?? '', $lang ),
+			self::label( 'ticketing.amount', 'Amount', $lang ) . ': ' . TAKA_Ticketing_Module::format_money( $data['amount'] ?? '', $data['currency'] ?? 'EUR' ),
+			self::label( 'ticketing.payment_status', 'Payment status', $lang ) . ': ' . self::payment_status_label( $data['payment_status'] ?? 'pending', $lang ),
 		);
 
 		if ( 'bank_transfer' === (string) ( $data['payment_method'] ?? '' ) ) {
 			$lines[] = '';
-			$lines[] = __( 'Bank transfer instructions', 'taka-platform' );
+			$lines[] = self::label( 'ticketing.bank_transfer_instructions', 'Bank transfer instructions', $lang );
 			foreach ( array( 'account_holder', 'iban', 'bic', 'bank_name', 'payment_reference' ) as $field ) {
 				if ( '' !== trim( (string) ( $instructions[ $field ] ?? '' ) ) ) {
-					$lines[] = ucwords( str_replace( '_', ' ', $field ) ) . ': ' . $instructions[ $field ];
+					$lines[] = self::label( 'ticketing.' . $field, ucwords( str_replace( '_', ' ', $field ) ), $lang ) . ': ' . $instructions[ $field ];
 				}
 			}
 			if ( '' !== trim( (string) ( $instructions['instructions'] ?? '' ) ) ) {
@@ -91,12 +95,55 @@ class TAKA_Ticketing_Email_Service {
 			}
 		} elseif ( 'pay_at_door' === (string) ( $data['payment_method'] ?? '' ) ) {
 			$lines[] = '';
-			$lines[] = __( 'Payment will be collected during registration on site.', 'taka-platform' );
+			$lines[] = self::label( 'ticketing.pay_at_door_email_instructions', 'Payment will be collected during registration on site.', $lang );
 			if ( '' !== trim( (string) ( $instructions['instructions'] ?? '' ) ) ) {
 				$lines[] = $instructions['instructions'];
 			}
 		}
 
 		return implode( "\n", array_filter( $lines, static function ( $line ) { return null !== $line; } ) );
+	}
+
+	private static function label( $key, $fallback, $lang ) {
+		return TAKA_Ticketing_Module::text( $key, $fallback, $lang );
+	}
+
+	private static function order_language( $data ) {
+		$lang = sanitize_key( $data['language'] ?? '' );
+		return in_array( $lang, TAKA_Platform_Data::content_section_languages(), true ) ? $lang : TAKA_Platform_Data::platform_fallback_language();
+	}
+
+	private static function person_line( $person, $lang, $include_email ) {
+		$name = trim( ( $person['first_name'] ?? '' ) . ' ' . ( $person['last_name'] ?? '' ) );
+		$parts = array( $name );
+		if ( $include_email && '' !== trim( (string) ( $person['email'] ?? '' ) ) ) {
+			$parts[] = '<' . $person['email'] . '>';
+		}
+		if ( '' !== trim( (string) ( $person['country'] ?? '' ) ) ) {
+			$parts[] = TAKA_Platform_Data::country_label( $person['country'], $lang );
+		}
+		if ( '' !== trim( (string) ( $person['dietary_preference'] ?? '' ) ) && 'none' !== (string) $person['dietary_preference'] ) {
+			$parts[] = self::dietary_label( $person['dietary_preference'], $lang );
+		}
+		return trim( implode( ' / ', array_filter( $parts ) ) );
+	}
+
+	private static function dietary_label( $value, $lang ) {
+		$labels = array(
+			'vegetarian' => self::label( 'ticketing.dietary_vegetarian', 'Vegetarian', $lang ),
+			'vegan'      => self::label( 'ticketing.dietary_vegan', 'Vegan', $lang ),
+			'other'      => self::label( 'ticketing.dietary_other', 'Other / note', $lang ),
+		);
+		return $labels[ $value ] ?? sanitize_text_field( $value );
+	}
+
+	private static function payment_status_label( $status, $lang ) {
+		$labels = array(
+			'pending'   => self::label( 'ticketing.payment_status_pending', 'Pending', $lang ),
+			'paid'      => self::label( 'ticketing.payment_status_paid', 'Paid', $lang ),
+			'cancelled' => self::label( 'ticketing.payment_status_cancelled', 'Cancelled', $lang ),
+			'refunded'  => self::label( 'ticketing.payment_status_refunded', 'Refunded', $lang ),
+		);
+		return $labels[ $status ] ?? sanitize_text_field( $status );
 	}
 }

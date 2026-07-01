@@ -11,36 +11,37 @@ class TAKA_Ticketing_Order_Service {
 		$event_id = absint( $posted['event_id'] ?? 0 );
 		$ticket_type_id = sanitize_key( $posted['ticket_type_id'] ?? '' );
 		$payment_method = sanitize_key( $posted['payment_method'] ?? '' );
+		$lang = self::language_from_post( $posted );
 
 		if ( ! $event_id || ! get_post( $event_id ) ) {
-			return new WP_Error( 'taka_ticketing_event_missing', __( 'Event not found.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_event_missing', TAKA_Ticketing_Module::text( 'ticketing.error_event_missing', 'Event not found.', $lang ) );
 		}
 		if ( ! TAKA_Ticketing_Module::event_uses_native_ticketing( $event_id ) ) {
-			return new WP_Error( 'taka_ticketing_not_native', __( 'This event does not use native ticketing.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_not_native', TAKA_Ticketing_Module::text( 'ticketing.error_not_native', 'This event does not use native ticketing.', $lang ) );
 		}
 
 		$ticket_type = TAKA_Ticketing_Module::find_ticket_type( $event_id, $ticket_type_id );
 		if ( ! $ticket_type ) {
-			return new WP_Error( 'taka_ticketing_ticket_missing', __( 'Ticket type not found.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_ticket_missing', TAKA_Ticketing_Module::text( 'ticketing.error_ticket_missing', 'Ticket type not found.', $lang ) );
 		}
 		$availability = TAKA_Ticketing_Module::ticket_availability( $event_id, $ticket_type );
 		if ( empty( $availability['available'] ) ) {
-			return new WP_Error( 'taka_ticketing_ticket_unavailable', __( 'This ticket type is no longer available.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_ticket_unavailable', TAKA_Ticketing_Module::text( 'ticketing.error_ticket_unavailable', 'This ticket type is no longer available.', $lang ) );
 		}
 
 		$enabled_methods = TAKA_Ticketing_Module::enabled_payment_methods_for_event( $event_id );
 		if ( ! in_array( $payment_method, $enabled_methods, true ) ) {
-			return new WP_Error( 'taka_ticketing_payment_method', __( 'Please choose an available payment method.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_payment_method', TAKA_Ticketing_Module::text( 'ticketing.error_payment_method', 'Please choose an available payment method.', $lang ) );
 		}
 
 		$buyer = self::buyer_from_post( $posted );
 		$participant = self::participant_from_post( $posted, $buyer );
-		$error = self::validate_people( $buyer, $participant, ! empty( $posted['participant_is_buyer'] ) );
+		$error = self::validate_people( $buyer, $participant, ! empty( $posted['participant_is_buyer'] ), $lang );
 		if ( is_wp_error( $error ) ) {
 			return $error;
 		}
 		if ( empty( $posted['terms_accepted'] ) || empty( $posted['privacy_accepted'] ) ) {
-			return new WP_Error( 'taka_ticketing_terms', __( 'Please accept the terms and privacy notice.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_terms', TAKA_Ticketing_Module::text( 'ticketing.error_terms', 'Please accept the terms and privacy notice.', $lang ) );
 		}
 
 		$order = new TAKA_Ticketing_Order(
@@ -59,6 +60,7 @@ class TAKA_Ticketing_Order_Service {
 				'payment_status'      => 'pending',
 				'order_status'        => 'confirmed',
 				'checkin_status'      => 'not_checked_in',
+				'language'            => $lang,
 				'created_at'          => current_time( 'mysql' ),
 				'updated_at'          => current_time( 'mysql' ),
 				'timeline'            => array(
@@ -123,57 +125,82 @@ class TAKA_Ticketing_Order_Service {
 			'first_name' => sanitize_text_field( $posted['buyer_first_name'] ?? '' ),
 			'last_name'  => sanitize_text_field( $posted['buyer_last_name'] ?? '' ),
 			'email'      => sanitize_email( $posted['buyer_email'] ?? '' ),
-			'country'    => sanitize_text_field( $posted['buyer_country'] ?? '' ),
+			'country'    => self::country_from_post( $posted['buyer_country'] ?? '' ),
 			'phone'      => sanitize_text_field( $posted['buyer_phone'] ?? '' ),
-			'company'    => sanitize_text_field( $posted['buyer_company'] ?? '' ),
 		);
 	}
 
 	private static function participant_from_post( $posted, $buyer ) {
+		$extra = self::participant_extra_from_post( $posted );
 		if ( ! empty( $posted['participant_is_buyer'] ) ) {
-			return array(
-				'first_name' => $buyer['first_name'],
-				'last_name'  => $buyer['last_name'],
-				'email'      => $buyer['email'],
-				'country'    => $buyer['country'],
+			return array_merge(
+				array(
+					'first_name' => $buyer['first_name'],
+					'last_name'  => $buyer['last_name'],
+					'email'      => $buyer['email'],
+					'country'    => $buyer['country'],
+				),
+				$extra
 			);
 		}
 
-		return array(
-			'first_name'    => sanitize_text_field( $posted['participant_first_name'] ?? '' ),
-			'last_name'     => sanitize_text_field( $posted['participant_last_name'] ?? '' ),
-			'email'         => sanitize_email( $posted['participant_email'] ?? '' ),
-			'country'       => sanitize_text_field( $posted['participant_country'] ?? '' ),
-			'dojo'          => sanitize_text_field( $posted['participant_dojo'] ?? '' ),
-			'association'   => sanitize_text_field( $posted['participant_association'] ?? '' ),
-			'style'         => sanitize_text_field( $posted['participant_style'] ?? '' ),
-			'rank'          => sanitize_text_field( $posted['participant_rank'] ?? '' ),
-			'dietary_notes' => sanitize_textarea_field( $posted['participant_dietary_notes'] ?? '' ),
-			'allergies'     => sanitize_textarea_field( $posted['participant_allergies'] ?? '' ),
-			'notes'         => sanitize_textarea_field( $posted['participant_notes'] ?? '' ),
+		return array_merge(
+			array(
+				'first_name' => sanitize_text_field( $posted['participant_first_name'] ?? '' ),
+				'last_name'  => sanitize_text_field( $posted['participant_last_name'] ?? '' ),
+				'email'      => sanitize_email( $posted['participant_email'] ?? '' ),
+				'country'    => self::country_from_post( $posted['participant_country'] ?? '' ),
+			),
+			$extra
 		);
 	}
 
-	private static function validate_people( $buyer, $participant, $participant_is_buyer ) {
+	private static function participant_extra_from_post( $posted ) {
+		$dietary_preference = sanitize_key( $posted['participant_dietary_preference'] ?? 'none' );
+		if ( ! in_array( $dietary_preference, array( 'none', 'vegetarian', 'vegan', 'other' ), true ) ) {
+			$dietary_preference = 'none';
+		}
+		return array(
+			'dojo'               => sanitize_text_field( $posted['participant_dojo'] ?? '' ),
+			'association'        => sanitize_text_field( $posted['participant_association'] ?? '' ),
+			'style'              => sanitize_text_field( $posted['participant_style'] ?? '' ),
+			'rank'               => sanitize_text_field( $posted['participant_rank'] ?? '' ),
+			'dietary_preference' => $dietary_preference,
+			'dietary_notes'      => 'other' === $dietary_preference ? sanitize_textarea_field( $posted['participant_dietary_notes'] ?? '' ) : '',
+			'allergies'          => sanitize_textarea_field( $posted['participant_allergies'] ?? '' ),
+			'notes'              => sanitize_textarea_field( $posted['participant_notes'] ?? '' ),
+		);
+	}
+
+	private static function validate_people( $buyer, $participant, $participant_is_buyer, $lang ) {
 		foreach ( array( 'first_name', 'last_name', 'email', 'country' ) as $field ) {
 			if ( '' === trim( (string) ( $buyer[ $field ] ?? '' ) ) ) {
-				return new WP_Error( 'taka_ticketing_buyer_missing', __( 'Please complete all required buyer fields.', 'taka-platform' ) );
+				return new WP_Error( 'taka_ticketing_buyer_missing', TAKA_Ticketing_Module::text( 'ticketing.error_buyer_missing', 'Please complete all required buyer fields.', $lang ) );
 			}
 		}
 		if ( ! is_email( $buyer['email'] ) ) {
-			return new WP_Error( 'taka_ticketing_buyer_email', __( 'Please enter a valid buyer email address.', 'taka-platform' ) );
+			return new WP_Error( 'taka_ticketing_buyer_email', TAKA_Ticketing_Module::text( 'ticketing.error_buyer_email', 'Please enter a valid buyer email address.', $lang ) );
 		}
 		if ( ! $participant_is_buyer ) {
 			foreach ( array( 'first_name', 'last_name', 'country' ) as $field ) {
 				if ( '' === trim( (string) ( $participant[ $field ] ?? '' ) ) ) {
-					return new WP_Error( 'taka_ticketing_participant_missing', __( 'Please complete all required participant fields.', 'taka-platform' ) );
+					return new WP_Error( 'taka_ticketing_participant_missing', TAKA_Ticketing_Module::text( 'ticketing.error_participant_missing', 'Please complete all required participant fields.', $lang ) );
 				}
 			}
 			if ( '' !== trim( (string) ( $participant['email'] ?? '' ) ) && ! is_email( $participant['email'] ) ) {
-				return new WP_Error( 'taka_ticketing_participant_email', __( 'Please enter a valid participant email address.', 'taka-platform' ) );
+				return new WP_Error( 'taka_ticketing_participant_email', TAKA_Ticketing_Module::text( 'ticketing.error_participant_email', 'Please enter a valid participant email address.', $lang ) );
 			}
 		}
 		return true;
+	}
+
+	private static function country_from_post( $value ) {
+		return TAKA_Platform_Data::normalize_event_option_value( 'country', sanitize_text_field( $value ) );
+	}
+
+	private static function language_from_post( $posted ) {
+		$lang = sanitize_key( $posted['language'] ?? '' );
+		return in_array( $lang, TAKA_Platform_Data::content_section_languages(), true ) ? $lang : taka_tour_current_language();
 	}
 
 	private static function generate_order_number() {

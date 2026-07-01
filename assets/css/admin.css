@@ -156,6 +156,48 @@
 	padding: 12px;
 }
 
+.taka-ticketing-settings {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	margin: 16px 0 20px;
+	padding: 14px;
+}
+
+.taka-ticketing-settings__grid {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	margin-top: 12px;
+}
+
+.taka-ticketing-settings__panel {
+	border: 1px solid #dcdcde;
+	padding: 12px;
+}
+
+.taka-ticketing-settings__panel h3 {
+	margin: 0 0 10px;
+}
+
+.taka-ticketing-settings__panel label {
+	display: grid;
+	gap: 4px;
+	margin-bottom: 8px;
+}
+
+.taka-ticketing-settings__panel span {
+	color: #646970;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+}
+
+.taka-ticketing-settings__panel input {
+	max-width: 100%;
+	width: 100%;
+}
+
 .taka-ticketing-admin-actions {
 	display: flex;
 	flex-wrap: wrap;

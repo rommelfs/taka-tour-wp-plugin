@@ -3584,6 +3584,9 @@ class TAKA_Platform_Data {
 			'events' => self::load_events_from_wp(),
 			'content_sections' => array_values( self::get_content_sections( false ) ),
 		);
+		if ( class_exists( 'TAKA_Ticketing_Module' ) ) {
+			$export['ticketing'] = TAKA_Ticketing_Module::ticketing_settings();
+		}
 		if ( class_exists( 'TAKA_Platform_Tour_Planning' ) ) {
 			$export['private_tour_planning'] = TAKA_Platform_Tour_Planning::export_items();
 		}

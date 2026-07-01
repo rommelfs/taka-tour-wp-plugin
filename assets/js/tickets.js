@@ -71,12 +71,39 @@
 
 	function syncParticipantFields(root) {
 		var checkbox = root.querySelector('[data-taka-participant-self]');
-		var fields = root.querySelector('[data-taka-participant-fields]');
+		var fields = root.querySelector('[data-taka-participant-identity-fields]');
 		if (!checkbox || !fields) {
 			return;
 		}
+		if (checkbox.checked) {
+			copyBuyerToParticipant(root);
+		}
 		fields.hidden = checkbox.checked;
 		refreshCheckoutReview(root);
+	}
+
+	function copyBuyerToParticipant(root) {
+		[
+			['buyer_first_name', 'participant_first_name'],
+			['buyer_last_name', 'participant_last_name'],
+			['buyer_email', 'participant_email'],
+			['buyer_country', 'participant_country']
+		].forEach(function (pair) {
+			var source = root.querySelector('[name="' + pair[0] + '"]');
+			var target = root.querySelector('[name="' + pair[1] + '"]');
+			if (source && target) {
+				target.value = source.value;
+			}
+		});
+	}
+
+	function syncDietaryNote(root) {
+		var select = root.querySelector('[data-taka-dietary-preference]');
+		var noteWrap = root.querySelector('[data-taka-dietary-note-wrap]');
+		if (!select || !noteWrap) {
+			return;
+		}
+		noteWrap.hidden = 'other' !== select.value;
 	}
 
 	function fieldValue(root, name) {
@@ -118,6 +145,7 @@
 
 	document.querySelectorAll('[data-taka-native-checkout]').forEach(function (root) {
 		syncParticipantFields(root);
+		syncDietaryNote(root);
 		refreshCheckoutReview(root);
 	});
 	document.addEventListener('change', function (event) {
@@ -127,13 +155,22 @@
 		}
 		if (event.target.matches('[data-taka-participant-self]')) {
 			syncParticipantFields(root);
+		} else if (event.target.matches('[data-taka-dietary-preference]')) {
+			syncDietaryNote(root);
+			refreshCheckoutReview(root);
 		} else {
+			if (root.querySelector('[data-taka-participant-self]:checked')) {
+				copyBuyerToParticipant(root);
+			}
 			refreshCheckoutReview(root);
 		}
 	});
 	document.addEventListener('input', function (event) {
 		var root = event.target.closest('[data-taka-native-checkout]');
 		if (root) {
+			if (root.querySelector('[data-taka-participant-self]:checked')) {
+				copyBuyerToParticipant(root);
+			}
 			refreshCheckoutReview(root);
 		}
 	});

@@ -137,7 +137,7 @@ Administrators receive these capabilities. Later phases can assign subsets to ti
 
 WordPress export data includes native ticket type configuration as `native_ticket_types` on each event. Import restores the same data into `_taka_native_ticket_types`.
 
-No private order or participant data exists in Phase 1.
+The export also includes the global `ticketing` settings block for native checkout consent labels, booking terms URL and privacy notice URL. Private order and participant records are intentionally not included in the public config export.
 
 ## Phase 2 Scope
 
@@ -145,13 +145,14 @@ Phase 2 adds:
 
 - Public native checkout rendering for Events using `native_taka_ticketing`.
 - Ticket type selection with capacity display.
-- Buyer information capture.
-- Participant information capture with buyer-is-participant default.
+- Buyer information capture with country select options.
+- Participant information capture with buyer-is-participant default, optional dojo/rank details and dietary preference select options.
 - Payment method selection.
+- Required booking terms and privacy notice checkboxes with configurable links.
 - Pending order creation.
 - Participant reservation and capacity checks.
 - Confirmation screen with payment instructions.
-- Confirmation email to the buyer.
+- Localized confirmation email to the buyer.
 - New order email notification to administrators.
 - Private admin order list and detail view under TAKA Platform -> Ticketing.
 - Mark paid, cancel and delete actions for privileged users.
