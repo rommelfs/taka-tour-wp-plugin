@@ -11,12 +11,14 @@
 defined( 'ABSPATH' ) || exit;
 
 class TAKA_Platform_Tour_Planning {
+	const PAGE_SLUG = 'taka-platform-tour-planning';
 	const NONCE = 'taka_platform_tour_planning_nonce';
 	const CONFIG_META = '_taka_planning_config_id';
+	private static $menu_registered = false;
 
 	/** Register admin hooks for the private planning module. */
 	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ), 20 );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post_' . TAKA_PLATFORM_CPT_TOUR_PLANNING, array( __CLASS__, 'save_item' ) );
 		add_filter( 'map_meta_cap', array( __CLASS__, 'map_meta_caps' ), 10, 4 );
@@ -52,14 +54,47 @@ class TAKA_Platform_Tour_Planning {
 
 	/** Register a dedicated private agenda page under TAKA Platform. */
 	public static function register_menu() {
+		if ( self::$menu_registered ) {
+			return;
+		}
+		self::$menu_registered = true;
+
 		add_submenu_page(
 			'taka-platform',
 			__( 'Tour Planning', 'taka-platform' ),
 			__( 'Tour Planning', 'taka-platform' ),
 			'view_taka_tour_planning',
-			'taka-platform-tour-planning',
+			self::PAGE_SLUG,
 			array( __CLASS__, 'render_agenda_page' )
 		);
+	}
+
+	/** Canonical WordPress admin URL for the private agenda page. */
+	public static function admin_url( $args = array() ) {
+		return add_query_arg(
+			array_merge(
+				array( 'page' => self::PAGE_SLUG ),
+				(array) $args
+			),
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/** Redirect the common mistaken pretty admin path to the canonical admin.php?page URL. */
+	public static function maybe_redirect_legacy_admin_path() {
+		$path = rawurldecode( (string) wp_parse_url( (string) ( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH ) );
+		if ( ! preg_match( '#/wp-admin/' . preg_quote( self::PAGE_SLUG, '#' ) . '/?$#', $path ) ) {
+			return;
+		}
+		if ( ! is_user_logged_in() ) {
+			auth_redirect();
+			exit;
+		}
+		if ( ! current_user_can( 'view_taka_tour_planning' ) && ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You are not allowed to view private tour planning.', 'taka-platform' ) );
+		}
+		wp_safe_redirect( self::admin_url(), 301 );
+		exit;
 	}
 
 	/** Ensure platform admins and explicit tour planners receive the right caps. */
@@ -67,6 +102,7 @@ class TAKA_Platform_Tour_Planning {
 		$planner_caps = array(
 			'read',
 			'upload_files',
+			'access_taka_platform_admin',
 			'view_taka_tour_planning',
 			'edit_taka_tour_planning',
 			'edit_assigned_taka_tour_planning',
@@ -121,6 +157,7 @@ class TAKA_Platform_Tour_Planning {
 	private static function administrator_capabilities() {
 		return array(
 			'manage_taka_tour_planning',
+			'access_taka_platform_admin',
 			'view_taka_tour_planning',
 			'edit_taka_tour_planning',
 			'edit_assigned_taka_tour_planning',
@@ -393,6 +430,12 @@ class TAKA_Platform_Tour_Planning {
 			<?php endif; ?>
 
 			<?php self::render_agenda_filters( $filters ); ?>
+
+			<?php if ( empty( $items ) ) : ?>
+				<div class="notice notice-info inline">
+					<p><?php echo esc_html__( 'No private tour planning items exist for the current filters yet.', 'taka-platform' ); ?></p>
+				</div>
+			<?php endif; ?>
 
 			<?php if ( 'costs' === $view ) : ?>
 				<?php self::render_cost_overview( $items ); ?>
@@ -684,7 +727,7 @@ class TAKA_Platform_Tour_Planning {
 	private static function render_agenda_filters( $filters ) {
 		?>
 		<form method="get" class="taka-tour-planning-filters">
-			<input type="hidden" name="page" value="taka-platform-tour-planning">
+			<input type="hidden" name="page" value="<?php echo esc_attr( self::PAGE_SLUG ); ?>">
 			<label><?php echo esc_html__( 'Tour', 'taka-platform' ); ?><br><input type="text" name="tour_key" value="<?php echo esc_attr( $filters['tour_key'] ?? '' ); ?>"></label>
 			<label><?php echo esc_html__( 'From', 'taka-platform' ); ?><br><input type="date" name="date_from" value="<?php echo esc_attr( $filters['date_from'] ?? '' ); ?>"></label>
 			<label><?php echo esc_html__( 'To', 'taka-platform' ); ?><br><input type="date" name="date_to" value="<?php echo esc_attr( $filters['date_to'] ?? '' ); ?>"></label>
@@ -793,7 +836,7 @@ class TAKA_Platform_Tour_Planning {
 		if ( current_user_can( 'edit_taka_tour_planning' ) ) {
 			echo '<a class="button" href="' . esc_url( $add_url ) . '">' . esc_html__( 'Add planning item for this event', 'taka-platform' ) . '</a> ';
 		}
-		echo '<a class="button" href="' . esc_url( admin_url( 'admin.php?page=taka-platform-tour-planning' ) ) . '">' . esc_html__( 'Open Tour Planning agenda', 'taka-platform' ) . '</a></p>';
+		echo '<a class="button" href="' . esc_url( self::admin_url() ) . '">' . esc_html__( 'Open Tour Planning agenda', 'taka-platform' ) . '</a></p>';
 		if ( empty( $items ) ) {
 			echo '<p class="description">' . esc_html__( 'No private planning items are linked to this event yet.', 'taka-platform' ) . '</p>';
 			return;

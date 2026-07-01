@@ -9,6 +9,7 @@ class TAKA_Platform_Admin {
 	const NONCE = 'taka_tour_admin_nonce';
 	const IMPORT_NONCE = 'taka_tour_import_export_nonce';
 	const MEDIA_OPTION = 'taka_tour_media_settings';
+	const PLATFORM_ADMIN_CAP = 'access_taka_platform_admin';
 
 	/** Register admin hooks. */
 	public static function init() {
@@ -151,6 +152,7 @@ class TAKA_Platform_Admin {
 		$editor_caps = array(
 			'read',
 			'upload_files',
+			self::PLATFORM_ADMIN_CAP,
 		);
 		foreach ( self::managed_post_type_cap_bases() as $base ) {
 			$editor_caps = array_merge(
@@ -198,7 +200,7 @@ class TAKA_Platform_Admin {
 
 		$role = get_role( 'administrator' );
 		if ( ! $role ) { return; }
-		foreach ( array_merge( array( 'manage_taka_tour', 'edit_taka_organizer_profile', 'upload_files' ), self::administrator_caps() ) as $cap ) {
+		foreach ( array_merge( array( self::PLATFORM_ADMIN_CAP, 'manage_taka_tour', 'edit_taka_organizer_profile', 'upload_files' ), self::administrator_caps() ) as $cap ) {
 			$role->add_cap( $cap );
 		}
 	}
@@ -256,10 +258,13 @@ class TAKA_Platform_Admin {
 
 	/** Register menu pages. */
 	public static function register_menu() {
-		add_menu_page( __( 'TAKA Platform', 'taka-platform' ), __( 'TAKA Platform', 'taka-platform' ), 'edit_taka_events', 'taka-platform', array( __CLASS__, 'render_dashboard' ), 'dashicons-tickets-alt', 28 );
+		add_menu_page( __( 'TAKA Platform', 'taka-platform' ), __( 'TAKA Platform', 'taka-platform' ), self::PLATFORM_ADMIN_CAP, 'taka-platform', array( __CLASS__, 'render_dashboard' ), 'dashicons-tickets-alt', 28 );
 		add_submenu_page( 'taka-platform', __( 'Dashboard', 'taka-platform' ), __( 'Dashboard', 'taka-platform' ), 'edit_taka_events', 'taka-platform', array( __CLASS__, 'render_dashboard' ) );
 		if ( class_exists( 'TAKA_Platform_Admin_Event_Assistant' ) ) {
 			TAKA_Platform_Admin_Event_Assistant::register_menu();
+		}
+		if ( class_exists( 'TAKA_Platform_Tour_Planning' ) ) {
+			TAKA_Platform_Tour_Planning::register_menu();
 		}
 		add_submenu_page( 'taka-platform', __( 'Media', 'taka-platform' ), __( 'Media', 'taka-platform' ), 'manage_options', 'taka-tour-media', array( __CLASS__, 'render_media' ) );
 		add_submenu_page( 'taka-platform', __( 'Content Sections', 'taka-platform' ), __( 'Content Sections', 'taka-platform' ), 'manage_options', 'taka-platform-content-sections', array( __CLASS__, 'render_content_sections' ) );
@@ -413,7 +418,21 @@ class TAKA_Platform_Admin {
 
 	/** Render dashboard. */
 	public static function render_dashboard() {
-		if ( ! current_user_can( 'edit_taka_events' ) ) { return; }
+		if ( ! current_user_can( 'edit_taka_events' ) ) {
+			if ( class_exists( 'TAKA_Platform_Tour_Planning' ) && current_user_can( 'view_taka_tour_planning' ) ) {
+				?>
+				<div class="wrap">
+					<h1><?php echo esc_html__( 'TAKA Platform', 'taka-platform' ); ?></h1>
+					<?php self::admin_section_open( __( 'Tour Planning', 'taka-platform' ), __( 'Private logistical agenda for privileged tour planners.', 'taka-platform' ), true, 'taka-admin-section--essential', 'dashboard-tour-planning' ); ?>
+					<p><?php echo esc_html__( 'Use the private Tour Planning agenda to manage accommodation, transfers, meals, responsibilities and internal tour logistics.', 'taka-platform' ); ?></p>
+					<p><a class="button button-primary" href="<?php echo esc_url( TAKA_Platform_Tour_Planning::admin_url() ); ?>"><?php echo esc_html__( 'Open Tour Planning', 'taka-platform' ); ?></a></p>
+					<?php self::admin_section_close(); ?>
+				</div>
+				<?php
+				return;
+			}
+			wp_die( esc_html__( 'You are not allowed to access the TAKA Platform admin area.', 'taka-platform' ) );
+		}
 		if ( ! current_user_can( 'manage_options' ) ) {
 			$organizers = self::get_current_user_organizer_ids();
 			$event_ids  = self::accessible_post_ids_for_user( TAKA_PLATFORM_CPT_EVENT, get_current_user_id(), 'edit' );
