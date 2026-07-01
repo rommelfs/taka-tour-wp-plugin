@@ -187,6 +187,15 @@ class TAKA_People_Person_Repository {
 					$person['style'],
 					$person['rank'],
 					implode( ' ', (array) $person['tags'] ),
+					implode(
+						' ',
+						array_map(
+							static function ( $relationship ) {
+								return implode( ' ', array( $relationship['type'] ?? '', $relationship['label'] ?? '', $relationship['notes'] ?? '' ) );
+							},
+							(array) ( $person['relationships'] ?? array() )
+						)
+					),
 				)
 			)
 		);

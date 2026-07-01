@@ -949,6 +949,39 @@ body.taka-operations-volunteer-mode #wpbody-content {
 	min-width: min(420px, 100%);
 }
 
+.taka-people-dashboard {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	margin: 16px 0;
+}
+
+.taka-people-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 14px;
+}
+
+.taka-people-card span {
+	color: #50575e;
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.taka-people-card strong {
+	display: block;
+	font-size: 22px;
+	line-height: 1.3;
+	margin-top: 6px;
+}
+
+.taka-people-profile-tabs {
+	margin: 16px 0;
+}
+
 .taka-people-profile-grid,
 .taka-people-history {
 	display: grid;
@@ -973,8 +1006,33 @@ body.taka-operations-volunteer-mode #wpbody-content {
 .taka-people-profile-grid textarea,
 .taka-people-profile-grid select,
 .taka-people-profile-grid input[type="text"],
-.taka-people-profile-grid input[type="email"] {
+.taka-people-profile-grid input[type="email"],
+.taka-people-profile-grid input[type="date"] {
 	width: 100%;
+}
+
+.taka-people-relationship-row {
+	display: grid;
+	gap: 8px;
+	grid-template-columns: minmax(140px, 0.8fr) minmax(160px, 1fr) minmax(160px, 1fr);
+	margin-bottom: 8px;
+}
+
+.taka-people-relationship-row input,
+.taka-people-relationship-row select {
+	width: 100%;
+}
+
+.taka-people-ranked-list,
+.taka-people-timeline,
+.taka-people-relationship-list {
+	margin-left: 20px;
+}
+
+.taka-people-privacy-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
 }
 
 .taka-ticketing-admin-actions {

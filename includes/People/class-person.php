@@ -35,6 +35,8 @@ class TAKA_People_Person {
 			'allergies'          => sanitize_textarea_field( $data['allergies'] ?? '' ),
 			'notes'              => sanitize_textarea_field( $data['notes'] ?? '' ),
 			'tags'               => self::normalize_tags( $data['tags'] ?? array() ),
+			'relationships'      => self::normalize_relationships( $data['relationships'] ?? array() ),
+			'birth_date'         => self::normalize_date( $data['birth_date'] ?? '' ),
 			'gdpr_consent'       => ! empty( $data['gdpr_consent'] ) ? '1' : '0',
 			'newsletter_consent' => ! empty( $data['newsletter_consent'] ) ? '1' : '0',
 			'created_at'         => sanitize_text_field( $data['created_at'] ?? '' ),
@@ -96,6 +98,34 @@ class TAKA_People_Person {
 		$tags = array_map( 'sanitize_text_field', (array) $tags );
 		$tags = array_filter( array_map( 'trim', $tags ) );
 		return array_values( array_unique( $tags ) );
+	}
+
+	public static function normalize_relationships( $relationships ) {
+		$out = array();
+		foreach ( (array) $relationships as $relationship ) {
+			if ( ! is_array( $relationship ) ) {
+				continue;
+			}
+			$type = sanitize_key( $relationship['type'] ?? '' );
+			$label = sanitize_text_field( $relationship['label'] ?? '' );
+			$notes = sanitize_text_field( $relationship['notes'] ?? '' );
+			if ( '' === $type && '' === $label && '' === $notes ) {
+				continue;
+			}
+			$out[] = array(
+				'type'              => '' !== $type ? $type : 'other',
+				'label'             => $label,
+				'related_person_id' => absint( $relationship['related_person_id'] ?? 0 ),
+				'related_object_id' => absint( $relationship['related_object_id'] ?? 0 ),
+				'notes'             => $notes,
+			);
+		}
+		return $out;
+	}
+
+	private static function normalize_date( $date ) {
+		$date = sanitize_text_field( $date );
+		return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $date ) ? $date : '';
 	}
 
 	private static function normalize_country( $country ) {
